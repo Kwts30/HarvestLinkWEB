@@ -318,10 +318,16 @@ body {
 
 .hero-content {
     position: relative;
-    z-index: 2;
-    padding-left: 30%;
-    width: 55%;
-    margin-top: 40vh;
+    z-index: 3;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    text-align: center;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
 }
 
 .hero-content h1 {
@@ -332,7 +338,7 @@ body {
     font-weight: bold;
     letter-spacing: 3px;
     line-height: 1;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .hero-content h2 {
@@ -361,15 +367,17 @@ body {
 
 .farmers-image {
     position: absolute;
-    right: 0;
+    left: 50%;
     bottom: 0;
-    width: 55%;
-    height: 90%;
+    width: 100%;
+    height: 60%;
     background-image: url('assets/homepage/farmers.png');
     background-size: contain;
-    background-position: bottom right;
+    background-position: bottom center;
     background-repeat: no-repeat;
     z-index: 2;
+    transform: translateX(-50%);
+    opacity: 0.9;
 }
 
 .shop-btn {
@@ -401,42 +409,101 @@ body {
 }
 
 @media (max-width: 1400px) {
-    .hero-content h1 {
-        font-size: 6rem;
+    .hero-content {
+        margin-top: 32vh;
     }
-    .hero-content h2 {
-        font-size: 4.5rem;
-    }
-}
-
-@media (max-width: 1024px) {
     .hero-content h1 {
         font-size: 5rem;
     }
     .hero-content h2 {
         font-size: 3.5rem;
     }
+}
+
+@media (max-width: 1024px) {
+    .hero-content {
+        margin-top: 0vh;
+    }
+    .hero-content h1 {
+        font-size: 6rem;
+    }
+    .hero-content h2 {
+        font-size: 5rem;
+    }
     .farmers-image {
-        width: 60%;
+        width: 100%;
+    }
+    .shop-btn {
+        padding: 20px 50px;
+        font-size: 1.2rem;
     }
 }
 
 @media (max-width: 768px) {
     .hero-content {
+        padding: 0 15px;
         width: 90%;
-        padding-left: 5%;
-        text-align: center;
+        top: 35%;
     }
     .hero-content h1 {
-        font-size: 4rem;
+        font-size: 3.5rem;
+        letter-spacing: 2px;
     }
     .hero-content h2 {
-        font-size: 3rem;
+        font-size: 2.4rem;
+        margin-bottom: 2rem;
     }
     .farmers-image {
-        width: 100%;
+        width: 130%;
         height: 50%;
-        opacity: 0.8;
+        opacity: 0.7;
+    }
+    .shop-btn {
+        padding: 10px 30px;
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-content {
+        padding: 0 10px;
+        top: 40%;
+    }
+    .hero-content h1 {
+        font-size: 2.8rem;
+        letter-spacing: 1px;
+    }
+    .hero-content h2 {
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+        letter-spacing: 1px;
+    }
+    .farmers-image {
+        height: 40%;
+    }
+    .shop-btn {
+        padding: 8px 25px;
+        font-size: 1rem;
+    }
+    .shop-btn img {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+@media (max-width: 360px) {
+    .hero-content {
+        top: 40%;
+    }
+    .hero-content h1 {
+        font-size: 2.2rem;
+    }
+    .hero-content h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1.2rem;
+    }
+    .farmers-image {
+        height: 38%;
     }
 }
 
