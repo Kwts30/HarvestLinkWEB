@@ -1,14 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+<!-- 
+=================================
+    HEAD SECTION
+    - Meta tags
+    - Title
+    - CSS and JS links
+    - Favicon
+    - googlefonts
+=================================
+-->
+<head>    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HarvestLink</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
     <link rel="icon" href="assets/homepage/HarvestLink_Logo_Design-removebg-preview.png" type="image/x-icon">
 </head>
-<body>    <header>
+<body>
+    <!-- 
+    =================================
+        HEADER SECTION
+        - Navigation Bar
+        - Logo
+        - Hamburger Menu
+    =================================
+    -->
+    <header>
         <nav class="navbar">
             <div class="nav-left">
                 <h1>HARVESTLINK</h1>
@@ -32,23 +54,50 @@
                 <li><a href="#" class="shop-link">Shop</a></li>
                 <li><a href="contact.html">Contact</a></li>
             </ul>
-        </div>
-    </header><main>        <section class="hero">            <div class="hero-content">
+        </div>    </header>
+
+    <!-- 
+    =================================
+        MAIN CONTENT SECTION
+    =================================
+    -->
+    <main>
+        <!-- 
+        -------------------------------
+            HERO SECTION
+            - Main Heading
+            - Shop Button
+            - Background Images
+        -------------------------------
+        -->
+        <section class="hero">
+            <div class="hero-content">
                 <h1>HARVESTLINK</h1>
-                <h2>INCORPORATED</h2>
+                <h2>INC.</h2>
                 <a href="#" class="shop-btn">
                     <img src="assets/homepage/shopping-cart (1).png" alt="Cart Icon">
                     SHOP
                 </a>
-            </div>            <div class="background-image"></div>
-            <div class="farmers-image"></div>
+            </div>            
+            <div class="background-image"></div>
+            <div class="farmers-image"></div>        
         </section>
 
-        <section class="info-section">            <div class="image-background">
+        <!-- 
+        -------------------------------
+            INFO SECTION
+            - Company Introduction
+            - Mission Statement
+            - Background Image
+        -------------------------------
+        -->
+        <section class="info-section">
+            <div class="image-background">
                 <img src="assets/homepage/Matutum.jpg" alt="Farm Background">
             </div>
             <div class="info-content">
-                <h2>BRIDGING THE GAP FOR A <span class="highlight">FRESHER FUTURE</span></h2>                <p>
+                <h2>BRIDGING THE GAP FOR A <span class="highlight">FRESHER FUTURE</span></h2>
+                <p>
                     HarvestLink.inc was born from a desire to directly connect farmers in 
                     Region 11 (Davao Region) with consumers seeking fresh, local 
                     produce. We aim to solve the challenge where middlemen reduce 
@@ -59,10 +108,18 @@
                     farmers and community, starting in key areas of Region 11 and 
                     expanding to Region 12 (SOCCSKSARGEN).
                 </p>
-            </div>
-        </section>
+            </div>        </section>
 
-        <section class="purpose-section">            <div class="image-background">
+        <!-- 
+        -------------------------------
+            PURPOSE SECTION
+            - Company Purpose
+            - Vision Statement
+            - Background Image
+        -------------------------------
+        -->
+        <section class="purpose-section">
+            <div class="image-background">
                 <img src="assets/homepage/Matutum.jpg" alt="Purpose Background">
             </div>
             <div class="purpose-content">
@@ -77,23 +134,42 @@
                     benefits everyone, creating a stronger, healthier, and more 
                     resilient local food economy.
                 </p>
-            </div>
-        </section>
+            </div>        </section>
 
-        <section class="testimonials-section">            <div class="image-background">
+        <!-- 
+        -------------------------------
+            TESTIMONIALS SECTION
+            - Farmer Success Stories
+            - Testimonial Slider
+            - Impact Statistics
+        -------------------------------
+        -->
+        <section class="testimonials-section">
+            <div class="image-background">
                 <img src="assets/homepage/Matutum.jpg" alt="Testimonials Background">
+                <div class="overlay"></div>
             </div>
-            <h2>FARMER TESTIMONIALS</h2>
+            <h2>FARMER SUCCESS STORIES</h2>
+            <p class="section-subtitle">Real experiences from our farming partners</p>
             <div class="testimonials-container">
-                <div class="testimonial-slide">                    <div class="testimonial-content">
+                <div class="testimonial-slide">
+                    <div class="testimonial-content">
                         <div class="testimonial-image-container">
                             <img src="assets/homepage/ChatGPT_Image_Jun_3__2025__05_05_51_PM-removebg-preview.png" alt="Farmer Juan dela Cruz">
+                            <div class="farmer-info">
+                                <span class="farmer-specialty">Rice Farming</span>
+                                <span class="farmer-location">Davao</span>
+                            </div>
                         </div>
                         <div class="testimonial-text">
                             <blockquote>
-                                "HarvestLink has changed my life! I now get better prices for my produce and can connect directly with buyers. It's made farming more sustainable for my family."
+                                "Through HarvestLink, my rice farm's income increased by 40%. Direct consumer connections mean better prices and sustainable farming for my family."
                             </blockquote>
-                            <cite>- Juan dela Cruz, Rice Farmer from Davao</cite>
+                            <cite>Juan dela Cruz</cite>
+                            <div class="impact-stats">
+                                <span>✓ 40% Income Increase</span>
+                                <span>✓ 500+ Direct Customers</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -101,12 +177,20 @@
                     <div class="testimonial-content">
                         <div class="testimonial-image-container">
                             <img src="assets/homepage/ChatGPT_Image_Jun_3__2025__05_05_51_PM-removebg-preview.png" alt="Farmer Maria Santos">
+                            <div class="farmer-info">
+                                <span class="farmer-specialty">Organic Vegetables</span>
+                                <span class="farmer-location">Tagum</span>
+                            </div>
                         </div>
                         <div class="testimonial-text">
                             <blockquote>
-                                "Thanks to HarvestLink, I can now sell my vegetables directly to consumers. The platform is easy to use and has helped increase my income significantly."
+                                "As an organic vegetable farmer, finding the right market was challenging. HarvestLink connected me with customers who value quality produce."
                             </blockquote>
-                            <cite>- Maria Santos, Vegetable Farmer from Tagum</cite>
+                            <cite>Maria Santos</cite>
+                            <div class="impact-stats">
+                                <span>✓ 60% Less Waste</span>
+                                <span>✓ 300+ Regular Buyers</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -114,21 +198,72 @@
                     <div class="testimonial-content">
                         <div class="testimonial-image-container">
                             <img src="assets/homepage/ChatGPT_Image_Jun_3__2025__05_05_51_PM-removebg-preview.png" alt="Farmer Pedro Reyes">
+                            <div class="farmer-info">
+                                <span class="farmer-specialty">Fruit Orchards</span>
+                                <span class="farmer-location">Digos</span>
+                            </div>
                         </div>
                         <div class="testimonial-text">
                             <blockquote>
-                                "Being part of HarvestLink has given me access to a wider market. I appreciate how they value us farmers and help us get fair prices for our produce."
+                                "Managing a fruit orchard requires perfect timing. HarvestLink's platform helps me plan harvests and reach customers at the right moment."
                             </blockquote>
-                            <cite>- Pedro Reyes, Fruit Farmer from Digos</cite>
+                            <cite>Pedro Reyes</cite>
+                            <div class="impact-stats">
+                                <span>✓ 45% Better Prices</span>
+                                <span>✓ 80% Less Spoilage</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="testimonial-controls">
-                <button class="prev-btn">❮</button>
+                <button class="prev-btn" aria-label="Previous testimonial">❮</button>
                 <div class="testimonial-dots"></div>
-                <button class="next-btn">❯</button>
+                <button class="next-btn" aria-label="Next testimonial">❯</button>
             </div>
-        </section>
+        </section>    
     </main>
+
+    <!-- 
+    =================================
+        BACK TO TOP BUTTON
+    =================================
+    -->
+    <button id="back-to-top" title="Back to Top">↑</button>
+
+    <!-- 
+    =================================
+        FOOTER SECTION 
+        - Social Media Links
+        - Contact Information
+        - Copyright Notice
+    =================================
+    -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <div class="social-links">
+                    <a href="https://facebook.com/harvestlink" target="_blank" class="social-link">
+                        <img src="assets/homepage/facebook.png" alt="Facebook">
+                        Facebook
+                    </a>
+                    <a href="https://instagram.com/harvestlink" target="_blank" class="social-link">
+                        <img src="assets/homepage/instagram.png" alt="Instagram">
+                        Instagram
+                    </a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <p>Email: info@harvestlink.com</p>
+                <p>Phone: +63 912 345 6789</p>
+                <p>Address: Davao City, Philippines</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 HarvestLink Incorporated. All rights reserved.</p>
+        </div>
+    </footer>
 </body>
 </html>
