@@ -22,28 +22,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const hamburger = document.querySelector('.hamburger');
     const hamburgerMenu = document.querySelector('.hamburger-menu');
     const navOverlay = document.querySelector('.nav-overlay');
-    
-    hamburgerMenu.addEventListener('click', () => {
-        hamburger.classList.toggle('active');
+    const closeMenu = document.querySelector('.close-menu');
+    const navLinks = document.querySelectorAll('.nav-links a');
+      const navbar = document.querySelector('.navbar');
+
+    // Toggle menu on hamburger click
+    hamburger.addEventListener('click', function() {
+        this.classList.toggle('active');
         navOverlay.classList.toggle('active');
-    });
-
-    // Close menu when clicking a link
-    document.querySelectorAll('.nav-links a').forEach(link => {
-        link.addEventListener('click', () => {
-            navOverlay.classList.remove('active');
-            hamburgerLines.forEach(line => {
-                line.classList.remove('rotate-45', 'opacity-0', 'rotate--45');
-            });
-        });
-    });
-
-    // Close menu when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
+        document.body.style.overflow = navOverlay.classList.contains('active') ? 'hidden' : '';
+        navbar.style.opacity = navOverlay.classList.contains('active') ? '0' : '1';
+        navbar.style.visibility = navOverlay.classList.contains('active') ? 'hidden' : 'visible';
+    });    // Close menu on close button click
+    closeMenu.addEventListener('click', function() {
+        hamburger.classList.remove('active');
+        navOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+        navbar.style.opacity = '1';
+        navbar.style.visibility = 'visible';
+    });    // Close menu when clicking a link
+    navLinks.forEach(link => {
+        link.addEventListener('click', function() {
             hamburger.classList.remove('active');
-            navLinks.classList.remove('active');
-        }
+            navOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+            navbar.style.opacity = '1';
+            navbar.style.visibility = 'visible';
+        });
     });
 
     // Animate hero content on page load
