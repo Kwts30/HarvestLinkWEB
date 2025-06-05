@@ -1,0 +1,199 @@
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    body {
+      background: url('https://media.discordapp.net/attachments/935772282574483466/1380143789607485480/d90eb006-c104-4a7f-be6b-d75e1dc81146.png?ex=6842ce91&is=68417d11&hm=5603c9071f0e54bffcf0277c17e3bb7bfa82ba7a72c2177bd1ba48f5b74a1882&=&format=webp&quality=lossless&width=1014&height=676') no-repeat center center/cover;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      border-bottom-left-radius: 40px;
+      border-bottom-right-radius: 40px;
+    }
+
+    header .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #BF6B04;
+    }
+
+    header .menu {
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .form-container {
+      margin: auto;
+      background-color: rgba(0, 0, 0, 0.6);
+      padding: 40px;
+      border-radius: 16px;
+      max-width: 900px;
+      width: 90%;
+      color: white;
+    }
+
+    .form-container h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .form-container p {
+      font-size: 16px;
+      margin-bottom: 30px;
+      color: #ccc;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .form-row input {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background-color: rgba(255, 255, 255, 0.8);
+    }
+
+    .signup-btn {
+      background-color: #BF6B04;
+      color: white;
+      padding: 12px 32px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    .social-buttons {
+      margin-top: 20px;
+    }
+
+    .social-button {
+      display: flex;
+      align-items: center;
+      margin: 10px 0;
+      background-color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .social-button img {
+      height: 20px;
+      margin-right: 10px;
+    }
+
+    .facebook {
+      background-color: #3b5998;
+      color: white;
+    }
+
+
+    .footer {
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    .footer a {
+      color: #FF9900;
+      text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+      .form-row {
+        flex-direction: column;
+      }
+    }
+
+    /* Hamburger Menu */
+.hamburger {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.line {
+    width: 25px;
+    height: 2px;
+    background-color: #333;
+    transition: 0.3s;
+}
+
+/* Navigation Overlay */
+.nav-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    z-index: 2000;
+    display: none;
+    padding: 2rem;
+}
+
+.nav-overlay.active {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-menu {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+.nav-logo {
+    margin-bottom: 2rem;
+}
+
+.nav-logo img {
+    height: 60px;
+}
+
+.nav-links {
+    list-style: none;
+    text-align: center;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #333;
+    font-size: 1.5rem;
+    display: block;
+    padding: 1rem;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    color: #4CAF50;
+}
