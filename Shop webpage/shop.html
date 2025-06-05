@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HarvestLink - Shop</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shop.css">
+    <script src="shop.js" defer></script>
+    <link rel="icon" href="../assets/homepage/harvestlink logo.png" type="image/x-icon">
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <nav class="navbar">
+            <div class="nav-left">
+                <h1>HARVESTLINK</h1>
+            </div>
+            <div class="nav-center">
+                <div class="logo-circle">
+                    <img src="../assets/homepage/harvestlink logo.png" alt="HarvestLink Logo">
+                </div>
+            </div>
+            <div class="nav-right">
+                <div class="cart-icon">
+                    <img src="../assets/shop/shopping-cart.png" alt="Cart">
+                    <span class="cart-count">0</span>
+                </div>
+                <div class="hamburger-menu">
+                    <div class="hamburger">
+                        <div class="line line1"></div>
+                        <div class="line line2"></div>
+                        <div class="line line3"></div>
+                    </div>
+                </div>
+            </div>
+        </nav>        
+        <div class="nav-overlay">
+            <button class="close-menu">×</button>
+            <div class="nav-logo">
+                <img src="../assets/homepage/harvestlink logo full.png" alt="HarvestLink Logo">
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="shop.html" class="active">Shop</a></li>
+                <li><a href="../Contacts webpage/contacts.html">Contact</a></li>
+            </ul>
+        </div>    
+    </header>
+
+    <!-- Main Content -->
+    <main class="shop-main">
+        <!-- Shop Hero Section -->
+        <section class="shop-hero">
+            <h1>Our Products</h1>
+            <p>Fresh from local farmers to your table</p>
+        </section>
+
+        <!-- Products Section -->
+        <section class="products-section">
+            <div class="product-grid">
+                <!-- Product Cards -->
+                <div class="product-card">
+                    <div class="product-image-container">
+                        <img src="../assets/shop/tomatoes.png" alt="Fresh Tomatoes" class="product-image">
+                    </div>
+                    <div class="product-info">
+                        <h3>Fresh Tomatoes</h3>
+                        <p class="price">₱45.99</p>
+                        <p class="stock-status in-stock">100 in stock</p>
+                        <button class="add-to-cart-btn">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image-container">
+                        <img src="../assets/shop/mangoes.jpg" alt="Sweet Mangoes" class="product-image">
+                    </div>
+                    <div class="product-info">
+                        <h3>Sweet Mangoes</h3>
+                        <p class="price">₱89.99</p>
+                        <p class="stock-status out-of-stock">Out of Stock</p>
+                        <button class="add-to-cart-btn sold-out" disabled>Sold Out</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image-container">
+                        <img src="../assets/shop/lettuce.jpg" alt="Organic Lettuce" class="product-image">
+                    </div>
+                    <div class="product-info">
+                        <h3>Organic Lettuce</h3>
+                        <p class="price">₱35.99</p>
+                        <p class="stock-status in-stock">75 in stock</p>
+                        <button class="add-to-cart-btn">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image-container">
+                        <img src="../assets/shop/bananas.jpg" alt="Ripe Bananas" class="product-image">
+                    </div>
+                    <div class="product-info">
+                        <h3>Ripe Bananas</h3>
+                        <p class="price">₱29.99</p>
+                        <p class="stock-status out-of-stock">Out of Stock</p>
+                        <button class="add-to-cart-btn sold-out" disabled>Sold Out</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Product Detail Overlay -->
+        <div class="product-detail-overlay">
+            <div class="product-detail-content">
+                <button class="back-button">&larr; Back to Shop</button>
+                <div class="product-detail-grid">
+                    <div class="product-detail-image">
+                        <img src="" alt="" class="detail-image">
+                    </div>
+                    <div class="product-detail-info">
+                        <h2 class="detail-name"></h2>
+                        <p class="detail-price"></p>
+                        <p class="detail-stock"></p>
+                        <div class="detail-description">
+                            <h3>Product Details:</h3>
+                            <ul>
+                                <li>Freshly harvested from local farmers</li>
+                                <li>Carefully selected for quality</li>
+                                <li>Direct from farm to your table</li>
+                            </ul>
+                        </div>
+                        <div class="detail-quantity">
+                            <label for="quantity">Quantity:</label>
+                            <div class="quantity-controls">
+                                <button class="quantity-btn minus">-</button>
+                                <input type="number" id="quantity" value="1" min="1">
+                                <button class="quantity-btn plus">+</button>
+                            </div>
+                        </div>
+                        <button class="detail-add-to-cart"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <img src="../assets/homepage/harvestlink logo.png" alt="HarvestLink Logo">
+            </div>
+            <div class="social-links">
+                <a href="https://facebook.com/harvestlink" target="_blank">
+                    <img src="../assets/homepage/facebook.png" alt="Facebook">
+                </a>
+                <a href="https://instagram.com/harvestlink" target="_blank">
+                    <img src="../assets/homepage/instagram.png" alt="Instagram">
+                </a>
+            </div>
+            <p>&copy; 2025 HarvestLink. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
