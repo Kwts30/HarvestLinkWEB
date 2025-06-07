@@ -476,11 +476,13 @@ body {
 .order-summary {
     background: white;
     border-radius: 12px;
-    padding: 2rem;
+    padding: 1.5rem;
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     position: sticky;
     top: 100px;
     height: fit-content;
+    width: 100%;
+    max-width: 400px;
 }
 
 .summary-header {
@@ -518,62 +520,72 @@ body {
 
 /* Address Section */
 .address-section {
-    margin: 2rem 0;
-    padding: 1.5rem;
+    margin: 1rem 0;
+    padding: 1rem;
     background: #f8f9fa;
     border-radius: 8px;
     border-left: 4px solid #4CAF50;
+    width: 100%;
 }
 
 .address-section h3 {
     color: #333;
-    margin-bottom: 1rem;
-    font-size: 1.2rem;
+    margin-bottom: 0.8rem;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .address-form {
-    display: grid;
-    gap: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    width: 100%;
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.3rem;
+    width: 100%;
 }
 
 .form-group label {
     font-weight: bold;
     color: #333;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .form-group input,
 .form-group textarea {
-    padding: 0.8rem;
+    padding: 0.5rem;
     border: 1px solid #ddd;
     border-radius: 6px;
-    font-size: 1rem;
-    font-family: inherit;
-    transition: border-color 0.3s ease;
+    font-size: 0.9rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
     outline: none;
     border-color: #4CAF50;
-    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
 }
 
 .form-group textarea {
     resize: vertical;
-    min-height: 80px;
+    min-height: 50px;
+    max-height: 100px;
 }
 
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    gap: 0.6rem;
+    width: 100%;
 }
 
 /* Checkout Button */
@@ -591,6 +603,11 @@ body {
     margin-top: 1.5rem;
     position: relative;
     overflow: hidden;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    line-height: 1.5;
+    outline: none;
 }
 
 .checkout-btn:hover {

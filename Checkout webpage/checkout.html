@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Harvestlink</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="checkout.css">
+    <script src="checkout.js" defer></script>
+    <link rel="icon" href="../assets/homepage/harvestlink logo.png" type="image/x-icon">
+</head>
+<body>  <header>
+    <nav class="navbar">
+        <div class="nav-left">
+            <h1>HARVESTLINK</h1>
+        </div>
+        <div class="nav-center">
+            <div class="logo-circle">
+                <img src="../assets/homepage/harvestlink logo.png" alt="HarvestLink Logo">
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="cart-icon" onclick="window.location.href='../cart webpage/cart.html'">
+                <img src="../assets/shop/shopping-cart.png" alt="Shopping Cart" style="width: 24px; height: 24px;">
+                <span class="cart-count">0</span>
+            </div>
+            <div class="hamburger-menu">
+                <div class="hamburger">
+                    <div class="line line1"></div>
+                    <div class="line line2"></div>
+                    <div class="line line3"></div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="nav-overlay">
+        <button class="close-menu">×</button>
+        <div class="nav-logo">
+            <img src="../assets/homepage/harvestlink logo full.png" alt="HarvestLink Logo">
+        </div>
+        <ul class="nav-links">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="../Shop webpage/shop.html" class="active">Shop</a></li>
+            <li><a href="../Contacts webpage/contacts.html">Contact</a></li>
+            <li><a href="../Login webpage/login.html">Login</a></li>
+        </ul>
+    </div>    
+  </header>
+
+  <main class="checkout-container">
+    <section class="left-panel">
+      <h3>Checkout</h3>
+      <p>Please enter your payment details to complete your purchase</p>
+
+      <div class="cart-table">
+        <h4>What Items You Are Buying</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Item Name</th>
+              <th>Quantity</th>
+              <th>Price per Item</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Sample Item 1</td>
+              <td>2</td>
+              <td>₱100.00</td>
+              <td>₱200.00</td>
+            </tr>
+            <tr>
+              <td>Sample Item 2</td>
+              <td>1</td>
+              <td>₱150.00</td>
+              <td>₱150.00</td>
+            </tr>
+            <tr class="total-row">
+              <td colspan="3"><strong>Total</strong></td>
+              <td><strong>₱350.00</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="payment-methods">
+        <h4>Payment Method</h4>
+        <form>
+          <label><input type="radio" name="payment" checked> GCash</label><br>
+          <label><input type="radio" name="payment"> Maya</label><br>
+          <label><input type="radio" name="payment"> PayMaya</label><br>
+          <label><input type="radio" name="payment"> Bank Transfer</label><br>
+          <label><input type="radio" name="payment"> Cash on Delivery (COD)</label><br>
+
+          <label class="delivery-notes-label">Delivery Notes</label>
+          <textarea placeholder="Any special instructions for delivery..."></textarea>
+        </form>
+      </div>
+    </section>
+
+    <aside class="right-panel">
+      <h4>Order Summary</h4>
+      <div class="summary-line">Subtotal: <span>₱350.00</span></div>
+      <div class="summary-line">Shipping: <span>₱50.00</span></div>
+      <div class="summary-line">Tax: <span>₱0.00</span></div>
+      <hr>
+      <div class="summary-line total">Total: <span>₱400.00</span></div>
+
+      <h4>Delivery Address</h4>
+      <address>
+        123 Sample Street,<br>
+        Barangay Example,<br>
+        Cityville, 12345<br>
+        Philippines
+      </address>
+
+      <button class="complete-btn">✅ Complete Purchase</button>
+    </aside>
+  </main>
+
+</body>
+</html>
