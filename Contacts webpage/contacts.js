@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
             navbar.style.visibility = 'visible';
         });
     });
-});
+});     
 
 // Back to top button functionality
 const backToTopButton = document.getElementById('back-to-top');

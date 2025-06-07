@@ -19,6 +19,7 @@ body {
 main {
     flex: 1;
     padding: 120px 20px 40px; /* Account for fixed header */
+    background: linear-gradient(135deg, #f0f0f0, #ffffff);
 }
 
 /* Ensure footer stays at bottom */
