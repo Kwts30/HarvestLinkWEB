@@ -11,7 +11,7 @@
     }
 
     body {
-      background: url('https://media.discordapp.net/attachments/935772282574483466/1380143789607485480/d90eb006-c104-4a7f-be6b-d75e1dc81146.png?ex=6842ce91&is=68417d11&hm=5603c9071f0e54bffcf0277c17e3bb7bfa82ba7a72c2177bd1ba48f5b74a1882&=&format=webp&quality=lossless&width=1014&height=676') no-repeat center center/cover;
+      background: url('../assets/login&signup/image.png') no-repeat center center/cover;
       display: flex;
       flex-direction: column;
     }
