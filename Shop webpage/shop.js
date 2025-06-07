@@ -1,8 +1,12 @@
-// Function to create a product card
-function createProductCard(product) {
-    const template = document.getElementById('product-template');
-    const card = template.content.cloneNode(true);
+document.addEventListener('DOMContentLoaded', () => {
+    const hamburger = document.querySelector('.hamburger');
+    const hamburgerMenu = document.querySelector('.hamburger-menu');
+    const navOverlay = document.querySelector('.nav-overlay');
+    const closeMenu = document.querySelector('.close-menu');
+    const navLinks = document.querySelectorAll('.nav-links a');
+      const navbar = document.querySelector('.navbar');
 
+    // Toggle menu on hamburger click
     hamburger.addEventListener('click', function() {
         this.classList.toggle('active');
         navOverlay.classList.toggle('active');
@@ -26,8 +30,10 @@ function createProductCard(product) {
             navbar.style.visibility = 'visible';
         });
     });
+});
 
-    
+// Function to create a product card
+function createProductCard(product) {
     // Set product image
     const img = card.querySelector('.product-image');
     img.src = product.image;
@@ -275,23 +281,4 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-
-    // Hamburger menu functionality
-    const hamburgerMenu = document.querySelector('.hamburger-menu');
-    const navOverlay = document.querySelector('.nav-overlay');
-    const closeMenuBtn = document.querySelector('.close-menu');
-
-    if (hamburgerMenu && navOverlay && closeMenuBtn) {
-        hamburgerMenu.addEventListener('click', () => {
-            navOverlay.classList.add('active');
-        });
-
-        closeMenuBtn.addEventListener('click', () => {
-            navOverlay.classList.remove('active');
-        });
-    }
-
-    // Handle image loading states
-    const productImages = document.querySelectorAll('.product-image, .detail-image');
-    productImages.forEach(handleImageLoad);
 });

@@ -12,11 +12,6 @@ const successModal = document.getElementById('success-modal');
 
 // Initialize cart on page load
 document.addEventListener('DOMContentLoaded', () => {
-    loadAddressData();
-    renderCart();
-    updateCartCount();
-    setupEventListeners();
-
     const hamburger = document.querySelector('.hamburger');
     const hamburgerMenu = document.querySelector('.hamburger-menu');
     const navOverlay = document.querySelector('.nav-overlay');
@@ -48,6 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
             navbar.style.visibility = 'visible';
         });
     });
+
+    loadAddressData();
+    renderCart();
+    updateCartCount();
+    setupEventListeners();
 });
 
 // Setup event listeners
