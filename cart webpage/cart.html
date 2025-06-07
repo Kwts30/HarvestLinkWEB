@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HarvestLink - Cart</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="cart.css">
+    <script src="cart.js" defer></script>
+    <link rel="icon" href="../assets/homepage/harvestlink logo.png" type="image/x-icon">
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <nav class="navbar">
+            <div class="nav-left">
+                <h1>HARVESTLINK</h1>
+            </div>
+            <div class="nav-center">
+                <div class="logo-circle">
+                    <img src="../assets/homepage/harvestlink logo.png" alt="HarvestLink Logo">
+                </div>
+            </div>
+            <div class="nav-right">
+                <div class="cart-icon" onclick="window.location.href='../cart webpage/cart.html'">
+                <img src="../assets/shop/shopping-cart.png" alt="Shopping Cart" style="width: 24px; height: 24px;">
+                <span class="cart-count">0</span>
+            </div>
+            <div class="hamburger-menu">
+                    <div class="hamburger">
+                        <div class="line line1"></div>
+                        <div class="line line2"></div>
+                        <div class="line line3"></div>
+                    </div>
+                </div>
+            </div>
+        </nav>        
+        <div class="nav-overlay">
+            <button class="close-menu">×</button>
+            <div class="nav-logo">
+                <img src="../assets/homepage/harvestlink logo full.png" alt="HarvestLink Logo">
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="../Shop webpage/shop.html" class="active">Shop</a></li>
+                <li><a href="../Contacts webpage/contacts.html">Contact</a></li>
+                <li><a href="../Login webpage/login.html">Login</a></li>
+            </ul>
+        </div>    
+    </header>
+
+    <!-- Main Cart Content -->
+    <main class="cart-main">
+        <div class="cart-header">
+            <h1>Shopping Cart</h1>
+            <p>Review your items and proceed to checkout</p>
+        </div>
+
+        <!-- Cart Content -->
+        <div class="cart-content" id="cart-content">
+            <!-- Cart Items Section -->
+            <div class="cart-items-section">
+                <div class="cart-items-header">
+                    <h2>Your Items</h2>
+                </div>
+                <div id="cart-items-container">
+                    <!-- Cart items will be populated here -->
+                </div>
+            </div>
+
+            <!-- Order Summary Section -->
+            <div class="order-summary">
+                <div class="summary-header">
+                    <h2>Order Summary</h2>
+                </div>
+                
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span class="summary-value" id="subtotal">₱0.00</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span>Shipping:</span>
+                    <span class="summary-value" id="shipping">₱50.00</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span>Tax:</span>
+                    <span class="summary-value" id="tax">₱0.00</span>
+                </div>
+                
+                <div class="summary-row total">
+                    <span>Total:</span>
+                    <span class="summary-value" id="total">₱0.00</span>
+                </div>
+
+                <!-- Address Section -->
+                <div class="address-section">
+                    <h3>🏠 Delivery Address</h3>
+                    <div class="address-form">
+                        <div class="form-group">
+                            <label for="fullName">Full Name *</label>
+                            <input type="text" id="fullName" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="phone">Phone Number *</label>
+                                <input type="tel" id="phone" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="street">Street Address *</label>
+                            <input type="text" id="street" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="city">City *</label>
+                                <input type="text" id="city" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="postal">Postal Code</label>
+                                <input type="text" id="postal">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="notes">Delivery Notes</label>
+                            <textarea id="notes" placeholder="Any special instructions for delivery..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="checkout-btn" id="checkout-btn">
+                    🛒 Proceed to Checkout
+                </button>
+            </div>
+        </div>
+
+        <!-- Empty Cart State -->
+        <div class="empty-cart" id="empty-cart" style="display: none;">
+            <div class="empty-cart-icon">🛒</div>
+            <h2>Your cart is empty</h2>
+            <p>Looks like you haven't added any items to your cart yet. Start shopping to fill it up!</p>
+            <a href="shop.html" class="continue-shopping-btn">Continue Shopping</a>
+        </div>
+    </main>
+
+    <!-- Success Modal -->
+    <div class="success-modal" id="success-modal">
+        <div class="success-content">
+            <div class="success-icon">✅</div>
+            <h2>Order Placed Successfully!</h2>
+            <p>Thank you for your purchase. Your order has been received and will be processed shortly.</p>
+            <button class="success-btn" onclick="closeSuccessModal()">Continue Shopping</button>
+        </div>
+    </div>
+</body>
+<script src="cart.js"></script>
+</html>
+       
