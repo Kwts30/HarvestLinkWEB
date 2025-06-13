@@ -1,23 +1,3 @@
-/*
-=========================================
-    HARVESTLINK JAVASCRIPT
-    Version: 1.0
-    Last Updated: June 4, 2025
-=========================================
-
-TABLE OF CONTENTS:
-    1. Navigation Menu
-    2. Hero Section Animations
-    3. Testimonial Slider
-    4. Back to Top Button
-=========================================
-*/
-
-/*
------------------------------------------
-    1. NAVIGATION MENU
------------------------------------------
-*/
 document.addEventListener('DOMContentLoaded', () => {
     const hamburger = document.querySelector('.hamburger');
     const hamburgerMenu = document.querySelector('.hamburger-menu');
@@ -33,14 +13,18 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = navOverlay.classList.contains('active') ? 'hidden' : '';
         navbar.style.opacity = navOverlay.classList.contains('active') ? '0' : '1';
         navbar.style.visibility = navOverlay.classList.contains('active') ? 'hidden' : 'visible';
-    });    // Close menu on close button click
+    });    
+    
+    // Close menu on close button click
     closeMenu.addEventListener('click', function() {
         hamburger.classList.remove('active');
         navOverlay.classList.remove('active');
         document.body.style.overflow = '';
         navbar.style.opacity = '1';
         navbar.style.visibility = 'visible';
-    });    // Close menu when clicking a link
+    });    
+    
+    // Close menu when clicking a link
     navLinks.forEach(link => {
         link.addEventListener('click', function() {
             hamburger.classList.remove('active');
@@ -128,11 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-/*
------------------------------------------
-    3. TESTIMONIAL SLIDER
------------------------------------------
-*/
+// Testimonials Slideshow with Auto-Advance and Keyboard Navigation
 document.addEventListener('DOMContentLoaded', () => {
     const slides = document.querySelectorAll('.testimonial-slide');
     const dots = document.querySelector('.testimonial-dots');
