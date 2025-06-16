@@ -1,4 +1,4 @@
- // Cart management system
+// Cart management system
 let cart = JSON.parse(localStorage.getItem('harvestlink-cart')) || [];
 let addressData = JSON.parse(localStorage.getItem('harvestlink-address')) || {};
 
@@ -129,6 +129,27 @@ function updateQuantity(productId, newQuantity) {
             renderCart();
         }
     }
+}
+
+// Handle checkout - check authentication first
+function handleCheckout() {
+    // Check if user is logged in
+    if (!window.AuthUtils.isLoggedIn()) {
+        // Show message and redirect to login
+        if (confirm('You need to be logged in to checkout. Do you want to go to the login page?')) {
+            window.location.href = '../Login webpage/login.html';
+        }
+        return;
+    }
+
+    // Check if cart has items
+    if (cart.length === 0) {
+        alert('Your cart is empty. Add some items before checkout.');
+        return;
+    }
+
+    // User is logged in and cart has items - proceed to checkout
+    window.location.href = '../Checkout webpage/checkout.html';
 }
 
 const hamburgerMenu = document.querySelector('.hamburger-menu');

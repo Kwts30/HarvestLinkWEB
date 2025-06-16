@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Check authentication - redirect to login if not authenticated
+    if (!window.AuthUtils.requireAuth()) {
+        return; // Exit if redirected
+    }
+
     const hamburger = document.querySelector('.hamburger');
     const hamburgerMenu = document.querySelector('.hamburger-menu');
     const navOverlay = document.querySelector('.nav-overlay');
@@ -6,6 +11,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const navLinks = document.querySelectorAll('.nav-links a');
     const navbar = document.querySelector('.navbar');
     const completeBtn = document.querySelector('.complete-btn');
+
+    // Display user info on checkout page
+    const currentUser = window.AuthUtils.getCurrentUser();
+    if (currentUser) {
+        // Update any user-specific elements
+        const userInfoElements = document.querySelectorAll('.user-name, [data-user-name]');
+        userInfoElements.forEach(element => {
+            element.textContent = `${currentUser.firstName} ${currentUser.lastName}`;
+        });
+
+        const userEmailElements = document.querySelectorAll('.user-email, [data-user-email]');
+        userEmailElements.forEach(element => {
+            element.textContent = currentUser.email;
+        });
+    }
 
     // Toggle menu on hamburger click
     hamburger.addEventListener('click', function() {

@@ -7,8 +7,11 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="login.css" />
+  <link rel="stylesheet" href="../assets/css/auth-styles.css" />  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../test-functions.js"></script>
   <script src="login.js" defer></script>
   <link rel="icon" href="assets/homepage/harvestlink logo.png" type="image/x-icon">
 </head>
@@ -30,34 +33,33 @@
                     <div class="line line2"></div>
                     <div class="line line3"></div>
                 </div>
-            </div>
-        </nav>    
-  </header>
-
-  <!-- Navigation Overlay -->
-  <div class="nav-overlay">
+            </div>        </nav>        
+        <div class="nav-overlay">
             <button class="close-menu">×</button>
             <div class="nav-logo">
                 <img src="../assets/homepage/harvestlink logo full.png" alt="HarvestLink Logo">
             </div>
             <ul class="nav-links">
                 <li><a href="../index.html">Home</a></li>
-                <li><a href="../Shop webpage/shop.html" class="active">Shop</a></li>
+                <li><a href="../Shop webpage/shop.html">Shop</a></li>
                 <li><a href="../Contacts webpage/contacts.html">Contact</a></li>
                 <li><a href="../Login webpage/login.html">Login</a></li>
             </ul>
         </div>    
-  </nav>
-  <main>
-    <div class="form-container">
+    </header> 
+    <main>
+    <div class="form-container">      
       <h1>Login</h1>
       <p>Welcome back! Please login to your account.</p>
-      <form>
+      
+      <form id="loginForm">
         <div class="form-row">
-          <input type="email" placeholder="Email" required />
-          <input type="password" placeholder="Password" required />
+          <input type="email" name="email" placeholder="Email" required />
+          <input type="password" name="password" placeholder="Password" required />
         </div>
         <button type="submit" class="login-btn">Login</button>
+        
+        <div id="message" class="message"></div>
       </form>
 
       <div class="social-buttons">

@@ -1,0 +1,182 @@
+/* User Authentication Styles */
+
+/* User menu in navigation */
+.user-menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 1.2rem;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    border-radius: 12px;
+    margin: 0.5rem 0;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 150px;
+}
+
+.user-greeting {
+    color: white;
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    line-height: 1.2;
+}
+
+.logout-btn {
+    background: rgba(255, 255, 255, 0.9);
+    color: #333 !important;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    text-decoration: none !important;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    min-width: 80px;
+    text-align: center;
+    display: inline-block;
+    margin-top: 0.3rem;
+}
+
+.logout-btn:hover {
+    background: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    color: #333 !important;
+}
+
+.logout-btn:active {
+    transform: translateY(0);
+}
+
+/* Simple logout link styling */
+.logout-link {
+    color: inherit !important;
+    text-decoration: none !important;
+    font-weight: inherit;
+    font-size: inherit;
+    transition: all 0.3s ease;
+}
+
+.logout-link:hover {
+    color: #4CAF50 !important;
+    transform: translateY(-1px);
+}
+
+/* Loading state for logout */
+.logout-link.loading {
+    opacity: 0.6;
+    pointer-events: none;
+    color: #999 !important;
+}
+
+/* User info displays */
+.user-info {
+    display: none;
+    color: #4CAF50;
+    font-weight: 600;
+    padding: 0.5rem;
+    background: rgba(76, 175, 80, 0.1);
+    border-radius: 8px;
+    margin: 0.5rem 0;
+}
+
+.username-display {
+    color: #4CAF50;
+    font-weight: 600;
+}
+
+/* Admin link styling */
+.admin-link {
+    background: linear-gradient(135deg, #ff9800, #f57c00) !important;
+    color: white !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 6px !important;
+    text-decoration: none !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+    display: inline-block !important;
+}
+
+.admin-link:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 10px rgba(255, 152, 0, 0.4) !important;
+    color: white !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .user-menu {
+        width: 80%;
+        max-width: 200px;
+        padding: 1rem;
+    }
+    
+    .user-greeting {
+        font-size: 1rem;
+    }
+    
+    .logout-btn {
+        width: 100%;
+        padding: 0.7rem;
+        font-size: 0.95rem;
+    }
+}
+
+/* Animation for user menu appearance */
+.user-menu {
+    animation: slideInFromTop 0.3s ease-out;
+}
+
+@keyframes slideInFromTop {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Navigation link updates for authenticated users */
+.nav-links li:has(.user-menu) {
+    border-top: 2px solid rgba(76, 175, 80, 0.3);
+    padding-top: 1rem;
+    margin-top: 1rem;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+/* Logout confirmation dialog styling (for browsers that support it) */
+.logout-confirmation {
+    background: white;
+    border: 2px solid #4CAF50;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Animation for logout success message */
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    80% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+}
