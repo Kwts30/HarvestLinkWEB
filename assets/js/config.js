@@ -14,7 +14,26 @@ const API_CONFIG = {
 
 // Auto-detect environment
 const isLocalFile = window.location.protocol === 'file:' || window.location.port === '5500';
-const currentConfig = isLocalFile ? API_CONFIG.development : API_CONFIG.production;
+const isLocalhost3000 = window.location.host === 'localhost:3000' || window.location.host === '127.0.0.1:3000';
+
+let currentConfig;
+if (isLocalFile) {
+    currentConfig = API_CONFIG.development;
+} else if (isLocalhost3000) {
+    // When serving from localhost:3000, use full URL
+    currentConfig = API_CONFIG.development;
+} else {
+    currentConfig = API_CONFIG.production;
+}
+
+console.log('🔧 API Config:', { 
+    protocol: window.location.protocol, 
+    host: window.location.host, 
+    port: window.location.port,
+    isLocalFile,
+    isLocalhost3000,
+    selectedConfig: currentConfig
+});
 
 // Export for use in other files
 window.API_CONFIG = currentConfig;

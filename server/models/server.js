@@ -109,6 +109,10 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, '../../Admin webpage/admin.html'));
 });
 
+app.get('/shop', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../Shop webpage/shop.html'));
+});
+
 // Test route to verify MongoDB connection and user creation
 app.get('/test-db', async (req, res) => {
     try {
