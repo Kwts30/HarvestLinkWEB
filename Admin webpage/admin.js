@@ -1,4 +1,3 @@
-// Modern Admin Dashboard JavaScript
 class ModernAdminDashboard {
     constructor() {
         this.currentUser = null;
