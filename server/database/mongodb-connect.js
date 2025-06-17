@@ -7,9 +7,8 @@ dotenv.config();
 export default function connect() {
     // Get base connection string from environment
     const baseUri = process.env.MONGODB_URI || "mongodb+srv://jarylbenedicto:jmiBzwDTMiGwte2x@harvestlink.zagrez4.mongodb.net/?retryWrites=true&w=majority&appName=HarvestLink";
-    
-    // Add database name - you can change this to match your existing database
-    const databaseName = process.env.DB_NAME || "HarvestLink";
+      // Add database name - using lowercase to match existing database
+    const databaseName = process.env.DB_NAME || "harvestlink";
     const database = baseUri.replace("/?", `/${databaseName}?`);
     
     console.log(`🔄 Connecting to database: ${databaseName}`);
