@@ -55,7 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => {
                     window.location.href = '../Login webpage/login.html';
                 }, 2000);
-            } else {
+            } 
+            else {
                 showMessage(result.message || 'Registration failed. Please try again.', 'error');
             }
 

@@ -113,24 +113,6 @@ app.get('/shop', (req, res) => {
     res.sendFile(path.join(__dirname, '../../Shop webpage/shop.html'));
 });
 
-// Test route to verify MongoDB connection and user creation
-app.get('/test-db', async (req, res) => {
-    try {
-        const userCount = await User.countDocuments();
-        res.json({ 
-            success: true, 
-            message: 'Database connected successfully',
-            userCount 
-        });
-    } catch (error) {
-        res.status(500).json({ 
-            success: false, 
-            message: 'Database connection error',
-            error: error.message 
-        });
-    }
-});
-
 // Start server
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
