@@ -57,21 +57,56 @@
         <div class="cart-header">
             <h1>Shopping Cart</h1>
             <p>Review your items and proceed to checkout</p>
-        </div>
-
-        <!-- Cart Content -->
+        </div>        <!-- Cart Content -->
         <div class="cart-content" id="cart-content">
-            <!-- Cart Items Section -->
+            <!-- Cart Items Section (Left Side) -->
             <div class="cart-items-section">
                 <div class="cart-items-header">
                     <h2>Your Items</h2>
                 </div>
                 <div id="cart-items-container">
-                    <!-- Cart items will be populated here -->
+                    <!-- Empty cart message -->
+                    <div class="empty-cart-message" id="empty-cart-message" style="display: none;">
+                        <div class="empty-cart-icon">🛒</div>
+                        <h3>Your cart is empty</h3>
+                        <p>Start shopping to add items to your cart!</p>
+                        <a href="../Shop webpage/shop.html" class="continue-shopping-btn">Continue Shopping</a>
+                    </div>
+                    
+                    <!-- Cart items container -->
+                    <div id="cart-items-list">
+                        <!-- Cart items will be populated here -->
+                    </div>
+                    
+                    <!-- Cart item template (hidden) -->
+                    <template id="cart-item-template">
+                        <div class="cart-item" data-product-id="">
+                            <div class="cart-item-image">
+                                <img src="../assets/shop/placeholder.png" alt="" onerror="this.src='../assets/shop/placeholder.png'">
+                            </div>
+                            <div class="cart-item-info">
+                                <h3 class="cart-item-name"></h3>
+                                <p class="cart-item-price"></p>
+                                <p class="cart-item-stock"></p>
+                            </div>
+                            <div class="cart-item-quantity">
+                                <button class="quantity-btn minus">-</button>
+                                <span class="quantity-value"></span>
+                                <button class="quantity-btn plus">+</button>
+                            </div>
+                            <div class="cart-item-actions">
+                                <div class="cart-item-total"></div>
+                                <button class="cart-item-delete">
+                                    <img src="../assets/shop/trash.png" alt="Delete" class="delete-icon" onerror="this.style.display='none'; this.nextSibling.style.display='inline';">
+                                    <span class="delete-text" style="display:none;">Delete</span>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
                 </div>
             </div>
-
-            <!-- Order Summary Section -->
+            
+            <!-- Order Summary Section (Right Side) -->
             <div class="order-summary">
                 <div class="summary-header">
                     <h2>Order Summary</h2>
@@ -82,12 +117,12 @@
                     <span class="summary-value" id="subtotal">₱0.00</span>
                 </div>
                 
-                <div class="summary-row">
+                <div class="summary-row shipping">
                     <span>Shipping:</span>
                     <span class="summary-value" id="shipping">₱50.00</span>
                 </div>
                 
-                <div class="summary-row">
+                <div class="summary-row tax">
                     <span>Tax:</span>
                     <span class="summary-value" id="tax">₱0.00</span>
                 </div>
@@ -96,49 +131,8 @@
                     <span>Total:</span>
                     <span class="summary-value" id="total">₱0.00</span>
                 </div>
-
-                <!-- Address Section -->
-                <div class="address-section">
-                    <h3>🏠 Delivery Address</h3>
-                    <div class="address-form">
-                        <div class="form-group">
-                            <label for="fullName">Full Name *</label>
-                            <input type="text" id="fullName" required>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="phone">Phone Number *</label>
-                                <input type="tel" id="phone" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="email">Email</label>
-                                <input type="email" id="email">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="street">Street Address *</label>
-                            <input type="text" id="street" required>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="city">City *</label>
-                                <input type="text" id="city" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="postal">Postal Code</label>
-                                <input type="text" id="postal">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="notes">Delivery Notes</label>
-                            <textarea id="notes" placeholder="Any special instructions for delivery..."></textarea>
-                        </div>
-                    </div>
-                </div>                <button class="checkout-btn" id="checkout-btn" onclick="window.location.href='../Checkout webpage/checkout.html'">
+                
+                <button class="checkout-btn" id="checkout-btn" onclick="window.location.href='../Checkout webpage/checkout.html'">
                     🛒 Proceed to Checkout
                 </button>
             </div>
@@ -149,7 +143,7 @@
             <div class="empty-cart-icon">🛒</div>
             <h2>Your cart is empty</h2>
             <p>Looks like you haven't added any items to your cart yet. Start shopping to fill it up!</p>
-            <a href="shop.html" class="continue-shopping-btn">Continue Shopping</a>
+            <a href="../Shop webpage/shop.html" class="continue-shopping-btn">Continue Shopping</a>
         </div>
     </main>
 

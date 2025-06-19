@@ -193,47 +193,43 @@ class ShopManager {
         const product = this.products.find(p => p._id === productId);
         if (!product || product.stock <= 0) return;
 
-        // Update cart count
-        this.cartCount += quantity;
-        this.updateCartCount();
+        // Use shared cart utilities
+        const productData = {
+            id: productId,
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            stock: product.stock
+        };
+        
+        window.CartUtils.addToCart(productData, quantity);
 
         // Show feedback
         const productCard = document.querySelector(`[data-product-id="${productId}"]`);
-        const btn = productCard.querySelector('.add-to-cart-btn');
-        const originalText = btn.textContent;
-        
-        btn.textContent = 'Added!';
-        btn.style.backgroundColor = '#45a049';
-        
-        setTimeout(() => {
-            btn.textContent = originalText;
-            btn.style.backgroundColor = '';
-        }, 1000);
-
-        // Here you can add logic to store cart data in localStorage or send to server
-        this.saveCartToStorage();
+        if (productCard) {
+            const btn = productCard.querySelector('.add-to-cart-btn');
+            if (btn) {
+                const originalText = btn.textContent;
+                
+                btn.textContent = 'Added!';
+                btn.style.backgroundColor = '#45a049';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.backgroundColor = '';
+                }, 1000);
+            }
+        }
     }
 
     // Update cart count display
     updateCartCount() {
-        const cartCountElement = document.querySelector('.cart-count');
-        if (cartCountElement) {
-            cartCountElement.textContent = this.cartCount;
-        }
-    }
-
-    // Save cart to localStorage
-    saveCartToStorage() {
-        localStorage.setItem('cartCount', this.cartCount.toString());
+        window.CartUtils.updateCartCount();
     }
 
     // Load cart from localStorage
     loadCartFromStorage() {
-        const savedCount = localStorage.getItem('cartCount');
-        if (savedCount) {
-            this.cartCount = parseInt(savedCount);
-            this.updateCartCount();
-        }
+        window.CartUtils.updateCartCount();
     }
 
     // Show product detail
