@@ -7,27 +7,35 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">    <link rel="stylesheet" href="checkout.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">  
+    <!-- local files connection -->  
+    <link rel="stylesheet" href="checkout.css">
     <script src="../assets/js/config.js"></script>
     <script src="../assets/js/auth.js"></script>
     <script src="checkout.js" defer></script>
+    <!-- icon logo -->
     <link rel="icon" href="../assets/homepage/harvestlink logo.png" type="image/x-icon">
 </head>
-<body>  <header>
+
+<body>  
+  <header>
     <nav class="navbar">
         <div class="nav-left">
             <h1>HARVESTLINK</h1>
         </div>
+        
         <div class="nav-center">
             <div class="logo-circle">
                 <img src="../assets/homepage/harvestlink logo.png" alt="HarvestLink Logo">
             </div>
         </div>
+
         <div class="nav-right">
             <div class="cart-icon" onclick="window.location.href='../cart webpage/cart.html'">
-                <img src="../assets/shop/shopping-cart.png" alt="Shopping Cart" style="width: 24px; height: 24px;">
+                <img src="../assets/shop/shopping-cart.png" class="Shopping-Cart" alt="Shopping Cart">
                 <span class="cart-count">0</span>
             </div>
+
             <div class="hamburger-menu">
                 <div class="hamburger">
                     <div class="line line1"></div>
@@ -36,19 +44,22 @@
                 </div>
             </div>
         </div>
+
+
     </nav>
     <div class="nav-overlay">
         <button class="close-menu">×</button>
         <div class="nav-logo">
             <img src="../assets/homepage/harvestlink logo full.png" alt="HarvestLink Logo">
         </div>
+
         <ul class="nav-links">
             <li><a href="../index.html">Home</a></li>
             <li><a href="../Shop webpage/shop.html" class="active">Shop</a></li>
             <li><a href="../Contacts webpage/contacts.html">Contact</a></li>
             <li><a href="../Login webpage/login.html">Login</a></li>
         </ul>
-    </div>    
+    </div>   
   </header>
 
   <main class="checkout-container">
@@ -79,49 +90,227 @@
               <td>1</td>
               <td>₱150.00</td>
               <td>₱150.00</td>
-            </tr>
-            <tr class="total-row">
-              <td colspan="3"><strong>Total</strong></td>
-              <td><strong>₱350.00</strong></td>
+            </tr>            <tr class="total-row">
+              <td colspan="3"><strong>Subtotal</strong></td>
+              <td><strong id="cartSubtotal">₱0.00</strong></td>
             </tr>
           </tbody>
         </table>
-      </div>
-
-      <div class="payment-methods">
+      </div>      <div class="payment-methods">
         <h4>Payment Method</h4>
+        <div class="selected-payment">
+          <span id="selectedPaymentText">Select Payment Method</span>
+          <button type="button" class="change-payment-btn" id="openPaymentModal">Change</button>
+        </div>
+        
         <form>
-          <label><input type="radio" name="payment" checked> GCash</label><br>
-          <label><input type="radio" name="payment"> Maya</label><br>
-          <label><input type="radio" name="payment"> PayMaya</label><br>
-          <label><input type="radio" name="payment"> Bank Transfer</label><br>
-          <label><input type="radio" name="payment"> Cash on Delivery (COD)</label><br>
-
           <label class="delivery-notes-label">Delivery Notes</label>
           <textarea placeholder="Any special instructions for delivery..."></textarea>
         </form>
       </div>
-    </section>
-
-    <aside class="right-panel">
-      <h4>Order Summary</h4>
-      <div class="summary-line">Subtotal: <span>₱350.00</span></div>
-      <div class="summary-line">Shipping: <span>₱50.00</span></div>
-      <div class="summary-line">Tax: <span>₱0.00</span></div>
+    </section>    <aside class="right-panel">      <h4>Order Summary</h4>
+      <div class="summary-line">Subtotal: <span id="orderSubtotal">₱0.00</span></div>
+      <div class="summary-line">Shipping: <span id="orderShipping">₱60.00</span></div>
+      <div class="summary-line">Tax (12%): <span id="orderTax">₱0.00</span></div>
       <hr>
-      <div class="summary-line total">Total: <span>₱400.00</span></div>
-
-      <h4>Delivery Address</h4>
-      <address>
-        123 Sample Street,<br>
-        Barangay Example,<br>
-        Cityville, 12345<br>
-        Philippines
-      </address>
-
-      <button class="complete-btn">✅ Complete Purchase</button>
+      <div class="summary-line total">Total: <span id="orderTotal">₱0.00</span></div><div class="delivery-address">
+        <div class="address-header">
+          <h4>Delivery Address</h4>
+          <button class="edit-address-btn" id="editAddressBtn" style="display: none;">Edit</button>
+        </div>
+        
+        <!-- Container for when user has addresses -->
+        <div class="address-card primary" id="selectedAddressCard" style="display: none;">
+          <span class="address-label">Primary</span>
+          <div class="address-content">
+            <div class="name">Loading...</div>
+            <div class="street">Please wait while we load your address</div>
+            <div class="city"></div>
+            <div class="phone"></div>
+          </div>
+        </div>
+        
+        <!-- Container for when user has no addresses -->
+        <div class="add-address-container" id="addAddressContainer" style="display: none;">
+          <div class="add-address-text">You don't have any saved addresses yet.</div>
+          <button class="add-address-btn" id="addAddressBtn">
+            <span>+</span>
+            Add Delivery Address
+          </button>
+        </div>
+        
+        <!-- Loading state -->
+        <div class="no-address-message" id="loadingAddressMessage">
+          Loading your addresses...
+        </div>
+      </div>
+      <button class="complete-btn">Place Order</button>
     </aside>
   </main>
+
+  <!-- Payment Method Modal -->
+  <div id="paymentModal" class="payment-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Select Payment Method</h3>
+        <span class="close-modal" id="closePaymentModal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="payment-option" data-payment="gcash">
+          <img src="../assets/checkout webpage/gcash.png" alt="GCash">
+          <span>GCash</span>
+          <div class="radio-indicator"></div>
+        </div>
+        <div class="payment-option" data-payment="maya">
+          <img src="../assets/checkout webpage/maya.png" alt="Maya">
+          <span>Maya</span>
+          <div class="radio-indicator"></div>
+        </div>
+        <div class="payment-option" data-payment="online-banking">
+          <img src="../assets/checkout webpage/mobile-banking.png" alt="Online Banking">
+          <span>Online Banking</span>
+          <div class="radio-indicator"></div>
+        </div>
+        <div class="payment-option" data-payment="cod">
+          <img src="../assets/checkout webpage/cash-on-delivery.png" alt="Cash on Delivery">
+          <span>Cash on Delivery (COD)</span>
+          <div class="radio-indicator"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn confirm-btn" id="confirmPayment">Confirm Selection</button>
+        <button class="modal-btn cancel-btn" id="cancelPayment">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bank Selection Modal -->
+  <div id="bankModal" class="payment-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Select Your Bank</h3>
+        <span class="close-modal" id="closeBankModal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="bank-option" data-bank="bdo">
+          <span>BDO (Banco de Oro)</span>
+          <div class="radio-indicator"></div>
+        </div>
+        <div class="bank-option" data-bank="bpi">
+          <span>BPI (Bank of the Philippine Islands)</span>
+          <div class="radio-indicator"></div>
+        </div>
+        <div class="bank-option" data-bank="metrobank">
+          <span>Metrobank</span>
+          <div class="radio-indicator"></div>
+        </div>
+        <div class="bank-option" data-bank="unionbank">
+          <span>UnionBank</span>
+          <div class="radio-indicator"></div>
+        </div>
+        <div class="bank-option" data-bank="landbank">
+          <span>Landbank</span>
+          <div class="radio-indicator"></div>
+        </div>
+        <div class="bank-option" data-bank="pnb">
+          <span>Philippine National Bank (PNB)</span>
+          <div class="radio-indicator"></div>
+        </div>
+        <div class="bank-option" data-bank="security-bank">
+          <span>Security Bank</span>
+          <div class="radio-indicator"></div>
+        </div>
+        <div class="bank-option" data-bank="rcbc">
+          <span>RCBC (Rizal Commercial Banking Corporation)</span>
+          <div class="radio-indicator"></div>
+        </div>
+      </div>      <div class="modal-footer">
+        <button class="modal-btn confirm-btn" id="confirmBank">Confirm Bank</button>
+        <button class="modal-btn cancel-btn" id="cancelBank">Back to Payment Methods</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Address Modal -->
+  <div id="addAddressModal" class="payment-modal address-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add New Address</h3>
+        <span class="close-modal" id="closeAddAddressModal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="addAddressForm">
+          <div class="form-group">
+            <label for="addressType">Address Type</label>
+            <select id="addressType" required>
+              <option value="">Select type</option>
+              <option value="Home">Home</option>
+              <option value="Work">Work</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="fullName">Full Name</label>
+            <input type="text" id="fullName" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="street">Street Address</label>
+            <input type="text" id="street" placeholder="House/Unit number, Street, Barangay" required>
+          </div>
+
+          <div class="form-group">
+            <label for="city">Barangay</label>
+            <input type="text" id="barangay" placeholder="Barangay" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="city">City</label>
+            <input type="text" id="city" placeholder="City" required>
+          </div>
+
+          <div class="form-group">
+            <label for="city">Province</label>
+            <input type="text" id="province" placeholder="Province" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" placeholder="+63 912 345 6789" required>
+          </div>
+          
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" id="isPrimary">
+              Set as primary address
+            </label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn confirm-btn" id="saveAddress">Save Address</button>
+        <button class="modal-btn cancel-btn" id="cancelAddAddress">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Address Selection Modal -->
+  <div id="addressModal" class="payment-modal address-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Select Delivery Address</h3>
+        <span class="close-modal" id="closeAddressModal">&times;</span>
+      </div>
+      <div class="modal-body" id="addressModalBody">
+        <!-- Address options will be loaded here dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn confirm-btn" id="confirmAddress">Confirm Address</button>
+        <button class="modal-btn cancel-btn" id="cancelAddress">Cancel</button>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>

@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
+           
             // Show loading state
             const submitBtn = loginForm.querySelector('.login-btn');
             const originalText = submitBtn.textContent;
@@ -56,7 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(loginData)
             });
 
-            const result = await response.json();            if (result.success) {
+            const result = await response.json();            
+            if (result.success) {
                 showMessage('Login successful! Redirecting...', 'success');
                 
                 // Store user info in localStorage for easy access
@@ -72,12 +74,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     setTimeout(() => {
                         window.location.href = '../Admin webpage/admin.html';
                     }, 1500);
-                } else {
+                } 
+                
+                else {
                     // Redirect to shop for regular users
                     setTimeout(() => {
                         window.location.href = '../Shop webpage/shop.html';
                     }, 1500);
                 }
+
             } else {
                 showMessage(result.message || 'Login failed. Please try again.', 'error');
             }
@@ -94,7 +99,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const submitBtn = loginForm.querySelector('.login-btn');
             submitBtn.textContent = 'Login';
             submitBtn.disabled = false;
-        }        });
+        }        
+    });
+    
     } else {
         console.error('Login form not found!');
     }

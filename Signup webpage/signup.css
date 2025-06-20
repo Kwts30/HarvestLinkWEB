@@ -362,35 +362,6 @@ input {
   cursor: not-allowed;
 }
 
-.social-buttons {
-  margin-top: 20px;
-}
-
-.social-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 10px 0;
-  background-color: white;
-  border: none;
-  border-radius: 60px;
-  padding: 10px;
-  cursor: pointer;
-  font-weight: bold;
-  width: 60%;
-}
-
-.social-button img {
-  height: 20px;
-  margin-right: 10px;
-}
-
-.facebook {
-  background-color: #3b5998;
-  color: white;
-}
-
-
 .footer {
   margin-top: 20px;
   font-size: 14px;

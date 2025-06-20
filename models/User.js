@@ -7,7 +7,46 @@ const UserSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   email:    { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role:     { type: String, default: 'user' }
+  role:     { type: String, default: 'user' },
+  addresses: [{
+    type: {
+      type: String,
+      enum: ['Home', 'Work', 'Other'],
+      required: true
+    },
+    isPrimary: {
+      type: Boolean,
+      default: false
+    },
+    fullName: {
+      type: String,
+      required: true
+    },
+    street: {
+      type: String,
+      required: true
+    },
+    barangay: {
+      type: String,
+      required: true
+    },
+    city: {
+      type: String,
+      required: true
+    },
+    province: {
+      type: String,
+      required: true
+    },
+    phone: {
+      type: String,
+      required: true
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }]
 }, { timestamps: true });
 
 // Hash password before saving

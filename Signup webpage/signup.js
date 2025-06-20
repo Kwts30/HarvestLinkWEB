@@ -6,7 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const navLinks = document.querySelectorAll('.nav-links a');
     const navbar = document.querySelector('.navbar');
     const signupForm = document.querySelector('#signupForm');
-    const messageDiv = document.querySelector('#message');    // Handle form submission
+    const messageDiv = document.querySelector('#message');   
+    
+    // Handle form submission
     signupForm.addEventListener('submit', async function (e) {
         e.preventDefault(); // Prevent form from reloading page
 
@@ -51,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result.success) {
                 showMessage('Account created successfully! Redirecting to login...', 'success');
                 signupForm.reset(); // Clear the form
+                
                 // Redirect to login page after 2 seconds
                 setTimeout(() => {
                     window.location.href = '../Login webpage/login.html';
@@ -116,7 +119,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         return null; // No errors
-    }    // Function to show messages
+    }    
+    
+    // Function to show messages
     function showMessage(message, type) {
         messageDiv.textContent = message;
         messageDiv.className = `message ${type}`;
@@ -144,14 +149,18 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = navOverlay.classList.contains('active') ? 'hidden' : '';
         navbar.style.opacity = navOverlay.classList.contains('active') ? '0' : '1';
         navbar.style.visibility = navOverlay.classList.contains('active') ? 'hidden' : 'visible';
-    });    // Close menu on close button click
+    });    
+    
+    // Close menu on close button click
     closeMenu.addEventListener('click', function() {
         hamburger.classList.remove('active');
         navOverlay.classList.remove('active');
         document.body.style.overflow = '';
         navbar.style.opacity = '1';
         navbar.style.visibility = 'visible';
-    });    // Close menu when clicking a link
+    });    
+    
+    // Close menu when clicking a link
     navLinks.forEach(link => {
         link.addEventListener('click', function() {
             hamburger.classList.remove('active');

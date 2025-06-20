@@ -1,11 +1,3 @@
-/*
-=========================================
-    HARVESTLINK CONTACTS JAVASCRIPT
-    Version: 1.0
-    Last Updated: June 4, 2025
-=========================================
-*/
-
 // Navigation Menu Functionality
 document.addEventListener('DOMContentLoaded', () => {
     const hamburger = document.querySelector('.hamburger');
@@ -64,10 +56,10 @@ backToTopButton.addEventListener('click', () => {
 });
 
 // Initialize Leaflet Map
-document.addEventListener('DOMContentLoaded', () => {    // Coordinates for SM City Davao (example location)
+document.addEventListener('DOMContentLoaded', () => {
     const officeLocation = {
-        lat: 7.0733,
-        lng: 125.6144
+        lat: 7.0631,
+        lng: 125.5958
     };
 
     // Initialize the map
@@ -86,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {    // Coordinates for SM C
     marker.bindPopup(`
         <div style="padding: 10px;">
             <h3 style="margin: 0 0 5px 0;">HarvestLink Office</h3>
-            <p style="margin: 0;">123 Farmer's Market Street<br>
+            <p style="margin: 0;">Gen. Douglas MacArthur Hwy, Matina<br>
             Davao City, 8000<br>
             Philippines</p>
         </div>
