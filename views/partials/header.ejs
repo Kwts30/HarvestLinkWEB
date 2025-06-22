@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'HarvestLink' %></title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="/assets/homepage/harvestlink logo.png" type="image/x-icon">
+      <!-- CSS Files -->
+    <% if (locals.additionalCSS) { %>
+        <% additionalCSS.forEach(cssFile => { %>
+            <link rel="stylesheet" href="/<%= cssFile %>">
+        <% }); %>
+    <% } %>
+    <% if (locals.cssFiles) { %>
+        <% cssFiles.forEach(cssFile => { %>
+            <link rel="stylesheet" href="<%= cssFile %>">
+        <% }); %>
+    <% } %>
+    
+    <!-- Additional Head Content -->
+    <% if (locals.additionalHeadContent) { %>
+        <%- additionalHeadContent %>
+    <% } %>
+      <!-- Config and Auth Scripts -->
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/cart-init.js"></script>
+    
+    <!-- Page Specific Scripts -->
+    <% if (locals.additionalJS) { %>
+        <% additionalJS.forEach(jsFile => { %>
+            <script src="/<%= jsFile %>" defer></script>
+        <% }); %>
+    <% } %>
+    <% if (locals.jsFiles) { %>
+        <% jsFiles.forEach(jsFile => { %>
+            <script src="<%= jsFile %>" defer></script>
+        <% }); %>
+    <% } %>
+</head>
+<body>

@@ -1,0 +1,48 @@
+<!-- Header Section -->
+<header>
+    <nav class="navbar">
+        <div class="nav-left">
+            <h1>HARVESTLINK</h1>
+        </div>        <div class="nav-center">
+            <div class="logo-circle">
+                <img src="/assets/homepage/harvestlink logo.png" alt="HarvestLink Logo">
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="cart-icon" onclick="window.location.href='/cart'">
+                <img src="/assets/shop/shopping-cart.png" alt="Shopping Cart" style="width: 24px; height: 24px;">
+                <span class="cart-count">0</span>
+            </div>
+            <div class="hamburger-menu">
+                <div class="hamburger">
+                    <div class="line line1"></div>
+                    <div class="line line2"></div>
+                    <div class="line line3"></div>
+                </div>
+            </div>
+        </div>
+    </nav>        
+    
+    <div class="nav-overlay">
+        <button class="close-menu">×</button>
+        <div class="nav-logo">
+            <img src="/assets/homepage/harvestlink logo full.png" alt="HarvestLink Logo">
+        </div>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/shop" class="shop-link">Shop</a></li>
+            <li><a href="/contacts">Contact</a></li>
+            <% if (isAuthenticated) { %>
+                <% if (user && user.role === 'admin') { %>
+                    <li><a href="/admin">Admin Dashboard</a></li>
+                <% } %>
+                <li><a href="/cart">Cart</a></li>
+                <li><a href="#" class="logout-link">Logout</a></li>
+                <li class="user-greeting">Hello, <%= user.firstName %>!</li>
+            <% } else { %>
+                <li><a href="/signup">Sign Up</a></li>
+                <li><a href="/login">Login</a></li>
+            <% } %>
+        </ul>
+    </div>    
+</header>

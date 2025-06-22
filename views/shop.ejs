@@ -1,0 +1,204 @@
+<%- include('partials/header', { 
+    title: title, 
+    additionalCSS: [
+        'assets/shop/shop.css',
+        'assets/css/auth-styles.css'
+    ],
+    additionalJS: [
+        'assets/shop/shop.js'
+    ]
+}) %>
+
+<%- include('partials/navigation', { user: user, isAuthenticated: isAuthenticated }) %>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Hero Section -->
+    <section class="shop-hero">
+        <div class="hero-content">
+            <h1>Fresh Products</h1>
+            <p>Discover premium quality produce directly from local farmers</p>
+        </div>
+    </section>
+
+    <!-- Shop Section -->
+    <section class="shop-section">
+        <div class="container">
+            <div class="shop-header">
+                <h2>Our Products</h2>
+                <p class="shop-subtitle">Fresh, locally-sourced produce delivered straight from our partner farms</p>
+                <div class="shop-filters">
+                    <div class="filter-group">
+                        <label for="categoryFilter">Category:</label>
+                        <select id="categoryFilter">
+                            <option value="">All Categories</option>
+                            <option value="Vegetables">Vegetables</option>
+                            <option value="Fruits">Fruits</option>
+                            <option value="Grains">Grains</option>
+                            <option value="Herbs">Herbs</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="sortFilter">Sort by:</label>
+                        <select id="sortFilter">
+                            <option value="name">Name</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="price-high">Price: High to Low</option>
+                            <option value="newest">Newest First</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+              <!-- Loading indicator -->
+            <div class="loading-indicator" id="loadingIndicator" style="display: none;">
+                <div class="spinner"></div>
+                <p>Loading fresh products...</p>
+            </div>
+              <!-- Products grid -->
+            <div class="product-grid" id="productGrid">
+                <!-- Sample Products -->                <div class="product-card">
+                    <div class="product-image-container">
+                        <div class="product-placeholder">
+                            <i class="fas fa-pepper-hot"></i>
+                            <span>No Image</span>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-content">
+                            <h3 class="product-name">Bell Peppers</h3>
+                            <p class="product-price">₱150.00</p>
+                            <p class="product-stock">20 in stock</p>
+                        </div>
+                        <div class="product-actions">
+                            <button class="add-to-cart-btn">Add to Cart</button>
+                            <button class="view-details-btn" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>                <div class="product-card">
+                    <div class="product-image-container">
+                        <div class="product-placeholder">
+                            <i class="fas fa-corn"></i>
+                            <span>No Image</span>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-content">
+                            <h3 class="product-name">Sweet Corn</h3>
+                            <p class="product-price">₱100.00</p>
+                            <p class="product-stock">40 in stock</p>
+                        </div>
+                        <div class="product-actions">
+                            <button class="add-to-cart-btn">Add to Cart</button>
+                            <button class="view-details-btn" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>                <div class="product-card">
+                    <div class="product-image-container">
+                        <div class="product-placeholder">
+                            <i class="fas fa-leaf"></i>
+                            <span>No Image</span>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-content">
+                            <h3 class="product-name">Fresh Lettuce</h3>
+                            <p class="product-price">₱60.00</p>
+                            <p class="product-stock">25 in stock</p>
+                        </div>
+                        <div class="product-actions">
+                            <button class="add-to-cart-btn">Add to Cart</button>
+                            <button class="view-details-btn" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>                <div class="product-card">
+                    <div class="product-image-container">
+                        <div class="product-placeholder">
+                            <i class="fas fa-carrot"></i>
+                            <span>No Image</span>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-content">
+                            <h3 class="product-name">Organic Carrots</h3>
+                            <p class="product-price">₱80.00</p>
+                            <p class="product-stock">30 in stock</p>
+                        </div>
+                        <div class="product-actions">
+                            <button class="add-to-cart-btn">Add to Cart</button>
+                            <button class="view-details-btn" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>                <div class="product-card">
+                    <div class="product-image-container">
+                        <img class="product-image" src="/assets/shop/tomatoes.png" alt="Fresh Tomatoes" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="product-placeholder" style="display: none;">
+                            <i class="fas fa-apple-alt"></i>
+                            <span>No Image</span>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-content">
+                            <h3 class="product-name">Fresh Tomatoes</h3>
+                            <p class="product-price">₱120.00</p>
+                            <p class="product-stock">50 in stock</p>
+                        </div>
+                        <div class="product-actions">
+                            <button class="add-to-cart-btn">Add to Cart</button>
+                            <button class="view-details-btn" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Empty state -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="empty-icon">🌱</div>
+                <h3>No products found</h3>
+                <p>Try adjusting your filters to see more products</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Product Detail Modal -->
+<div class="product-detail-overlay">
+    <div class="product-detail-modal">
+        <button class="close-detail">&times;</button>
+        <div class="detail-content">
+            <div class="detail-image-container">
+                <img class="detail-image" src="" alt="">
+                <div class="detail-image-placeholder" style="display: none;">
+                    <i class="fas fa-image"></i>
+                    <span>No Image Available</span>
+                </div>
+            </div>
+            <div class="detail-info">
+                <h2 class="detail-name"></h2>
+                <p class="detail-price"></p>
+                <p class="detail-description"></p>
+                <p class="detail-stock"></p>
+                <div class="detail-actions">
+                    <div class="quantity-selector">
+                        <label for="quantity">Quantity:</label>
+                        <input type="number" id="quantity" min="1" value="1">
+                    </div>
+                    <button class="detail-add-to-cart btn-primary">
+                        Add to Cart
+                    </button>
+                </div>            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

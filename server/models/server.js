@@ -18,6 +18,10 @@ const PORT = process.env.PORT || 3000;
 // Connect to MongoDB
 connect();
 
+// Set EJS as template engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, '../../views'));
+
 // Middleware
 app.use(cors({
   origin: function (origin, callback) {
@@ -62,7 +66,73 @@ app.use(session({
   }
 }));
 
-app.use(express.static(path.join(__dirname, '../../')));
+// Static files middleware - exclude HTML files to force EJS rendering
+app.use(express.static(path.join(__dirname, '../../'), {
+    setHeaders: (res, filePath) => {
+        // Block direct access to HTML files
+        if (path.extname(filePath) === '.html') {
+            res.status(404).send('HTML files are not accessible. Please use EJS routes.');
+            return;
+        }
+    }
+}));
+
+// Middleware to handle HTML file requests and redirect to EJS routes
+app.use((req, res, next) => {
+    // Only handle .html file requests
+    if (req.url.endsWith('.html')) {
+        const requestUrl = req.url;
+        
+        // Map HTML files to EJS routes
+        const routeMap = {
+            '/index.html': '/',
+            '/Login webpage/login.html': '/login',
+            '/Signup webpage/signup.html': '/signup',
+            '/Shop webpage/shop.html': '/shop',
+            '/cart webpage/cart.html': '/cart',
+            '/Checkout webpage/checkout.html': '/checkout',
+            '/Contacts webpage/contacts.html': '/contacts',
+            '/Admin webpage/admin.html': '/admin'
+        };
+        
+        // Check for exact match first
+        if (routeMap[requestUrl]) {
+            return res.redirect(routeMap[requestUrl]);
+        }
+        
+        // Check for partial matches
+        for (const [htmlPath, ejsRoute] of Object.entries(routeMap)) {
+            if (requestUrl.includes(htmlPath.replace('.html', ''))) {
+                return res.redirect(ejsRoute);
+            }
+        }
+        
+        // If no specific route found, return 404
+        return res.status(404).send('Page not found. Please use the EJS routes: /, /shop, /login, /signup, /cart, /checkout, /contacts, /admin');
+    }
+    
+    next();
+});
+
+// Middleware to add base URL and universal helpers to all views
+app.use((req, res, next) => {
+    // Get the protocol and host
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const baseUrl = `${protocol}://${host}`;
+    
+    // Add helper functions to all views
+    res.locals.baseUrl = baseUrl;
+    res.locals.url = (path) => {
+        // Remove leading slash if present to avoid double slashes
+        const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+        return cleanPath ? `${baseUrl}/${cleanPath}` : baseUrl;
+    };
+    res.locals.isLocal = host.includes('localhost') || host.includes('127.0.0.1');
+    res.locals.currentUrl = `${baseUrl}${req.originalUrl}`;
+    
+    next();
+});
 
 // Import routes and models
 import userRoutes from '../../routes/users.js';
@@ -86,31 +156,71 @@ app.use('/api/admin', adminRoutes);
 
 // Serve static files
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../index.html'));
+    res.render('index', { 
+        title: 'HarvestLink - Fresh Farm Products',
+        user: req.session.user || null,
+        isAuthenticated: !!req.session.userId
+    });
 });
 
 app.get('/signup', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../Signup webpage/signup.html'));
+    res.render('signup', { 
+        title: 'HarvestLink - Sign Up',
+        user: req.session.user || null,
+        isAuthenticated: !!req.session.userId
+    });
 });
 
 app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../Login webpage/login.html'));
+    res.render('login', { 
+        title: 'HarvestLink - Login',
+        user: req.session.user || null,
+        isAuthenticated: !!req.session.userId
+    });
 });
 
 app.get('/cart', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../cart webpage/cart.html'));
+    res.render('cart', { 
+        title: 'HarvestLink - Shopping Cart',
+        user: req.session.user || null,
+        isAuthenticated: !!req.session.userId
+    });
 });
 
 app.get('/checkout', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../Checkout webpage/checkout.html'));
+    res.render('checkout', { 
+        title: 'HarvestLink - Checkout',
+        user: req.session.user || null,
+        isAuthenticated: !!req.session.userId
+    });
 });
 
 app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../Admin webpage/admin.html'));
+    // Check if user is admin
+    if (!req.session.userId || !req.session.user || req.session.user.role !== 'admin') {
+        return res.redirect('/login');
+    }
+    res.render('admin', { 
+        title: 'HarvestLink - Admin Dashboard',
+        user: req.session.user,
+        isAuthenticated: true
+    });
 });
 
 app.get('/shop', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../Shop webpage/shop.html'));
+    res.render('shop', { 
+        title: 'HarvestLink - Shop',
+        user: req.session.user || null,
+        isAuthenticated: !!req.session.userId
+    });
+});
+
+app.get('/contacts', (req, res) => {
+    res.render('contacts', { 
+        title: 'HarvestLink - Contact Us',
+        user: req.session.user || null,
+        isAuthenticated: !!req.session.userId
+    });
 });
 
 // Start server

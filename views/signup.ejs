@@ -1,0 +1,41 @@
+<%- include('partials/header', { 
+    title: title, 
+    additionalCSS: [
+        'Signup webpage/signup.css'
+    ],
+    additionalJS: [
+        'Signup webpage/signup.js'
+    ]
+}) %>
+
+<%- include('partials/navigation', { user: user, isAuthenticated: isAuthenticated }) %>
+
+<div class="form-container">
+    <h1>Nice to meet you!</h1>
+    <p>Let's Sign Up Your Account</p>
+    
+    <form id="signupForm">
+        <div class="form-row">
+            <input type="text" name="firstName" placeholder="First Name" required>
+            <input type="text" name="lastName" placeholder="Last Name" required>
+        </div>        <div class="form-row">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="email" name="email" placeholder="Email" required>
+        </div>
+        <div class="form-row">
+            <input type="password" name="password" placeholder="Password" required>
+            <input type="password" name="confirmPassword" placeholder="Confirm Password" required>
+        </div>
+
+        <button type="submit" class="signup-btn">Sign Up</button>
+
+        <div id="message" class="message"></div>
+
+        <div class="footer">
+            Are you a farmer and already have an account? <a href="/login">Login Now</a>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

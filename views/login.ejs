@@ -1,0 +1,33 @@
+<%- include('partials/header', { 
+    title: title, 
+    additionalCSS: [
+        'Login webpage/login.css',
+        'assets/css/auth-styles.css'
+    ],
+    additionalJS: [
+        'Login webpage/login.js'
+    ]
+}) %>
+
+<%- include('partials/navigation', { user: user, isAuthenticated: isAuthenticated }) %>
+
+<main>
+    <div class="form-container">      
+        <h1>Login</h1>
+        <p>Welcome back! Please login to your account.</p>
+        
+        <form id="loginForm">
+            <div class="form-row">
+                <input type="email" name="email" placeholder="Email" required />
+                <input type="password" name="password" placeholder="Password" required />
+            </div>
+            <button type="submit" class="login-btn">Login</button>
+            
+            <div id="message" class="message"></div>
+        </form>
+
+        <div class="footer">
+            Don't have an account? <a href="/signup">Register here</a>
+        </div>
+    </div>
+</main>

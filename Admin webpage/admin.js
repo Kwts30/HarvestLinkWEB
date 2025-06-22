@@ -22,22 +22,21 @@ class ModernAdminDashboard {
         this.init();
     }    // Setup API configuration for multi-domain support
     setupApiConfig() {
-        const currentHost = window.location.host;
-        const currentProtocol = window.location.protocol;
-        
-        // Determine the base URL based on the current domain
-        let baseUrl;
-        
-        if (currentHost.includes('127.0.0.1:5500') || currentHost.includes('localhost:5500')) {
-            // VS Code Live Preview - connect to the actual server
-            baseUrl = 'http://localhost:3000';
-        } else if (currentHost.includes('localhost') || currentHost.includes('127.0.0.1')) {
-            // Local development on the same server
-            baseUrl = `${currentProtocol}//${currentHost}`;
-        } else {
-            // Live domain - use the current domain
-            baseUrl = `${currentProtocol}//${currentHost}`;
+        // Use the global API config if available, otherwise detect automatically
+        if (window.API_CONFIG) {
+            return {
+                baseUrl: window.API_CONFIG.BASE_URL,
+                apiPath: '/api/admin'
+            };
         }
+        
+        // Fallback: Auto-detect based on current location
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        const currentUrl = `${protocol}//${host}`;
+        
+        const isLocalFile = protocol === 'file:' || host.includes(':5500');
+        const baseUrl = isLocalFile ? 'http://localhost:3000' : currentUrl;
         
         console.log('🌐 API Base URL configured:', baseUrl);
         
@@ -63,12 +62,10 @@ class ModernAdminDashboard {
     async checkAuth() {
         const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        
-        if (isLoggedIn && user.role === 'admin') {
+          if (isLoggedIn && user.role === 'admin') {
             this.currentUser = user;
-            this.updateAdminInfo();
-        } else {
-            window.location.href = '../Login webpage/login.html';
+            this.updateAdminInfo();        } else {
+            window.location.href = window.AuthUtils ? window.AuthUtils.createUrl('/login') : '/login';
         }
     }
 
@@ -96,13 +93,15 @@ class ModernAdminDashboard {
         // Modal controls
         document.querySelectorAll('.modal-close').forEach(btn => {
             btn.addEventListener('click', this.closeModal.bind(this));
-        });
-
-        // User management
+        });        // User management
         document.getElementById('addUserBtn').addEventListener('click', () => this.showUserModal());
         document.getElementById('userForm').addEventListener('submit', this.handleUserSubmit.bind(this));
         document.getElementById('userSearch').addEventListener('input', this.debounce(this.searchUsers.bind(this), 300));
         document.getElementById('userRoleFilter').addEventListener('change', this.filterUsers.bind(this));
+        
+        // User image upload
+        document.getElementById('userProfileImage').addEventListener('change', this.handleUserImagePreview.bind(this));
+        document.getElementById('removeUserImageBtn').addEventListener('click', this.removeUserImage.bind(this));
 
         // Product management
         document.getElementById('addProductBtn').addEventListener('click', () => this.showProductModal());
@@ -338,12 +337,11 @@ class ModernAdminDashboard {
                 </div>
             `;
             return;
-        }
-
-        container.innerHTML = `
+        }        container.innerHTML = `
             <table>
                 <thead>
                     <tr>
+                        <th>Profile</th>
                         <th>Name</th>
                         <th>Email</th>
                         <th>Phone</th>
@@ -355,6 +353,14 @@ class ModernAdminDashboard {
                 <tbody>
                     ${users.map(user => `
                         <tr>
+                            <td>
+                                <div class="user-profile-cell">
+                                    ${user.profileImage 
+                                        ? `<img src="${user.profileImage}" alt="Profile" class="table-profile-image">` 
+                                        : `<div class="table-profile-placeholder"><i class="fas fa-user"></i></div>`
+                                    }
+                                </div>
+                            </td>
                             <td>${user.firstName} ${user.lastName}</td>
                             <td>${user.email}</td>
                             <td>${user.phoneNumber || 'N/A'}</td>
@@ -373,9 +379,7 @@ class ModernAdminDashboard {
                 </tbody>
             </table>
         `;
-    }
-
-    showUserModal(userId = null) {
+    }    showUserModal(userId = null) {
         const modal = document.getElementById('userModal');
         const form = document.getElementById('userForm');
         const title = document.getElementById('userModalTitle');
@@ -384,6 +388,7 @@ class ModernAdminDashboard {
         // Reset form
         form.reset();
         this.clearFormErrors();
+        this.removeUserImage(); // Reset image preview
 
         if (userId) {
             // Edit mode
@@ -397,39 +402,73 @@ class ModernAdminDashboard {
             this.isEditing.user = false;
             this.editingId.user = null;
             title.textContent = 'Add New User';
-            passwordGroup.style.display = 'block';
-            document.getElementById('userPassword').required = true;
-        }
-
-        modal.style.display = 'block';
-    }    async loadUserForEdit(userId) {
+            passwordGroup.style.display = 'block';            document.getElementById('userPassword').required = true;
+        }        modal.style.display = 'flex';
+        modal.classList.add('active');
+    }async loadUserForEdit(userId) {
         try {
             const response = await fetch(this.buildApiUrl(`/users/${userId}`), {
                 credentials: 'include'
-            });
-
-            if (response.ok) {
+            });            if (response.ok) {
                 const user = await response.json();
                 document.getElementById('userFirstName').value = user.firstName;
                 document.getElementById('userLastName').value = user.lastName;
                 document.getElementById('userEmail').value = user.email;
+                document.getElementById('userUsername').value = user.username;
                 document.getElementById('userPhone').value = user.phoneNumber || '';
                 document.getElementById('userRole').value = user.role;
+                
+                // Load profile image if exists
+                if (user.profileImage) {
+                    const previewImg = document.getElementById('userPreviewImg');
+                    const placeholderIcon = document.getElementById('userPlaceholderIcon');
+                    const removeBtn = document.getElementById('removeUserImageBtn');
+                    
+                    previewImg.src = user.profileImage;
+                    previewImg.style.display = 'block';
+                    placeholderIcon.style.display = 'none';
+                    removeBtn.style.display = 'inline-flex';
+                }
             }
         } catch (error) {
             console.error('Error loading user for edit:', error);
             this.showToast('Error loading user data', 'error');
         }
-    }
-
-    async handleUserSubmit(e) {
+    }    async handleUserSubmit(e) {
         e.preventDefault();
         
         const formData = new FormData(e.target);
-        const userData = Object.fromEntries(formData.entries());
+        const imageFile = formData.get('profileImage');
+          // Prepare user data
+        const userData = {
+            firstName: formData.get('firstName'),
+            lastName: formData.get('lastName'),
+            email: formData.get('email'),
+            username: formData.get('username'),
+            phoneNumber: formData.get('phoneNumber'),
+            role: formData.get('role')
+        };
+        
+        // Add password only for new users
+        if (!this.isEditing.user) {
+            userData.password = formData.get('password');
+        }
+        
+        // Handle profile image
+        if (imageFile && imageFile.size > 0) {
+            try {
+                const imageBase64 = await this.convertImageToBase64(imageFile);
+                userData.profileImage = imageBase64;
+            } catch (error) {
+                this.showToast('Error processing image', 'error');
+                return;
+            }
+        }
 
         try {
-            this.showLoading();            const url = this.isEditing.user 
+            this.showLoading();
+            
+            const url = this.isEditing.user 
                 ? this.buildApiUrl(`/users/${this.editingId.user}`)
                 : this.buildApiUrl('/users');
             
@@ -459,6 +498,16 @@ class ModernAdminDashboard {
         } finally {
             this.hideLoading();
         }
+    }
+    
+    // Helper function to convert image to base64
+    convertImageToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
     }
 
     async editUser(userId) {
@@ -496,6 +545,69 @@ class ModernAdminDashboard {
 
     filterUsers() {
         this.searchUsers();
+    }    // User Image Handling
+    handleUserImagePreview(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            this.showToast('Please select a valid image file (JPEG, PNG, GIF, or WebP)', 'error');
+            event.target.value = ''; // Clear the input
+            return;
+        }
+
+        // Validate file size (5MB limit)
+        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+        if (file.size > maxSize) {
+            const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            this.showToast(`Image size (${fileSizeMB}MB) exceeds the 5MB limit. Please choose a smaller image.`, 'error');
+            event.target.value = ''; // Clear the input
+            return;
+        }
+
+        // Show loading state while processing
+        const previewImg = document.getElementById('userPreviewImg');
+        const placeholderIcon = document.getElementById('userPlaceholderIcon');
+        const removeBtn = document.getElementById('removeUserImageBtn');
+        
+        // Temporarily show loading
+        placeholderIcon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            previewImg.src = e.target.result;
+            previewImg.style.display = 'block';
+            placeholderIcon.style.display = 'none';
+            removeBtn.style.display = 'inline-flex';
+            
+            // Show success message
+            const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            this.showToast(`Image uploaded successfully (${fileSizeMB}MB)`, 'success');
+        };
+        
+        reader.onerror = () => {
+            this.showToast('Error reading the image file. Please try again.', 'error');
+            placeholderIcon.innerHTML = '<i class="fas fa-user"></i>';
+            event.target.value = ''; // Clear the input
+        };
+        
+        reader.readAsDataURL(file);
+    }    removeUserImage() {
+        const fileInput = document.getElementById('userProfileImage');
+        const previewImg = document.getElementById('userPreviewImg');
+        const placeholderIcon = document.getElementById('userPlaceholderIcon');
+        const removeBtn = document.getElementById('removeUserImageBtn');
+
+        fileInput.value = '';
+        previewImg.src = '#';
+        previewImg.style.display = 'none';
+        placeholderIcon.innerHTML = '<i class="fas fa-user"></i>';
+        placeholderIcon.style.display = 'block';
+        removeBtn.style.display = 'none';
+        
+        this.showToast('Profile image removed', 'info');
     }
 
     // Product Management
@@ -625,11 +737,11 @@ class ModernAdminDashboard {
             this.isEditing.product = false;
             this.editingId.product = null;
             title.textContent = 'Add New Product';
-            document.getElementById('productActive').checked = true;
-        }
+            document.getElementById('productActive').checked = true;        }
 
-        modal.style.display = 'block';
-    }    async loadProductForEdit(productId) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+    }async loadProductForEdit(productId) {
         try {
             const response = await fetch(this.buildApiUrl(`/products/${productId}`), {
                 credentials: 'include'
@@ -1007,11 +1119,10 @@ class ModernAdminDashboard {
             // Implement global search across all sections
             this.showToast('Global search functionality coming soon!', 'info');
         }
-    }
-
-    // Modal Management
+    }    // Modal Management
     closeModal() {
         document.querySelectorAll('.modal').forEach(modal => {
+            modal.classList.remove('active');
             modal.style.display = 'none';
         });
         this.clearFormErrors();
@@ -1112,12 +1223,10 @@ class ModernAdminDashboard {
                 });
             } catch (error) {
                 console.error('Logout error:', error);
-            }
-            
-            localStorage.removeItem('user');
+            }            localStorage.removeItem('user');
             localStorage.removeItem('isLoggedIn');
             this.currentUser = null;
-            window.location.href = '../Login webpage/login.html';
+            window.location.href = window.AuthUtils ? window.AuthUtils.createUrl('/login') : '/login';
         }
     }
 

@@ -72,14 +72,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (result.user.role === 'admin') {
                     // Redirect to admin dashboard
                     setTimeout(() => {
-                        window.location.href = '../Admin webpage/admin.html';
+                        window.location.href = window.AuthUtils ? window.AuthUtils.createUrl('/admin') : '/admin';
                     }, 1500);
                 } 
                 
                 else {
                     // Redirect to shop for regular users
                     setTimeout(() => {
-                        window.location.href = '../Shop webpage/shop.html';
+                        window.location.href = window.AuthUtils ? window.AuthUtils.createUrl('/shop') : '/shop';
                     }, 1500);
                 }
 

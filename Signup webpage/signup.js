@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Redirect to login page after 2 seconds
                 setTimeout(() => {
-                    window.location.href = '../Login webpage/login.html';
+                    window.location.href = window.AuthUtils ? window.AuthUtils.createUrl('/login') : '/login';
                 }, 2000);
             } 
             else {

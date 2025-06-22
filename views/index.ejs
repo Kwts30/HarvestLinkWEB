@@ -1,0 +1,107 @@
+<%- include('partials/header', { 
+    title: title, 
+    cssFiles: ['/style.css', '/assets/css/auth-styles.css'],
+    jsFiles: ['/script.js']
+}) %>
+
+<%- include('partials/navigation') %>
+
+<!-- Main Section -->
+<main>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>HARVESTLINK</h1>
+            <h2>INC.</h2>
+            <a href="/shop" class="shop-btn">
+                <img src="/assets/homepage/shopping-cart (1).png" alt="Cart Icon">
+                SHOP
+            </a>
+        </div>            
+        <div class="background-image"></div>
+        <div class="farmers-image"></div>        
+    </section>
+
+    <!-- Info Section -->
+    <section class="info-section">
+        <div class="image-background">
+            <video autoplay muted loop playsinline>
+                <source src="/assets/homepage/13559360 3840 2160 60Fps.mp4" type="video/mp4">
+            </video>
+        </div>
+        <div class="info-content">
+            <div class="info-text">
+                <h2>Fresh Products, <span class="highlight">Direct from Farms</span></h2>
+                <p>Experience the finest quality agricultural products sourced directly from local farmers. 
+                   Our platform connects you with fresh, organic produce while supporting sustainable farming practices.</p>
+                <div class="features">
+                    <div class="feature">
+                        <i class="fas fa-leaf"></i>
+                        <h3>100% Organic</h3>
+                        <p>Naturally grown without harmful chemicals</p>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-truck"></i>
+                        <h3>Fast Delivery</h3>
+                        <p>Fresh products delivered to your doorstep</p>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-handshake"></i>
+                        <h3>Fair Trade</h3>
+                        <p>Supporting farmers with fair prices</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section">
+        <div class="about-content">
+            <div class="about-text">
+                <h2>About <span class="highlight">HarvestLink</span></h2>
+                <p>HarvestLink is more than just a marketplace - we're a bridge connecting communities. 
+                   Founded with the vision of supporting local agriculture, we provide a platform where 
+                   farmers can showcase their finest products and consumers can access fresh, quality produce.</p>
+                <ul>
+                    <li><i class="fas fa-check"></i> Direct farmer-to-consumer connection</li>
+                    <li><i class="fas fa-check"></i> Quality assurance and freshness guarantee</li>
+                    <li><i class="fas fa-check"></i> Supporting sustainable farming practices</li>
+                    <li><i class="fas fa-check"></i> Building stronger local communities</li>
+                </ul>
+            </div>
+            <div class="about-image">
+                <img src="/assets/homepage/farmers.png" alt="Local Farmers">
+            </div>
+        </div>
+    </section>
+
+    <!-- Farmers Spotlight Section -->
+    <section class="farmers-section">
+        <h2>Meet Our <span class="highlight">Local Farmers</span></h2>
+        <div class="farmers-grid">
+            <div class="farmer">
+                <img src="/assets/homepage/jaryl.jpg" alt="Farmer Jaryl">
+                <h3>Farmer Jaryl</h3>
+                <p>Organic vegetable specialist with 15 years of experience in sustainable farming.</p>
+            </div>
+            <!-- Add more farmers as needed -->
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-content">
+            <h2>Ready to Experience Fresh?</h2>
+            <p>Join thousands of satisfied customers who choose HarvestLink for their fresh produce needs.</p>
+            <div class="cta-buttons">
+                <a href="/shop" class="btn-primary">Shop Now</a>
+                <% if (!isAuthenticated) { %>
+                    <a href="/signup" class="btn-secondary">Join Us</a>
+                <% } %>
+            </div>
+        </div>
+    </section>
+</main>
+
+<%- include('partials/footer') %>

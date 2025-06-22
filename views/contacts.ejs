@@ -1,0 +1,146 @@
+<%- include('partials/header', { 
+    title: title, 
+    additionalCSS: [
+        'Contacts webpage/contacts.css',
+        'style.css',
+        'assets/css/auth-styles.css'
+    ],
+    additionalJS: [
+        'assets/js/config.js',
+        'assets/js/auth.js',
+        'Contacts webpage/contacts.js',
+        'script.js'
+    ],
+    additionalHeadContent: `
+        <!-- Leaflet CSS for Map -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+         crossorigin=""/>
+        <!-- Leaflet JS for Map -->
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+         crossorigin="" defer>
+        </script>
+    `
+}) %>
+
+<%- include('partials/navigation', { user: user, isAuthenticated: isAuthenticated }) %>
+
+    <main class="main-content">
+        <!-- Contact Section -->
+        <section class="contact-section">
+            <div class="container">
+                <h1>Get in Touch</h1>
+                <p class="contact-intro">
+                    We'd love to hear from you! Whether you have questions about our products, 
+                    need help with your order, or want to partner with us, don't hesitate to reach out.
+                </p>
+                
+                <div class="contact-grid">
+                    <!-- Contact Form -->
+                    <div class="contact-form-container">
+                        <h2>Send us a Message</h2>
+                        <form class="contact-form" id="contactForm">
+                            <div class="form-group">
+                                <label for="name">Full Name</label>
+                                <input type="text" id="name" name="name" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email">Email Address</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="phone">Phone Number</label>
+                                <input type="tel" id="phone" name="phone">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="subject">Subject</label>
+                                <select id="subject" name="subject" required>
+                                    <option value="">Select a subject</option>
+                                    <option value="general">General Inquiry</option>
+                                    <option value="order">Order Support</option>
+                                    <option value="partnership">Partnership Opportunity</option>
+                                    <option value="feedback">Feedback</option>
+                                    <option value="complaint">Complaint</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="message">Message</label>
+                                <textarea id="message" name="message" rows="6" required 
+                                         placeholder="Tell us how we can help you..."></textarea>
+                            </div>
+                            
+                            <button type="submit" class="submit-btn">Send Message</button>
+                        </form>
+                    </div>
+                    
+                    <!-- Contact Information -->
+                    <div class="contact-info-container">
+                        <h2>Contact Information</h2>
+                        
+                        <div class="contact-card">
+                            <div class="contact-icon">📞</div>
+                            <div class="contact-details">
+                                <h3>Phone</h3>
+                                <p>+63 912 345 6789</p>
+                                <small>Monday - Friday, 8:00 AM - 5:00 PM</small>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-card">
+                            <div class="contact-icon">✉️</div>
+                            <div class="contact-details">
+                                <h3>Email</h3>
+                                <p>info@harvestlink.com</p>
+                                <small>We'll respond within 24 hours</small>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-card">
+                            <div class="contact-icon">📍</div>
+                            <div class="contact-details">
+                                <h3>Address</h3>
+                                <p>123 Farmer's Market Street<br>
+                                   Davao City, 8000<br>
+                                   Philippines</p>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-card">
+                            <div class="contact-icon">🕒</div>
+                            <div class="contact-details">
+                                <h3>Business Hours</h3>
+                                <p>Monday - Friday: 8:00 AM - 5:00 PM<br>
+                                   Saturday: 9:00 AM - 3:00 PM<br>
+                                   Sunday: Closed</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Map Section -->
+                <div class="map-container">
+                    <div class="location-info">
+                        <h3>Visit Our Office</h3>
+                        <p><strong>Address:</strong> 123 Farmer's Market Street</p>
+                        <p>Davao City, 8000</p>
+                        <p>Philippines</p>
+                        <div class="contact-details">
+                            <p><strong>Phone:</strong> +63 912 345 6789</p>
+                            <p><strong>Email:</strong> info@harvestlink.com</p>
+                            <p><strong>Hours:</strong> Monday - Friday, 8:00 AM - 5:00 PM</p>
+                        </div>
+                    </div>
+                    <div id="map"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <button id="back-to-top" title="Back to Top">↑</button>
+
+<%- include('partials/footer') %>

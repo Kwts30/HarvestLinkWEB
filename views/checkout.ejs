@@ -1,0 +1,195 @@
+<%- include('partials/header', { 
+    title: title, 
+    additionalCSS: [
+        'Checkout webpage/checkout.css'
+    ],
+    additionalJS: [
+        'assets/js/config.js',
+        'assets/js/auth.js',
+        'Checkout webpage/checkout.js'
+    ]
+}) %>
+
+<%- include('partials/navigation', { user: user, isAuthenticated: isAuthenticated }) %>
+
+    <main class="main-content">
+        <div class="checkout-container">
+            <!-- Delivery Address Section -->
+            <div class="checkout-section">
+                <div class="section-header">
+                    <h2>Delivery Address</h2>
+                    <button class="add-address-btn" id="addNewAddress">Add New Address</button>
+                </div>
+                
+                <div class="delivery-address" id="currentAddress">
+                    <p class="no-address">Please add a delivery address</p>
+                </div>
+            </div>
+
+            <!-- Order Summary Section -->
+            <div class="checkout-section">
+                <h2>Order Summary</h2>
+                <div class="order-items" id="orderItems">
+                    <!-- Items will be loaded here -->
+                </div>
+                <div class="order-total">
+                    <div class="total-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotalAmount">₱0.00</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Delivery Fee:</span>
+                        <span id="deliveryFee">₱50.00</span>
+                    </div>
+                    <div class="total-row grand-total">
+                        <span>Total:</span>
+                        <span id="grandTotal">₱0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Method Section -->
+            <div class="checkout-section">
+                <h2>Payment Method</h2>
+                <div class="payment-options">
+                    <div class="payment-option" data-payment="cod">
+                        <img src="assets/checkout webpage/cash-on-delivery.png" alt="Cash on Delivery">
+                        <span>Cash on Delivery</span>
+                        <input type="radio" name="payment" value="cod" checked>
+                    </div>
+                    <div class="payment-option" data-payment="gcash">
+                        <img src="assets/checkout webpage/gcash.png" alt="GCash">
+                        <span>GCash</span>
+                        <input type="radio" name="payment" value="gcash">
+                    </div>
+                    <div class="payment-option" data-payment="maya">
+                        <img src="assets/checkout webpage/maya.png" alt="Maya">
+                        <span>Maya</span>
+                        <input type="radio" name="payment" value="maya">
+                    </div>
+                    <div class="payment-option" data-payment="banking">
+                        <img src="assets/checkout webpage/mobile-banking.png" alt="Mobile Banking">
+                        <span>Mobile Banking</span>
+                        <input type="radio" name="payment" value="banking">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Place Order Button -->
+            <div class="checkout-actions">
+                <button class="place-order-btn" id="placeOrderBtn">Place Order</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="payment-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Complete Payment</h3>
+                <span class="close-modal" id="closePaymentModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="paymentDetails">
+                    <!-- Payment details will be loaded here -->
+                </div>
+                <div class="payment-form">
+                    <div class="form-group">
+                        <label for="accountNumber">Account Number/Phone Number</label>
+                        <input type="text" id="accountNumber" placeholder="Enter your account details">
+                    </div>
+                    <div class="form-group">
+                        <label for="referenceNumber">Reference Number</label>
+                        <input type="text" id="referenceNumber" placeholder="Enter reference number after payment">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn confirm-btn" id="confirmPayment">Confirm Payment</button>
+                <button class="modal-btn cancel-btn" id="cancelPayment">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Address Modal -->
+    <div id="addAddressModal" class="payment-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Address</h3>
+                <span class="close-modal" id="closeAddAddressModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addAddressForm">
+                    <div class="form-group">
+                        <label for="addressType">Address Type</label>
+                        <select id="addressType" required>
+                            <option value="">Select address type</option>
+                            <option value="home">Home</option>
+                            <option value="work">Work</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="street">Street Address</label>
+                        <input type="text" id="street" placeholder="House/Unit number, Street, Barangay" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="city">Barangay</label>
+                        <input type="text" id="barangay" placeholder="Barangay" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="city">City</label>
+                        <input type="text" id="city" placeholder="City" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="city">Province</label>
+                        <input type="text" id="province" placeholder="Province" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" placeholder="+63 912 345 6789" required>
+                    </div>
+                    
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" id="isPrimary">
+                            Set as primary address
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn confirm-btn" id="saveAddress">Save Address</button>
+                <button class="modal-btn cancel-btn" id="cancelAddAddress">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Address Selection Modal -->
+    <div id="addressModal" class="payment-modal address-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Select Delivery Address</h3>
+                <span class="close-modal" id="closeAddressModal">&times;</span>
+            </div>
+            <div class="modal-body" id="addressModalBody">
+                <!-- Address options will be loaded here dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn confirm-btn" id="confirmAddress">Confirm Address</button>
+                <button class="modal-btn cancel-btn" id="cancelAddress">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+<%- include('partials/footer') %>

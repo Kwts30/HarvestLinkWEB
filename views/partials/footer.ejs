@@ -1,0 +1,48 @@
+<!-- Footer Section -->
+<footer class="footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h3>About HarvestLink</h3>
+            <p>Connecting farmers with consumers for fresh, high-quality agricultural products. Supporting local communities and sustainable farming practices.</p>
+        </div>
+        <div class="footer-section">
+            <h3>Quick Links</h3>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/shop">Shop</a></li>
+                <li><a href="/contacts">Contact</a></li>
+                <% if (!isAuthenticated) { %>
+                    <li><a href="/login">Login</a></li>
+                    <li><a href="/signup">Sign Up</a></li>
+                <% } %>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h3>Follow Us</h3>
+            <div class="social-links">
+                <a href="https://facebook.com/harvestlink" target="_blank" class="social-link">
+                    <img src="/assets/homepage/facebook.png" alt="Facebook">
+                    Facebook
+                </a>
+                <a href="https://instagram.com/harvestlink" target="_blank" class="social-link">
+                    <img src="/assets/homepage/instagram.png" alt="Instagram">
+                    Instagram
+                </a>
+            </div>
+        </div>
+        <div class="footer-section">
+            <h3>Contact Us</h3>
+            <p>Email: info@harvestlink.com</p>
+            <p>Phone: +63 912 345 6789</p>
+            <p>Address: Davao City, Philippines</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2025 HarvestLink Incorporated. All rights reserved.</p>
+    </div>
+</footer>
+
+<!-- Common Scripts -->
+<script src="/script.js"></script>
+</body>
+</html>

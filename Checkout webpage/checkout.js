@@ -177,7 +177,7 @@ function closeSuccessModal() {
         successModal.remove();
     }
     // Redirect to shop page
-    window.location.href = '../Shop webpage/shop.html';
+    window.location.href = window.AuthUtils ? window.AuthUtils.createUrl('/shop') : '/shop';
 }
 
 // Load cart and address data

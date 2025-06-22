@@ -232,7 +232,7 @@ function handleCheckout() {
     if (!window.AuthUtils.isLoggedIn()) {
         // Show message and redirect to login
         if (confirm('You need to be logged in to checkout. Do you want to go to the login page?')) {
-            window.location.href = '../Login webpage/login.html';
+            window.location.href = window.AuthUtils ? window.AuthUtils.createUrl('/login') : '/login';
         }
         return;
     }
@@ -247,7 +247,7 @@ function handleCheckout() {
     localStorage.setItem('harvestlink-checkout-items', JSON.stringify(cart));
 
     // User is logged in and has items in cart - proceed to checkout
-    window.location.href = '../Checkout webpage/checkout.html';
+    window.location.href = window.AuthUtils ? window.AuthUtils.createUrl('/checkout') : '/checkout';
 }
 
 // Close success modal and redirect
@@ -260,7 +260,7 @@ function closeSuccessModal() {
     cart = [];
     saveCart();
     updateCartCount();
-    window.location.href = '../Shop webpage/shop.html';
+    window.location.href = window.AuthUtils ? window.AuthUtils.createUrl('/shop') : '/shop';
 }
 
 // Show success modal
