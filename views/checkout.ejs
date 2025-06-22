@@ -1,118 +1,236 @@
-<%- include('partials/header', { 
-    title: title, 
-    additionalCSS: [
-        'Checkout webpage/checkout.css'
-    ],
-    additionalJS: [
-        'assets/js/config.js',
-        'assets/js/auth.js',
-        'Checkout webpage/checkout.js'
-    ]
-}) %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
+    <!-- local files connection -->  
+    <link rel="stylesheet" href="/backup_html/Checkout webpage/checkout.css">
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/auth.js"></script>
+    <script src="/backup_html/Checkout webpage/checkout.js" defer></script>
+    <!-- icon logo -->
+    <link rel="icon" href="/assets/homepage/harvestlink logo.png" type="image/x-icon">
+</head>
 
-<%- include('partials/navigation', { user: user, isAuthenticated: isAuthenticated }) %>
+<body>  
+    <header>
+        <nav class="navbar">
+            <div class="nav-left">
+                <h1>HARVESTLINK</h1>
+            </div>
+            <div class="nav-center">
+                <div class="logo-circle">
+                    <img src="/assets/homepage/harvestlink logo.png" alt="HarvestLink Logo">
+                </div>
+            </div>            <div class="nav-right">
+                <div class="cart-icon" onclick="window.location.href='/cart'">
+                    <img src="/assets/shop/shopping-cart.png" alt="Shopping Cart" style="width: 24px; height: 24px;">
+                    <span class="cart-count">0</span>
+                </div>
+                <div class="hamburger-menu">
+                    <div class="hamburger">
+                        <div class="line line1"></div>
+                        <div class="line line2"></div>
+                        <div class="line line3"></div>
+                    </div>
+                </div>
+            </div>
+        </nav>        
+        <div class="nav-overlay">
+            <button class="close-menu">×</button>
+            <div class="nav-logo">
+                <img src="/assets/homepage/harvestlink logo full.png" alt="HarvestLink Logo">
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/shop">Shop</a></li>
+                <li><a href="/contacts">Contact</a></li>
+                <% if (isAuthenticated) { %>
+                    <% if (user && user.role === 'admin') { %>
+                        <li><a href="/admin">Admin</a></li>
+                    <% } %>
+                    <li><a href="#" onclick="logout()">Logout</a></li>
+                <% } else { %>
+                    <li><a href="/login">Login</a></li>
+                <% } %>
+            </ul>
+        </div>    
+    </header>
 
-    <main class="main-content">
-        <div class="checkout-container">
-            <!-- Delivery Address Section -->
-            <div class="checkout-section">
-                <div class="section-header">
-                    <h2>Delivery Address</h2>
-                    <button class="add-address-btn" id="addNewAddress">Add New Address</button>
+    <main class="checkout-container">
+        <section class="left-panel">
+            <h3>Checkout</h3>
+            <p>Please enter your payment details to complete your purchase</p>
+
+            <div class="cart-table">
+                <h4>What Items You Are Buying</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Quantity</th>
+                            <th>Price per Item</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Cart items will be populated dynamically -->
+                        <tr class="total-row">
+                            <td colspan="3"><strong>Subtotal</strong></td>
+                            <td><strong id="cartSubtotal">₱0.00</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="payment-methods">
+                <h4>Payment Method</h4>
+                <div class="selected-payment">
+                    <span id="selectedPaymentText">Select Payment Method</span>
+                    <button type="button" class="change-payment-btn" id="openPaymentModal">Change</button>
                 </div>
                 
-                <div class="delivery-address" id="currentAddress">
-                    <p class="no-address">Please add a delivery address</p>
-                </div>
+                <form>
+                    <label class="delivery-notes-label">Delivery Notes</label>
+                    <textarea placeholder="Any special instructions for delivery..."></textarea>
+                </form>
             </div>
+        </section>
 
-            <!-- Order Summary Section -->
-            <div class="checkout-section">
-                <h2>Order Summary</h2>
-                <div class="order-items" id="orderItems">
-                    <!-- Items will be loaded here -->
-                </div>
-                <div class="order-total">
-                    <div class="total-row">
-                        <span>Subtotal:</span>
-                        <span id="subtotalAmount">₱0.00</span>
-                    </div>
-                    <div class="total-row">
-                        <span>Delivery Fee:</span>
-                        <span id="deliveryFee">₱50.00</span>
-                    </div>
-                    <div class="total-row grand-total">
-                        <span>Total:</span>
-                        <span id="grandTotal">₱0.00</span>
-                    </div>
-                </div>
-            </div>
+        <aside class="right-panel">
+            <h4>Order Summary</h4>
+            <div class="summary-line">Subtotal: <span id="orderSubtotal">₱0.00</span></div>
+            <div class="summary-line">Shipping: <span id="orderShipping">₱60.00</span></div>
+            <div class="summary-line">Tax (12%): <span id="orderTax">₱0.00</span></div>
+            <hr>
+            <div class="summary-line total">Total: <span id="orderTotal">₱0.00</span></div>
 
-            <!-- Payment Method Section -->
-            <div class="checkout-section">
-                <h2>Payment Method</h2>
-                <div class="payment-options">
-                    <div class="payment-option" data-payment="cod">
-                        <img src="assets/checkout webpage/cash-on-delivery.png" alt="Cash on Delivery">
-                        <span>Cash on Delivery</span>
-                        <input type="radio" name="payment" value="cod" checked>
-                    </div>
-                    <div class="payment-option" data-payment="gcash">
-                        <img src="assets/checkout webpage/gcash.png" alt="GCash">
-                        <span>GCash</span>
-                        <input type="radio" name="payment" value="gcash">
-                    </div>
-                    <div class="payment-option" data-payment="maya">
-                        <img src="assets/checkout webpage/maya.png" alt="Maya">
-                        <span>Maya</span>
-                        <input type="radio" name="payment" value="maya">
-                    </div>
-                    <div class="payment-option" data-payment="banking">
-                        <img src="assets/checkout webpage/mobile-banking.png" alt="Mobile Banking">
-                        <span>Mobile Banking</span>
-                        <input type="radio" name="payment" value="banking">
+            <div class="delivery-address">
+                <div class="address-header">
+                    <h4>Delivery Address</h4>
+                    <button class="edit-address-btn" id="editAddressBtn" style="display: none;">Edit</button>
+                </div>
+                
+                <!-- Container for when user has addresses -->
+                <div class="address-card primary" id="selectedAddressCard" style="display: none;">
+                    <span class="address-label">Primary</span>
+                    <div class="address-content">
+                        <div class="name">Loading...</div>
+                        <div class="street">Please wait while we load your address</div>
+                        <div class="city"></div>
+                        <div class="phone"></div>
                     </div>
                 </div>
+                
+                <!-- Container for when user has no addresses -->
+                <div class="add-address-container" id="addAddressContainer" style="display: none;">
+                    <div class="add-address-text">You don't have any saved addresses yet.</div>
+                    <button class="add-address-btn" id="addAddressBtn">
+                        <span>+</span>
+                        Add Delivery Address
+                    </button>
+                </div>
+                
+                <!-- Loading state -->
+                <div class="no-address-message" id="loadingAddressMessage">
+                    Loading your addresses...
+                </div>
             </div>
-
-            <!-- Place Order Button -->
-            <div class="checkout-actions">
-                <button class="place-order-btn" id="placeOrderBtn">Place Order</button>
-            </div>
-        </div>
+            <button class="complete-btn">Place Order</button>
+        </aside>
     </main>
 
-    <!-- Payment Modal -->
+    <!-- Payment Method Modal -->
     <div id="paymentModal" class="payment-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Complete Payment</h3>
+                <h3>Select Payment Method</h3>
                 <span class="close-modal" id="closePaymentModal">&times;</span>
             </div>
             <div class="modal-body">
-                <div id="paymentDetails">
-                    <!-- Payment details will be loaded here -->
+                <div class="payment-option" data-payment="gcash">
+                    <img src="/assets/checkout webpage/gcash.png" alt="GCash">
+                    <span>GCash</span>
+                    <div class="radio-indicator"></div>
                 </div>
-                <div class="payment-form">
-                    <div class="form-group">
-                        <label for="accountNumber">Account Number/Phone Number</label>
-                        <input type="text" id="accountNumber" placeholder="Enter your account details">
-                    </div>
-                    <div class="form-group">
-                        <label for="referenceNumber">Reference Number</label>
-                        <input type="text" id="referenceNumber" placeholder="Enter reference number after payment">
-                    </div>
+                <div class="payment-option" data-payment="maya">
+                    <img src="/assets/checkout webpage/maya.png" alt="Maya">
+                    <span>Maya</span>
+                    <div class="radio-indicator"></div>
+                </div>
+                <div class="payment-option" data-payment="online-banking">
+                    <img src="/assets/checkout webpage/mobile-banking.png" alt="Online Banking">
+                    <span>Online Banking</span>
+                    <div class="radio-indicator"></div>
+                </div>
+                <div class="payment-option" data-payment="cod">
+                    <img src="/assets/checkout webpage/cash-on-delivery.png" alt="Cash on Delivery">
+                    <span>Cash on Delivery (COD)</span>
+                    <div class="radio-indicator"></div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="modal-btn confirm-btn" id="confirmPayment">Confirm Payment</button>
+                <button class="modal-btn confirm-btn" id="confirmPayment">Confirm Selection</button>
                 <button class="modal-btn cancel-btn" id="cancelPayment">Cancel</button>
             </div>
         </div>
     </div>
 
+    <!-- Bank Selection Modal -->
+    <div id="bankModal" class="payment-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Select Your Bank</h3>
+                <span class="close-modal" id="closeBankModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="bank-option" data-bank="bdo">
+                    <span>BDO (Banco de Oro)</span>
+                    <div class="radio-indicator"></div>
+                </div>
+                <div class="bank-option" data-bank="bpi">
+                    <span>BPI (Bank of the Philippine Islands)</span>
+                    <div class="radio-indicator"></div>
+                </div>
+                <div class="bank-option" data-bank="metrobank">
+                    <span>Metrobank</span>
+                    <div class="radio-indicator"></div>
+                </div>
+                <div class="bank-option" data-bank="unionbank">
+                    <span>UnionBank</span>
+                    <div class="radio-indicator"></div>
+                </div>
+                <div class="bank-option" data-bank="landbank">
+                    <span>Landbank</span>
+                    <div class="radio-indicator"></div>
+                </div>
+                <div class="bank-option" data-bank="pnb">
+                    <span>Philippine National Bank (PNB)</span>
+                    <div class="radio-indicator"></div>
+                </div>
+                <div class="bank-option" data-bank="security-bank">
+                    <span>Security Bank</span>
+                    <div class="radio-indicator"></div>
+                </div>
+                <div class="bank-option" data-bank="rcbc">
+                    <span>RCBC (Rizal Commercial Banking Corporation)</span>
+                    <div class="radio-indicator"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn confirm-btn" id="confirmBank">Confirm Bank</button>
+                <button class="modal-btn cancel-btn" id="cancelBank">Back to Payment Methods</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Add Address Modal -->
-    <div id="addAddressModal" class="payment-modal">
+    <div id="addAddressModal" class="payment-modal address-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Add New Address</h3>
@@ -123,10 +241,10 @@
                     <div class="form-group">
                         <label for="addressType">Address Type</label>
                         <select id="addressType" required>
-                            <option value="">Select address type</option>
-                            <option value="home">Home</option>
-                            <option value="work">Work</option>
-                            <option value="other">Other</option>
+                            <option value="">Select type</option>
+                            <option value="Home">Home</option>
+                            <option value="Work">Work</option>
+                            <option value="Other">Other</option>
                         </select>
                     </div>
                     
@@ -141,7 +259,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="city">Barangay</label>
+                        <label for="barangay">Barangay</label>
                         <input type="text" id="barangay" placeholder="Barangay" required>
                     </div>
                     
@@ -151,7 +269,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="city">Province</label>
+                        <label for="province">Province</label>
                         <input type="text" id="province" placeholder="Province" required>
                     </div>
                     
@@ -192,4 +310,5 @@
         </div>
     </div>
 
-<%- include('partials/footer') %>
+</body>
+</html>

@@ -1,0 +1,17 @@
+<!-- External CSS -->
+<% if (locals.externalCSS) { %>
+    <% externalCSS.forEach(function(css) { %>
+        <link rel="stylesheet" href="<%= css %>">
+    <% }); %>
+<% } %>
+
+<!-- Page-specific CSS -->
+<% if (locals.pageCSS) { %>
+    <% pageCSS.forEach(function(css) { %>
+        <link rel="stylesheet" href="<%= css %>">
+    <% }); %>
+<% } else { %>
+    <!-- Default CSS -->
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/assets/css/auth-styles.css">
+<% } %>

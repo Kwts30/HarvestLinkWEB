@@ -1,486 +1,269 @@
-<%- include('partials/header', { 
-    title: title, 
-    cssFiles: ['/Admin webpage/admin.css'],
-    jsFiles: ['/Admin webpage/admin.js']
-}) %>
-
-<!-- Sidebar -->
-<aside class="sidebar">
-    <div class="sidebar-header">            
-        <div class="logo">
-            <div class="logo-circle">
-                <img src="/assets/homepage/harvestlink logo.png" alt="HarvestLink Logo">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>    
+    <link rel="stylesheet" href="/backup_html/Admin webpage/admin.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
+    <script src="/backup_html/Admin webpage/admin.js" defer></script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">            
+            <div class="logo">
+                <div class="logo-circle">
+                    <img src="/assets/homepage/harvestlink logo.png" alt="HarvestLink Logo">
+                </div>
+                <span>HARVESTLINK</span>
             </div>
-            <span>HARVESTLINK</span>
+            <div class="admin-profile">
+                <div class="avatar">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="admin-details">
+                    <span class="admin-name" id="adminName"><%= user.firstName %> <%= user.lastName %></span>
+                    <span class="admin-role">Administrator</span>
+                </div>
+            </div>
         </div>
-        <div class="admin-info">
-            <div class="admin-avatar">
-                <i class="fas fa-user-shield"></i>
-            </div>
-            <div class="admin-details">
-                <span class="admin-name" id="adminName"><%= user.firstName %> <%= user.lastName %></span>
-                <span class="admin-role">Administrator</span>
-            </div>
-        </div>
-    </div>
-    
-    <nav class="sidebar-nav">
-        <ul>
-            <li>
-                <a href="#" class="nav-link active" data-section="dashboard">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-link" data-section="users">
-                    <i class="fas fa-users"></i>
-                    <span>Users</span>
-                    <span class="count" id="userCount">0</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-link" data-section="products">
-                    <i class="fas fa-box"></i>
-                    <span>Products</span>
-                    <span class="count" id="productCount">0</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-link" data-section="transactions">
-                    <i class="fas fa-receipt"></i>
-                    <span>Transactions</span>
-                    <span class="count" id="transactionCount">0</span>
-                </a>
-            </li>
-        </ul>
         
+        <nav class="sidebar-nav">
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-section="dashboard">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="users">
+                        <i class="fas fa-users"></i>
+                        <span>Users</span>
+                        <span class="badge" id="userCount">0</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="products">
+                        <i class="fas fa-boxes"></i>
+                        <span>Products</span>
+                        <span class="badge" id="productCount">0</span>
+                    </a>
+                </li>                
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="transactions">
+                        <i class="fas fa-receipt"></i>
+                        <span>Transactions</span>
+                        <span class="badge" id="transactionCount">0</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
         <div class="sidebar-footer">
-            <div class="current-time">
-                <i class="fas fa-clock"></i>
-                <span id="currentTime"></span>
-            </div>
-            <button class="logout-btn" id="logoutBtn">
+            <button id="logoutBtn" class="logout-button">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
             </button>
         </div>
-    </nav>
-</aside>
+    </aside>
 
-<!-- Main Content -->
-<main class="main-content">
-    <!-- Header -->
-    <header class="content-header">
-        <div class="header-left">
-            <h1 id="pageTitle">Dashboard</h1>
-            <div class="breadcrumb">
-                <span>Admin</span>
-                <i class="fas fa-chevron-right"></i>
-                <span id="currentSection">Dashboard</span>
-            </div>
-        </div>
-        <div class="header-right">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Global search..." id="globalSearch">
-            </div>
-        </div>
-    </header>
-    
-    <!-- Dashboard Section -->
-    <section id="dashboard" class="content-section active">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon users">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number" id="totalUsers">0</div>
-                    <div class="stat-label">Total Users</div>
-                    <div class="stat-change" id="userChange">+0 this month</div>
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="search-section">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search..." id="globalSearch">
                 </div>
             </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon products">
-                    <i class="fas fa-box"></i>
+            <div class="header-actions">
+                <div class="notification-badge">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge-count" id="notificationCount">0</span>
                 </div>
-                <div class="stat-content">
-                    <div class="stat-number" id="totalProducts">0</div>
-                    <div class="stat-label">Total Products</div>
-                    <div class="stat-change" id="productChange">+0 in stock</div>
-                </div>
+                <div class="current-time" id="currentTime"></div>
             </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon transactions">
-                    <i class="fas fa-receipt"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number" id="totalTransactions">0</div>
-                    <div class="stat-label">Total Transactions</div>
-                    <div class="stat-change" id="transactionChange">+0 today</div>
-                </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon revenue">
-                    <i class="fas fa-peso-sign"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number" id="totalRevenue">₱0</div>
-                    <div class="stat-label">Total Revenue</div>
-                    <div class="stat-change" id="revenueChange">+₱0 this month</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="dashboard-grid">
-            <div class="dashboard-card">
-                <div class="card-header">
-                    <h3>Recent Transactions</h3>
-                    <a href="#" class="view-all">View All</a>
-                </div>
-                <div class="card-content" id="recentTransactions">
-                    <!-- Recent transactions will be loaded here -->
-                </div>
-            </div>
-            
-            <div class="dashboard-card">
-                <div class="card-header">
-                    <h3>Top Products</h3>
-                    <a href="#" class="view-all">View All</a>
-                </div>
-                <div class="card-content" id="topProducts">
-                    <!-- Top products will be loaded here -->
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Users Section -->
-    <section id="users" class="content-section">
-        <div class="section-header">
-            <h2>User Management</h2>
-            <button class="btn-primary" id="addUserBtn">
-                <i class="fas fa-plus"></i>
-                Add User
-            </button>
-        </div>
-        
-        <div class="filters">
-            <div class="filter-group">
-                <input type="text" placeholder="Search users..." id="userSearch">
-            </div>
-            <div class="filter-group">
-                <select id="userRoleFilter">
-                    <option value="">All Roles</option>
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="data-container">
-            <div id="usersTable" class="data-table">
-                <!-- Users table will be loaded here -->
-            </div>
-            <div id="usersPagination" class="pagination">
-                <!-- Pagination will be loaded here -->
-            </div>
-        </div>
-    </section>
-    
-    <!-- Products Section -->
-    <section id="products" class="content-section">
-        <div class="section-header">
-            <h2>Product Management</h2>
-            <button class="btn-primary" id="addProductBtn">
-                <i class="fas fa-plus"></i>
-                Add Product
-            </button>
-        </div>
-        
-        <div class="filters">
-            <div class="filter-group">
-                <input type="text" placeholder="Search products..." id="productSearch">
-            </div>
-            <div class="filter-group">
-                <select id="productCategoryFilter">
-                    <option value="">All Categories</option>
-                    <option value="Vegetables">Vegetables</option>
-                    <option value="Fruits">Fruits</option>
-                    <option value="Grains">Grains</option>
-                    <option value="Herbs">Herbs</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <select id="productStatusFilter">
-                    <option value="">All Status</option>
-                    <option value="true">Active</option>
-                    <option value="false">Inactive</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="data-container">
-            <div class="products-stats">
-                <div class="mini-stat">
-                    <span class="mini-stat-number" id="activeProducts">0</span>
-                    <span class="mini-stat-label">Active Products</span>
-                </div>
-                <div class="mini-stat">
-                    <span class="mini-stat-number" id="lowStock">0</span>
-                    <span class="mini-stat-label">Low Stock</span>
-                </div>
-                <div class="mini-stat">
-                    <span class="mini-stat-number" id="outOfStock">0</span>
-                    <span class="mini-stat-label">Out of Stock</span>
-                </div>
-            </div>
-            
-            <div id="productsTable" class="data-table">
-                <!-- Products table will be loaded here -->
-            </div>
-            <div id="productsPagination" class="pagination">
-                <!-- Pagination will be loaded here -->
-            </div>
-        </div>
-    </section>
-    
-    <!-- Transactions Section -->
-    <section id="transactions" class="content-section">
-        <div class="section-header">
-            <h2>Transaction Management</h2>
-            <button class="btn-secondary" id="exportTransactions">
-                <i class="fas fa-download"></i>
-                Export CSV
-            </button>
-        </div>
-        
-        <div class="filters">
-            <div class="filter-group">
-                <select id="transactionStatus">
-                    <option value="">All Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                    <option value="refunded">Refunded</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label>From:</label>
-                <input type="date" id="transactionDateFrom">
-            </div>
-            <div class="filter-group">
-                <label>To:</label>
-                <input type="date" id="transactionDateTo">
-            </div>
-        </div>
-        
-        <div class="data-container">
-            <div class="transaction-stats">
-                <div class="mini-stat">
-                    <span class="mini-stat-number" id="completedTransactions">0</span>
-                    <span class="mini-stat-label">Completed</span>
-                </div>
-                <div class="mini-stat">
-                    <span class="mini-stat-number" id="pendingTransactions">0</span>
-                    <span class="mini-stat-label">Pending</span>
-                </div>
-                <div class="mini-stat">
-                    <span class="mini-stat-number" id="cancelledTransactions">0</span>
-                    <span class="mini-stat-label">Cancelled</span>
-                </div>
-                <div class="mini-stat">
-                    <span class="mini-stat-number" id="todayRevenue">₱0</span>
-                    <span class="mini-stat-label">Today's Revenue</span>
-                </div>
-            </div>
-            
-            <div id="transactionsTable" class="data-table">
-                <!-- Transactions table will be loaded here -->
-            </div>
-            <div id="transactionsPagination" class="pagination">
-                <!-- Pagination will be loaded here -->
-            </div>
-        </div>
-    </section>
-</main>
+        </header>
 
-<!-- Modals -->
-<!-- User Modal -->
-<div id="userModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 id="userModalTitle">Add New User</h3>
-            <button class="modal-close">&times;</button>
-        </div>
-        <form id="userForm" class="modal-form">
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="userFirstName">First Name *</label>
-                    <input type="text" id="userFirstName" name="firstName" required>
-                    <div class="form-error" id="firstNameError"></div>
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="content-section active">
+            <div class="section-header">
+                <h1>Dashboard Overview</h1>
+                <p>Welcome to your admin dashboard. Here's what's happening today.</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card primary">
+                    <div class="stat-content">
+                        <div class="stat-number" id="totalUsers">0</div>
+                        <div class="stat-label">Total Users</div>
+                        <div class="stat-change positive" id="userChange">+0 this month</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="userLastName">Last Name *</label>
-                    <input type="text" id="userLastName" name="lastName" required>
-                    <div class="form-error" id="lastNameError"></div>
+
+                <div class="stat-card success">
+                    <div class="stat-content">
+                        <div class="stat-number" id="totalProducts">0</div>
+                        <div class="stat-label">Products</div>
+                        <div class="stat-change positive" id="productChange">+0 in stock</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card warning">
+                    <div class="stat-content">
+                        <div class="stat-number" id="totalTransactions">0</div>
+                        <div class="stat-label">Transactions</div>
+                        <div class="stat-change positive" id="transactionChange">+0 today</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card info">
+                    <div class="stat-content">
+                        <div class="stat-number" id="totalRevenue">₱0</div>
+                        <div class="stat-label">Revenue</div>
+                        <div class="stat-change positive" id="revenueChange">+₱0 this month</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-peso-sign"></i>
+                    </div>
                 </div>
             </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="userEmail">Email *</label>
-                    <input type="email" id="userEmail" name="email" required>
-                    <div class="form-error" id="emailError"></div>
-                </div>
-                <div class="form-group">
-                    <label for="userUsername">Username *</label>
-                    <input type="text" id="userUsername" name="username" required>
-                    <div class="form-error" id="usernameError"></div>
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="userPhone">Phone Number</label>
-                    <input type="tel" id="userPhone" name="phoneNumber">
-                    <div class="form-error" id="phoneNumberError"></div>
-                </div>
-                <div class="form-group">
-                    <label for="userRole">Role *</label>
-                    <select id="userRole" name="role" required>
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                    <div class="form-error" id="roleError"></div>
-                </div>
-            </div>
-            
-            <div id="passwordGroup" class="form-group">
-                <label for="userPassword">Password *</label>
-                <input type="password" id="userPassword" name="password">
-                <div class="form-error" id="passwordError"></div>
-            </div>
-            
-            <div class="form-group">
-                <label for="userProfileImage">Profile Image</label>
-                <div class="image-upload-container">
-                    <div class="image-preview">
-                        <img id="userPreviewImg" style="display: none;">
-                        <div id="userPlaceholderIcon" class="image-placeholder">
-                            <i class="fas fa-user"></i>
+
+            <!-- Charts and Recent Activity -->
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3>Recent Transactions</h3>
+                        <a href="#" class="view-all">View All</a>
+                    </div>
+                    <div class="card-content">
+                        <div id="recentTransactions" class="transactions-list">
+                            <!-- Recent transactions will be loaded here -->
                         </div>
                     </div>
-                    <div class="upload-controls">
-                        <input type="file" id="userProfileImage" name="profileImage" accept="image/*">
-                        <button type="button" id="removeUserImageBtn" style="display: none;">
-                            <i class="fas fa-times"></i> Remove
-                        </button>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3>Top Products</h3>
+                        <select id="productPeriod" class="period-selector">
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="year">This Year</option>
+                        </select>
+                    </div>
+                    <div class="card-content">
+                        <div id="topProducts" class="products-list">
+                            <!-- Top products will be loaded here -->
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="modal-actions">
-                <button type="button" class="btn-secondary modal-close">Cancel</button>
-                <button type="submit" class="btn-primary">Save User</button>
-            </div>
-        </form>
-    </div>
-</div>
+        </section>
 
-<!-- Product Modal -->
-<div id="productModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 id="productModalTitle">Add New Product</h3>
-            <button class="modal-close">&times;</button>
-        </div>
-        <form id="productForm" class="modal-form">
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="productName">Product Name *</label>
-                    <input type="text" id="productName" name="name" required>
-                    <div class="form-error" id="nameError"></div>
-                </div>
-                <div class="form-group">
-                    <label for="productCategory">Category *</label>
-                    <select id="productCategory" name="category" required>
-                        <option value="">Select Category</option>
-                        <option value="Vegetables">Vegetables</option>
-                        <option value="Fruits">Fruits</option>
-                        <option value="Grains">Grains</option>
-                        <option value="Herbs">Herbs</option>
-                    </select>
-                    <div class="form-error" id="categoryError"></div>
+        <!-- Users Section -->
+        <section id="users" class="content-section">
+            <div class="section-header">
+                <h1>User Management</h1>
+                <div class="section-actions">
+                    <div class="search-filter-group">
+                        <input type="text" id="userSearch" placeholder="Search users..." class="search-input">
+                        <select id="userRoleFilter" class="filter-select">
+                            <option value="">All Roles</option>
+                            <option value="user">Users</option>
+                            <option value="admin">Admins</option>
+                        </select>
+                    </div>
+                    <button id="addUserBtn" class="btn-primary">
+                        <i class="fas fa-plus"></i> Add User
+                    </button>
                 </div>
             </div>
-            
-            <div class="form-group">
-                <label for="productDescription">Description *</label>
-                <textarea id="productDescription" name="description" rows="3" required></textarea>
-                <div class="form-error" id="descriptionError"></div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="productPrice">Price (₱) *</label>
-                    <input type="number" id="productPrice" name="price" step="0.01" min="0" required>
-                    <div class="form-error" id="priceError"></div>
-                </div>
-                <div class="form-group">
-                    <label for="productStock">Stock *</label>
-                    <input type="number" id="productStock" name="stock" min="0" required>
-                    <div class="form-error" id="stockError"></div>
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="productUnit">Unit *</label>
-                    <select id="productUnit" name="unit" required>
-                        <option value="">Select Unit</option>
-                        <option value="kg">Kilogram (kg)</option>
-                        <option value="g">Gram (g)</option>
-                        <option value="pcs">Pieces (pcs)</option>
-                        <option value="pack">Pack</option>
-                        <option value="bundle">Bundle</option>
-                    </select>
-                    <div class="form-error" id="unitError"></div>
-                </div>
-                <div class="form-group">
-                    <label for="productImage">Image URL</label>
-                    <input type="url" id="productImage" name="image" placeholder="https://example.com/image.jpg">
-                    <div class="form-error" id="imageError"></div>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label class="checkbox-container">
-                    <input type="checkbox" id="productActive" name="isActive" checked>
-                    <span class="checkmark"></span>
-                    Active Product
-                </label>
-            </div>
-            
-            <div class="modal-actions">
-                <button type="button" class="btn-secondary modal-close">Cancel</button>
-                <button type="submit" class="btn-primary">Save Product</button>
-            </div>
-        </form>
-    </div>
-</div>
 
-<!-- Loading Overlay -->
-<div id="loadingOverlay" class="loading-overlay">
-    <div class="loading-spinner"></div>
-    <div class="loading-text">Loading...</div>
-</div>
+            <div class="data-container">
+                <div id="usersTable" class="data-table">
+                    <!-- Users table will be loaded here -->
+                </div>
+                <div id="usersPagination" class="pagination">
+                    <!-- Pagination will be loaded here -->
+                </div>
+            </div>
+        </section>
 
-<!-- Toast Container -->
-<div id="toastContainer" class="toast-container"></div>
+        <!-- Products Section -->
+        <section id="products" class="content-section">
+            <div class="section-header">
+                <h1>Product Management</h1>
+                <div class="section-actions">
+                    <div class="search-filter-group">
+                        <input type="text" id="productSearch" placeholder="Search products..." class="search-input">
+                        <select id="productCategoryFilter" class="filter-select">
+                            <option value="">All Categories</option>
+                            <option value="vegetables">Vegetables</option>
+                            <option value="fruits">Fruits</option>
+                            <option value="grains">Grains</option>
+                        </select>
+                    </div>
+                    <button id="addProductBtn" class="btn-primary">
+                        <i class="fas fa-plus"></i> Add Product
+                    </button>
+                </div>
+            </div>
 
-<%- include('partials/footer') %>
+            <div class="data-container">
+                <div id="productsTable" class="data-table">
+                    <!-- Products table will be loaded here -->
+                </div>
+                <div id="productsPagination" class="pagination">
+                    <!-- Pagination will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Transactions Section -->
+        <section id="transactions" class="content-section">
+            <div class="section-header">
+                <h1>Transaction Management</h1>
+                <div class="section-actions">
+                    <div class="search-filter-group">
+                        <input type="text" id="transactionSearch" placeholder="Search transactions..." class="search-input">
+                        <select id="transactionStatus" class="filter-select">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <button id="exportTransactions" class="btn-secondary">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+            </div>
+
+            <div class="data-container">
+                <div id="transactionsTable" class="data-table">
+                    <!-- Transactions table will be loaded here -->
+                </div>
+                <div id="transactionsPagination" class="pagination">
+                    <!-- Pagination will be loaded here -->
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

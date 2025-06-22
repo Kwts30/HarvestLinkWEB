@@ -28,7 +28,7 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    // Allow localhost and 127.0.0.1 with any port (including Live Preview :5500)
+    // Allow localhost
     if (origin.match(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/)) {
       return callback(null, true);
     }
@@ -66,53 +66,23 @@ app.use(session({
   }
 }));
 
-// Static files middleware - exclude HTML files to force EJS rendering
-app.use(express.static(path.join(__dirname, '../../'), {
-    setHeaders: (res, filePath) => {
-        // Block direct access to HTML files
-        if (path.extname(filePath) === '.html') {
-            res.status(404).send('HTML files are not accessible. Please use EJS routes.');
-            return;
-        }
-    }
-}));
-
-// Middleware to handle HTML file requests and redirect to EJS routes
+// Custom middleware to block HTML files and serve other static files
 app.use((req, res, next) => {
-    // Only handle .html file requests
-    if (req.url.endsWith('.html')) {
-        const requestUrl = req.url;
-        
-        // Map HTML files to EJS routes
-        const routeMap = {
-            '/index.html': '/',
-            '/Login webpage/login.html': '/login',
-            '/Signup webpage/signup.html': '/signup',
-            '/Shop webpage/shop.html': '/shop',
-            '/cart webpage/cart.html': '/cart',
-            '/Checkout webpage/checkout.html': '/checkout',
-            '/Contacts webpage/contacts.html': '/contacts',
-            '/Admin webpage/admin.html': '/admin'
-        };
-        
-        // Check for exact match first
-        if (routeMap[requestUrl]) {
-            return res.redirect(routeMap[requestUrl]);
-        }
-        
-        // Check for partial matches
-        for (const [htmlPath, ejsRoute] of Object.entries(routeMap)) {
-            if (requestUrl.includes(htmlPath.replace('.html', ''))) {
-                return res.redirect(ejsRoute);
-            }
-        }
-        
-        // If no specific route found, return 404
-        return res.status(404).send('Page not found. Please use the EJS routes: /, /shop, /login, /signup, /cart, /checkout, /contacts, /admin');
+    // Block direct access to HTML files
+    if (req.path.endsWith('.html')) {
+        return res.status(404).send('HTML files are not accessible. Please use the proper routes.');
     }
-    
     next();
 });
+
+// Static files middleware for assets only
+app.use('/assets', express.static(path.join(__dirname, '../../assets')));
+app.use('/style.css', express.static(path.join(__dirname, '../../style.css')));
+app.use('/script.js', express.static(path.join(__dirname, '../../script.js')));
+app.use(express.static(path.join(__dirname, '../../'), {
+    index: false, // Disable directory indexing
+    dotfiles: 'deny' // Deny access to dotfiles
+}));
 
 // Middleware to add base URL and universal helpers to all views
 app.use((req, res, next) => {
@@ -156,8 +126,8 @@ app.use('/api/admin', adminRoutes);
 
 // Serve static files
 app.get('/', (req, res) => {
-    res.render('index', { 
-        title: 'HarvestLink - Fresh Farm Products',
+    res.render('home', { 
+        title: 'HarvestLink - Fresh Goods for You',
         user: req.session.user || null,
         isAuthenticated: !!req.session.userId
     });
@@ -217,7 +187,7 @@ app.get('/shop', (req, res) => {
 
 app.get('/contacts', (req, res) => {
     res.render('contacts', { 
-        title: 'HarvestLink - Contact Us',
+        title: 'HarvestLink - Contact',
         user: req.session.user || null,
         isAuthenticated: !!req.session.userId
     });

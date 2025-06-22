@@ -1,204 +1,115 @@
-<%- include('partials/header', { 
-    title: title, 
-    additionalCSS: [
-        'assets/shop/shop.css',
-        'assets/css/auth-styles.css'
-    ],
-    additionalJS: [
-        'assets/shop/shop.js'
-    ]
-}) %>
-
-<%- include('partials/navigation', { user: user, isAuthenticated: isAuthenticated }) %>
-
-<!-- Main Content -->
-<main class="main-content">
-    <!-- Hero Section -->
-    <section class="shop-hero">
-        <div class="hero-content">
-            <h1>Fresh Products</h1>
-            <p>Discover premium quality produce directly from local farmers</p>
-        </div>
-    </section>
-
-    <!-- Shop Section -->
-    <section class="shop-section">
-        <div class="container">
-            <div class="shop-header">
-                <h2>Our Products</h2>
-                <p class="shop-subtitle">Fresh, locally-sourced produce delivered straight from our partner farms</p>
-                <div class="shop-filters">
-                    <div class="filter-group">
-                        <label for="categoryFilter">Category:</label>
-                        <select id="categoryFilter">
-                            <option value="">All Categories</option>
-                            <option value="Vegetables">Vegetables</option>
-                            <option value="Fruits">Fruits</option>
-                            <option value="Grains">Grains</option>
-                            <option value="Herbs">Herbs</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="sortFilter">Sort by:</label>
-                        <select id="sortFilter">
-                            <option value="name">Name</option>
-                            <option value="price-low">Price: Low to High</option>
-                            <option value="price-high">Price: High to Low</option>
-                            <option value="newest">Newest First</option>
-                        </select>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/backup_html/Shop webpage/shop.css">
+    <link rel="stylesheet" href="/assets/css/auth-styles.css">
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/auth.js"></script>
+    <script src="/backup_html/Shop webpage/shop.js" defer></script>
+    <link rel="icon" href="/assets/homepage/harvestlink logo.png" type="image/x-icon">
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <nav class="navbar">
+            <div class="nav-left">
+                <h1>HARVESTLINK</h1>
+            </div>
+            <div class="nav-center">
+                <div class="logo-circle">
+                    <img src="/assets/homepage/harvestlink logo.png" alt="HarvestLink Logo">
+                </div>
+            </div>            <div class="nav-right">
+                <div class="cart-icon" onclick="window.location.href='/cart'">
+                    <img src="/assets/shop/shopping-cart.png" alt="Shopping Cart" style="width: 24px; height: 24px;">
+                    <span class="cart-count">0</span>
+                </div>
+                <div class="hamburger-menu">
+                    <div class="hamburger">
+                        <div class="line line1"></div>
+                        <div class="line line2"></div>
+                        <div class="line line3"></div>
                     </div>
                 </div>
             </div>
-              <!-- Loading indicator -->
-            <div class="loading-indicator" id="loadingIndicator" style="display: none;">
-                <div class="spinner"></div>
-                <p>Loading fresh products...</p>
+        </nav>        
+        <div class="nav-overlay">
+            <button class="close-menu">×</button>
+            <div class="nav-logo">
+                <img src="/assets/homepage/harvestlink logo full.png" alt="HarvestLink Logo">
             </div>
-              <!-- Products grid -->
-            <div class="product-grid" id="productGrid">
-                <!-- Sample Products -->                <div class="product-card">
-                    <div class="product-image-container">
-                        <div class="product-placeholder">
-                            <i class="fas fa-pepper-hot"></i>
-                            <span>No Image</span>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="product-content">
-                            <h3 class="product-name">Bell Peppers</h3>
-                            <p class="product-price">₱150.00</p>
-                            <p class="product-stock">20 in stock</p>
-                        </div>
-                        <div class="product-actions">
-                            <button class="add-to-cart-btn">Add to Cart</button>
-                            <button class="view-details-btn" title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>                <div class="product-card">
-                    <div class="product-image-container">
-                        <div class="product-placeholder">
-                            <i class="fas fa-corn"></i>
-                            <span>No Image</span>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="product-content">
-                            <h3 class="product-name">Sweet Corn</h3>
-                            <p class="product-price">₱100.00</p>
-                            <p class="product-stock">40 in stock</p>
-                        </div>
-                        <div class="product-actions">
-                            <button class="add-to-cart-btn">Add to Cart</button>
-                            <button class="view-details-btn" title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>                <div class="product-card">
-                    <div class="product-image-container">
-                        <div class="product-placeholder">
-                            <i class="fas fa-leaf"></i>
-                            <span>No Image</span>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="product-content">
-                            <h3 class="product-name">Fresh Lettuce</h3>
-                            <p class="product-price">₱60.00</p>
-                            <p class="product-stock">25 in stock</p>
-                        </div>
-                        <div class="product-actions">
-                            <button class="add-to-cart-btn">Add to Cart</button>
-                            <button class="view-details-btn" title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>                <div class="product-card">
-                    <div class="product-image-container">
-                        <div class="product-placeholder">
-                            <i class="fas fa-carrot"></i>
-                            <span>No Image</span>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="product-content">
-                            <h3 class="product-name">Organic Carrots</h3>
-                            <p class="product-price">₱80.00</p>
-                            <p class="product-stock">30 in stock</p>
-                        </div>
-                        <div class="product-actions">
-                            <button class="add-to-cart-btn">Add to Cart</button>
-                            <button class="view-details-btn" title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>                <div class="product-card">
-                    <div class="product-image-container">
-                        <img class="product-image" src="/assets/shop/tomatoes.png" alt="Fresh Tomatoes" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <div class="product-placeholder" style="display: none;">
-                            <i class="fas fa-apple-alt"></i>
-                            <span>No Image</span>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <div class="product-content">
-                            <h3 class="product-name">Fresh Tomatoes</h3>
-                            <p class="product-price">₱120.00</p>
-                            <p class="product-stock">50 in stock</p>
-                        </div>
-                        <div class="product-actions">
-                            <button class="add-to-cart-btn">Add to Cart</button>
-                            <button class="view-details-btn" title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Empty state -->
-            <div class="empty-state" id="emptyState" style="display: none;">
-                <div class="empty-icon">🌱</div>
-                <h3>No products found</h3>
-                <p>Try adjusting your filters to see more products</p>
-            </div>
-        </div>
-    </section>
-</main>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/shop" class="shop-link">Shop</a></li>
+                <li><a href="/contacts">Contact</a></li>
+                <% if (isAuthenticated) { %>
+                    <% if (user && user.role === 'admin') { %>
+                        <li><a href="/admin">Admin</a></li>
+                    <% } %>
+                    <li><a href="#" onclick="logout()">Logout</a></li>
+                <% } else { %>
+                    <li><a href="/login">Login</a></li>
+                <% } %>
+            </ul>
+        </div>    
+    </header>
 
-<!-- Product Detail Modal -->
-<div class="product-detail-overlay">
-    <div class="product-detail-modal">
-        <button class="close-detail">&times;</button>
-        <div class="detail-content">
-            <div class="detail-image-container">
-                <img class="detail-image" src="" alt="">
-                <div class="detail-image-placeholder" style="display: none;">
-                    <i class="fas fa-image"></i>
-                    <span>No Image Available</span>
-                </div>
+    <!-- Main Content -->
+    <main class="shop-main">
+        <!-- Shop Hero Section -->
+        <section class="shop-hero">
+            <h1>Our Products</h1>
+            <p>Fresh from local farmers to your table</p>
+        </section>
+        
+        <!-- Products Section -->
+        <section class="products-section">
+            <div class="product-grid">
+                <!-- Products will be loaded dynamically from database -->
             </div>
-            <div class="detail-info">
-                <h2 class="detail-name"></h2>
-                <p class="detail-price"></p>
-                <p class="detail-description"></p>
-                <p class="detail-stock"></p>
-                <div class="detail-actions">
-                    <div class="quantity-selector">
-                        <label for="quantity">Quantity:</label>
-                        <input type="number" id="quantity" min="1" value="1">
+        </section>
+
+        <!-- Product Detail Overlay -->
+        <div class="product-detail-overlay">
+            <div class="product-detail-content">
+                <button class="back-button">&larr; Back to Shop</button>
+                <div class="product-detail-grid">
+                    <div class="product-detail-image">
+                        <img src="" alt="" class="detail-image">
                     </div>
-                    <button class="detail-add-to-cart btn-primary">
-                        Add to Cart
-                    </button>
-                </div>            </div>
+                    <div class="product-detail-info">
+                        <h2 class="detail-name"></h2>
+                        <p class="detail-price"></p>
+                        <p class="detail-stock"></p>
+                        <div class="detail-description">
+                            <h3>Product Details:</h3>
+                            <ul>
+                                <li>Freshly harvested from local farmers</li>
+                                <li>Carefully selected for quality</li>
+                                <li>Direct from farm to your table</li>
+                            </ul>
+                        </div>
+                        <div class="detail-quantity">
+                            <label for="quantity">Quantity:</label>
+                            <div class="quantity-controls">
+                                <button class="quantity-btn minus">-</button>
+                                <input type="number" id="quantity" value="1" min="1">
+                                <button class="quantity-btn plus">+</button>
+                            </div>
+                        </div>
+                        <button class="detail-add-to-cart"></button>
+                    </div>                </div>
+            </div>
         </div>
-    </div>
-</div>
+    </main>
 
 </body>
 </html>
