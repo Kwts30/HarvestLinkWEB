@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><%= title %></title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/backup_html/Login webpage/login.css" />
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/auth.js"></script>
+    <script src="/backup_html/Login webpage/login.js" defer></script>
+    <link rel="icon" href="/assets/homepage/harvestlink logo.png" type="image/x-icon">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-left">
+                <h1>HARVESTLINK</h1>
+            </div>
+            <div class="nav-center">
+                <div class="logo-circle">
+                    <img src="/assets/homepage/harvestlink logo.png" alt="HarvestLink Logo">
+                </div>
+            </div>
+            <div class="hamburger-menu">
+                <div class="hamburger">
+                    <div class="line line1"></div>
+                    <div class="line line2"></div>
+                    <div class="line line3"></div>
+                </div>
+            </div>
+        </nav>        
+        <div class="nav-overlay">
+            <button class="close-menu">×</button>
+            <div class="nav-logo">
+                <img src="/assets/homepage/harvestlink logo full.png" alt="HarvestLink Logo">
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/shop">Shop</a></li>
+                <li><a href="/contacts">Contact</a></li>
+                <% if (isAuthenticated) { %>
+                    <% if (user && user.role === 'admin') { %>
+                        <li><a href="/admin">Admin</a></li>
+                    <% } %>
+                    <li><a href="#" onclick="logout()">Logout</a></li>
+                <% } else { %>
+                    <li><a href="/login">Login</a></li>
+                <% } %>
+            </ul>
+        </div>    
+    </header>
+
+    <main>
+        <div class="form-container">      
+            <h1>Login</h1>
+            <p>Welcome back! Please login to your account.</p>
+            
+            <form id="loginForm">
+                <div class="form-row">
+                    <input type="email" name="email" placeholder="Email" required />
+                    <input type="password" name="password" placeholder="Password" required />
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+                
+                <div id="message" class="message"></div>
+            </form>
+
+            <div class="footer">
+                Don't have an account? <a href="/signup">Register here</a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

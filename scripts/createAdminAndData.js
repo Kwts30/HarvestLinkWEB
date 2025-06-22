@@ -296,15 +296,20 @@ const main = async () => {
   
   await connectDB();
   
-  console.log('\n📊 Creating sample data...');
-  await createAdminUser();
+  console.log('\n📊 Creating sample data...');  await createAdminUser();
   await createSampleUsers();
   await createSampleProducts();
   await createSampleTransactions();
   
+  // Get environment configuration for universal URL
+  const port = process.env.PORT || 3000;
+  const host = process.env.HOST || 'localhost';
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+  const baseUrl = process.env.BASE_URL || `${protocol}://${host}:${port}`;
+  
   console.log('\n✅ Database setup completed!');
   console.log('\n🔗 You can now access the admin dashboard at:');
-  console.log('   http://localhost:3000/Admin%20webpage/admin.html');
+  console.log(`   ${baseUrl}/admin`);
   console.log('\n🔑 Login credentials:');
   console.log('   Email: admin@harvestlink.com');
   console.log('   Password: admin123');

@@ -1,0 +1,16 @@
+<!-- External JS -->
+<% if (locals.externalJS) { %>
+    <% externalJS.forEach(function(js) { %>
+        <script src="<%= js %>"></script>
+    <% }); %>
+<% } %>
+
+<!-- Page-specific JS -->
+<% if (locals.pageJS) { %>
+    <% pageJS.forEach(function(js) { %>
+        <script src="<%= js %>" defer></script>
+    <% }); %>
+<% } else { %>
+    <!-- Default JS -->
+    <script src="/script.js" defer></script>
+<% } %>

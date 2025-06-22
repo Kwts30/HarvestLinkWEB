@@ -1,5 +1,33 @@
 // Authentication utility functions
 window.AuthUtils = {
+    // Get universal base URL
+    getBaseUrl: function() {
+        if (window.API_CONFIG) {
+            return window.API_CONFIG.BASE_URL;
+        }
+        
+        // Fallback detection
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        const isLocalFile = protocol === 'file:' || host.includes(':5500');
+        
+        return isLocalFile ? 'http://localhost:3000' : `${protocol}//${host}`;
+    },
+
+    // Create universal URL for navigation
+    createUrl: function(path) {
+        // For same-origin navigation, use relative paths
+        const currentHost = window.location.host;
+        if (currentHost === 'localhost:3000' || currentHost === '127.0.0.1:3000') {
+            return path.startsWith('/') ? path : `/${path}`;
+        }
+        
+        // For cross-origin (like Live Server), use full URL
+        const baseUrl = this.getBaseUrl();
+        const cleanPath = path.startsWith('/') ? path : `/${path}`;
+        return `${baseUrl}${cleanPath}`;
+    },
+
     // Check if user is logged in
     isLoggedIn: function() {
         return localStorage.getItem('isLoggedIn') === 'true';
@@ -21,12 +49,10 @@ window.AuthUtils = {
     clearUserData: function() {
         localStorage.removeItem('user');
         localStorage.removeItem('isLoggedIn');
-    },
-
-    // Redirect to login if not authenticated
-    requireAuth: function(redirectPath = '../Login webpage/login.html') {
+    },    // Redirect to login if not authenticated
+    requireAuth: function(redirectPath = '/login') {
         if (!this.isLoggedIn()) {
-            window.location.href = redirectPath;
+            window.location.href = this.createUrl(redirectPath);
             return false;
         }
         return true;
@@ -41,10 +67,9 @@ window.AuthUtils = {
                 credentials: 'include'
             });
         } catch (error) {
-            console.error('Logout error:', error);
-        } finally {
+            console.error('Logout error:', error);        } finally {
             this.clearUserData();
-            window.location.href = '../Login webpage/login.html';
+            window.location.href = this.createUrl('/login');
         }
     },    // Update navigation based on auth status
     updateNavigation: function() {
@@ -77,7 +102,7 @@ window.AuthUtils = {
                 const adminLinkExists = navLinksContainer.querySelector('a[href*="admin"]');
                 if (!adminLinkExists) {
                     const adminLi = document.createElement('li');
-                    adminLi.innerHTML = '<a href="../Admin webpage/admin.html" class="admin-link">Admin</a>';
+                    adminLi.innerHTML = '<a href="' + this.createUrl('/admin') + '" class="admin-link">Admin</a>';
                     // Insert before logout link
                     const logoutLi = navLinksContainer.querySelector('.logout-link').parentElement;
                     navLinksContainer.insertBefore(adminLi, logoutLi);
@@ -97,11 +122,11 @@ window.AuthUtils = {
             if (logoutLink) {
                 // Replace logout with login
                 const logoutLi = logoutLink.parentElement;
-                logoutLi.innerHTML = '<a href="../Login webpage/login.html">Login</a>';
+                logoutLi.innerHTML = '<a href="' + this.createUrl('/login') + '">Login</a>';
             } else if (!loginLink) {
                 // Add login link if it doesn't exist
                 const loginLi = document.createElement('li');
-                loginLi.innerHTML = '<a href="../Login webpage/login.html">Login</a>';
+                loginLi.innerHTML = '<a href="' + this.createUrl('/login') + '">Login</a>';
                 navLinksContainer.appendChild(loginLi);
             }
         }
@@ -138,18 +163,15 @@ window.AuthUtils = {
             this.clearUserData();
             
             // Show success message briefly
-            this.showLogoutSuccess();
-            
-            // Redirect after a short delay
+            this.showLogoutSuccess();            // Redirect after a short delay
             setTimeout(() => {
-                window.location.href = '../Login webpage/login.html';
+                window.location.href = this.createUrl('/login');
             }, 1500);
             
         } catch (error) {
-            console.error('Logout error:', error);
-            // Even if backend fails, clear local data and redirect
+            console.error('Logout error:', error);            // Even if backend fails, clear local data and redirect
             this.clearUserData();
-            window.location.href = '../Login webpage/login.html';
+            window.location.href = this.createUrl('/login');
         }
     },
 

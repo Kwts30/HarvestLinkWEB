@@ -428,7 +428,7 @@ class ShopManager {
         const cartIcon = document.querySelector('.cart-icon');
         if (cartIcon) {
             cartIcon.addEventListener('click', () => {
-                window.location.href = '../cart webpage/cart.html';
+                window.location.href = window.AuthUtils ? window.AuthUtils.createUrl('/cart') : '/cart';
             });
         }
     }

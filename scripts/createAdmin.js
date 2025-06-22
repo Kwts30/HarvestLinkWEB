@@ -8,6 +8,12 @@ connect();
 
 const createAdminUser = async () => {
   try {
+    // Get environment configuration
+    const port = process.env.PORT || 3000;
+    const host = process.env.HOST || 'localhost';
+    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+    const baseUrl = process.env.BASE_URL || `${protocol}://${host}:${port}`;
+    
     // Check if admin already exists
     const existingAdmin = await User.findOne({ email: 'admin@harvestlink.com' });
     
@@ -15,6 +21,7 @@ const createAdminUser = async () => {
       console.log('🔄 Admin user already exists');
       console.log('📧 Email: admin@harvestlink.com');
       console.log('🔑 Password: admin123');
+      console.log('🔗 Access the admin dashboard at:', `${baseUrl}/admin`);
       process.exit(0);
     }
 
@@ -33,7 +40,7 @@ const createAdminUser = async () => {
     await admin.save();
 
     console.log('✅ Admin user created successfully!');
-    console.log('🔗 Access the admin dashboard at: http://localhost:3000/Admin%20webpage/admin.html');
+    console.log('🔗 Access the admin dashboard at:', `${baseUrl}/admin`);
     console.log('🔑 Login credentials:');
     console.log('   Email: admin@harvestlink.com');
     console.log('   Password: admin123');

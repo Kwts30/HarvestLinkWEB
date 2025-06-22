@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <!-- Google Font API -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
+    <!-- CSS Files -->
+    <!-- local files connection -->
+    <link rel="stylesheet" href="/backup_html/Contacts webpage/contacts.css">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/assets/css/auth-styles.css">
+    <!-- Leaflet CSS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+    <!-- icon logo -->
+    <link rel="icon" href="/assets/homepage/harvestlink logo.png" type="image/x-icon">
+    <!-- JavaScript Files -->
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/auth.js"></script>    
+    <script src="/backup_html/Contacts webpage/contacts.js" defer></script>
+    <script src="/script.js" defer></script>
+    <!-- Leaflet JS for Map -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin="">
+    </script>
+</head>
+
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-left">
+                <h1>HARVESTLINK</h1>
+            </div>
+            <div class="nav-center">
+                <div class="logo-circle">
+                    <img src="/assets/homepage/harvestlink logo.png" alt="HarvestLink Logo">
+                </div>
+            </div>
+            <div class="hamburger-menu">
+                <div class="hamburger">
+                    <div class="line line1"></div>
+                    <div class="line line2"></div>
+                    <div class="line line3"></div>
+                </div>
+            </div>
+        </nav>        
+        <div class="nav-overlay">
+            <button class="close-menu">×</button>
+            <div class="nav-logo">
+                <img src="/assets/homepage/harvestlink logo full.png" alt="HarvestLink Logo">
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/shop">Shop</a></li>
+                <li><a href="/contacts">Contact</a></li>
+                <% if (isAuthenticated) { %>
+                    <% if (user && user.role === 'admin') { %>
+                        <li><a href="/admin">Admin</a></li>
+                    <% } %>
+                    <li><a href="#" onclick="logout()">Logout</a></li>
+                <% } else { %>
+                    <li><a href="/login">Login</a></li>
+                <% } %>
+            </ul>
+        </div>    
+    </header>
+    
+    <main>
+        <section class="contact-section">
+            <div class="contact-container"> 
+                <div class="contact-info">
+                    <h2>Get in Touch</h2>
+                    <p class="contact-description">Have questions about our products or services? We're here to help!</p>
+                    
+                    <form class="contact-form" id="contactForm">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone">Phone</label>
+                            <input type="tel" id="phone" name="phone">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="message">Message</label>
+                            <textarea id="message" name="message" rows="5" required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="submit-btn">Send Message</button>
+                    </form>
+                </div>
+                
+                <div class="map-container">
+                    <div class="location-info">
+                        <h3>Visit Our Office</h3>
+                        <p><strong>Address:</strong> 123 Farmer's Market Street</p>
+                        <p>Davao City, 8000</p>
+                        <p>Philippines</p>
+                        <div class="contact-details">
+                            <p><strong>Phone:</strong> +63 912 345 6789</p>
+                            <p><strong>Email:</strong> info@harvestlink.com</p>
+                            <p><strong>Hours:</strong> Monday - Friday, 8:00 AM - 5:00 PM</p>
+                        </div>
+                    </div>
+                    <div id="map"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <button id="back-to-top" title="Back to Top">↑</button>
+      <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>About HarvestLink</h3>
+                <p>Connecting farmers directly with consumers for the freshest produce and supporting local agriculture.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/shop">Shop</a></li>
+                    <li><a href="/contacts">Contact</a></li>
+                    <li><a href="/login">Login</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <div class="social-links">
+                    <a href="https://facebook.com/harvestlink" target="_blank" class="social-link">
+                        <img src="/assets/homepage/facebook.png" alt="Facebook">
+                        Facebook
+                    </a>
+                    <a href="https://instagram.com/harvestlink" target="_blank" class="social-link">
+                        <img src="/assets/homepage/instagram.png" alt="Instagram">
+                        Instagram
+                    </a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <p>Email: info@harvestlink.com</p>
+                <p>Phone: +63 912 345 6789</p>
+                <p>Address: Davao City, Philippines</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 HarvestLink Incorporated. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -18,13 +18,17 @@ const PORT = process.env.PORT || 3000;
 // Connect to MongoDB
 connect();
 
+// Set EJS as template engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, '../../views'));
+
 // Middleware
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    // Allow localhost and 127.0.0.1 with any port (including Live Preview :5500)
+    // Allow localhost
     if (origin.match(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/)) {
       return callback(null, true);
     }
@@ -62,7 +66,43 @@ app.use(session({
   }
 }));
 
-app.use(express.static(path.join(__dirname, '../../')));
+// Custom middleware to block HTML files and serve other static files
+app.use((req, res, next) => {
+    // Block direct access to HTML files
+    if (req.path.endsWith('.html')) {
+        return res.status(404).send('HTML files are not accessible. Please use the proper routes.');
+    }
+    next();
+});
+
+// Static files middleware for assets only
+app.use('/assets', express.static(path.join(__dirname, '../../assets')));
+app.use('/style.css', express.static(path.join(__dirname, '../../style.css')));
+app.use('/script.js', express.static(path.join(__dirname, '../../script.js')));
+app.use(express.static(path.join(__dirname, '../../'), {
+    index: false, // Disable directory indexing
+    dotfiles: 'deny' // Deny access to dotfiles
+}));
+
+// Middleware to add base URL and universal helpers to all views
+app.use((req, res, next) => {
+    // Get the protocol and host
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const baseUrl = `${protocol}://${host}`;
+    
+    // Add helper functions to all views
+    res.locals.baseUrl = baseUrl;
+    res.locals.url = (path) => {
+        // Remove leading slash if present to avoid double slashes
+        const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+        return cleanPath ? `${baseUrl}/${cleanPath}` : baseUrl;
+    };
+    res.locals.isLocal = host.includes('localhost') || host.includes('127.0.0.1');
+    res.locals.currentUrl = `${baseUrl}${req.originalUrl}`;
+    
+    next();
+});
 
 // Import routes and models
 import userRoutes from '../../routes/users.js';
@@ -86,31 +126,71 @@ app.use('/api/admin', adminRoutes);
 
 // Serve static files
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../index.html'));
+    res.render('home', { 
+        title: 'HarvestLink - Fresh Goods for You',
+        user: req.session.user || null,
+        isAuthenticated: !!req.session.userId
+    });
 });
 
 app.get('/signup', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../Signup webpage/signup.html'));
+    res.render('signup', { 
+        title: 'HarvestLink - Sign Up',
+        user: req.session.user || null,
+        isAuthenticated: !!req.session.userId
+    });
 });
 
 app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../Login webpage/login.html'));
+    res.render('login', { 
+        title: 'HarvestLink - Login',
+        user: req.session.user || null,
+        isAuthenticated: !!req.session.userId
+    });
 });
 
 app.get('/cart', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../cart webpage/cart.html'));
+    res.render('cart', { 
+        title: 'HarvestLink - Shopping Cart',
+        user: req.session.user || null,
+        isAuthenticated: !!req.session.userId
+    });
 });
 
 app.get('/checkout', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../Checkout webpage/checkout.html'));
+    res.render('checkout', { 
+        title: 'HarvestLink - Checkout',
+        user: req.session.user || null,
+        isAuthenticated: !!req.session.userId
+    });
 });
 
 app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../Admin webpage/admin.html'));
+    // Check if user is admin
+    if (!req.session.userId || !req.session.user || req.session.user.role !== 'admin') {
+        return res.redirect('/login');
+    }
+    res.render('admin', { 
+        title: 'HarvestLink - Admin Dashboard',
+        user: req.session.user,
+        isAuthenticated: true
+    });
 });
 
 app.get('/shop', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../Shop webpage/shop.html'));
+    res.render('shop', { 
+        title: 'HarvestLink - Shop',
+        user: req.session.user || null,
+        isAuthenticated: !!req.session.userId
+    });
+});
+
+app.get('/contacts', (req, res) => {
+    res.render('contacts', { 
+        title: 'HarvestLink - Contact',
+        user: req.session.user || null,
+        isAuthenticated: !!req.session.userId
+    });
 });
 
 // Start server

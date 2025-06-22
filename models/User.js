@@ -8,6 +8,8 @@ const UserSchema = new mongoose.Schema({
   email:    { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role:     { type: String, default: 'user' },
+  phoneNumber: { type: String, default: null }, // Phone number for user
+  profileImage: { type: String, default: null }, // Profile image URL or base64 string
   addresses: [{
     type: {
       type: String,

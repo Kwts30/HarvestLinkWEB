@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/assets/css/auth-styles.css">
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/auth.js"></script>
+    <script src="/script.js" defer></script>
+    <link rel="icon" href="/assets/homepage/harvestlink logo.png" type="image/x-icon">
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <nav class="navbar">
+            <div class="nav-left">
+                <h1>HARVESTLINK</h1>
+            </div>
+            <div class="nav-center">
+                <div class="logo-circle">
+                    <img src="/assets/homepage/harvestlink logo.png" alt="HarvestLink Logo">
+                </div>
+            </div>
+            <div class="hamburger-menu">
+                <div class="hamburger">
+                    <div class="line line1"></div>
+                    <div class="line line2"></div>
+                    <div class="line line3"></div>
+                </div>
+            </div>
+        </nav>        
+        <div class="nav-overlay">
+            <button class="close-menu">×</button>
+            <div class="nav-logo">
+                <img src="/assets/homepage/harvestlink logo full.png" alt="HarvestLink Logo">
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/shop" class="shop-link">Shop</a></li>
+                <li><a href="/contacts">Contact</a></li>
+                <% if (isAuthenticated) { %>
+                    <% if (user && user.role === 'admin') { %>
+                        <li><a href="/admin">Admin</a></li>
+                    <% } %>
+                    <li><a href="#" onclick="logout()">Logout</a></li>
+                <% } else { %>
+                    <li><a href="/login">Login</a></li>
+                <% } %>
+            </ul>
+        </div>    
+    </header>
+
+    <!-- Main Section -->
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <h1>HARVESTLINK</h1>
+                <h2>INC.</h2>
+                <a href="/shop" class="shop-btn">
+                    <img src="/assets/homepage/shopping-cart (1).png" alt="Cart Icon">
+                    SHOP
+                </a>
+            </div>            
+            <div class="background-image"></div>
+            <div class="farmers-image"></div>        
+        </section>
+
+        <!-- info Section -->
+        <section class="info-section">
+            <div class="image-background">
+                <video autoplay muted loop playsinline>
+                    <source src="/assets/homepage/13559360 3840 2160 60Fps.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="info-content">
+                <h2>BRIDGING THE GAP FOR A <span class="highlight">FRESHER FUTURE</span></h2>
+                <p>
+                    HarvestLink.inc was born from a desire to directly connect farmers in 
+                    Region 11 (Davao Region) with consumers seeking fresh, local 
+                    produce. We aim to solve the challenge where middlemen reduce 
+                    farmer earnings and inflate consumer prices. For example, palay 
+                    farmgate prices in Region 11 might be around ₱18.50 - ₱21.00 per 
+                    kilogram, yet consumers can pay ₱49 - ₱55 or more for commercial 
+                    rice. HarvestLink.inc offers an e-commerce solution to empower our 
+                    farmers and community, starting in key areas of Region 11 and 
+                    expanding to Region 12 (SOCCSKSARGEN).
+                </p>
+            </div>        
+        </section>
+
+        <!-- Purpose Section -->
+        <section class="purpose-section">
+            <div class="image-background">
+                <video autoplay muted loop playsinline>
+                    <source src="/assets/homepage/2758322-Uhd 3840 2160 30Fps.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="purpose-content">
+                <h2>OUR PURPOSE</h2>
+                <p>
+                    Our purpose is to revolutionize the way agricultural produce 
+                    moves from farm to table in the Davao Region and beyond. 
+                    We aim to build a sustainable and equitable food system 
+                    that values the hard work of our local farmers and provides 
+                    consumers with access to the freshest, most nutritious food 
+                    at fair prices. We believe in fostering a direct link that 
+                    benefits everyone, creating a stronger, healthier, and more 
+                    resilient local food economy.
+                </p>
+            </div>        
+        </section>
+
+        <!-- Testimonials Section -->
+        <section class="testimonials-section">
+            <div class="image-background">
+                <video autoplay muted loop playsinline>
+                    <source src="/assets/homepage/6696464-Uhd 3840 2160 30Fps.mp4" type="video/mp4">
+                </video>
+            </div>
+            <h2>FARMER SUCCESS STORIES</h2>
+            <p class="section-subtitle">Real experiences from our farming partners</p>
+            <div class="testimonials-container">
+                <div class="testimonial-slide">
+                    <div class="testimonial-content">
+                        <div class="testimonial-image-container">
+                            <img src="/assets/homepage/ChatGPT_Image_Jun_3__2025__05_05_51_PM-removebg-preview.png" alt="Farmer Juan dela Cruz">
+                            <div class="farmer-info">
+                                <span class="farmer-specialty">Rice Farming</span>
+                                <span class="farmer-location">Davao</span>
+                            </div>
+                        </div>
+                        <div class="testimonial-text">
+                            <blockquote>
+                                "Through HarvestLink, my rice farm's income increased by 40%. Direct consumer connections mean better prices and sustainable farming for my family."
+                            </blockquote>
+                            <cite>Juan dela Cruz</cite>
+                            <div class="impact-stats">
+                                <span>✓ 40% Income Increase</span>
+                                <span>✓ 500+ Direct Customers</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-slide">
+                    <div class="testimonial-content">
+                        <div class="testimonial-image-container">
+                            <img src="/assets/homepage/ChatGPT_Image_Jun_3__2025__05_05_51_PM-removebg-preview.png" alt="Farmer Maria Santos">
+                            <div class="farmer-info">
+                                <span class="farmer-specialty">Organic Vegetables</span>
+                                <span class="farmer-location">Tagum</span>
+                            </div>
+                        </div>
+                        <div class="testimonial-text">
+                            <blockquote>
+                                "As an organic vegetable farmer, finding the right market was challenging. HarvestLink connected me with customers who value quality produce."
+                            </blockquote>
+                            <cite>Maria Santos</cite>
+                            <div class="impact-stats">
+                                <span>✓ 60% Less Waste</span>
+                                <span>✓ 300+ Regular Buyers</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-slide">
+                    <div class="testimonial-content">
+                        <div class="testimonial-image-container">
+                            <img src="/assets/homepage/ChatGPT_Image_Jun_3__2025__05_05_51_PM-removebg-preview.png" alt="Farmer Pedro Reyes">
+                            <div class="farmer-info">
+                                <span class="farmer-specialty">Fruit Orchards</span>
+                                <span class="farmer-location">Digos</span>
+                            </div>
+                        </div>
+                        <div class="testimonial-text">
+                            <blockquote>
+                                "Managing a fruit orchard requires perfect timing. HarvestLink's platform helps me plan harvests and reach customers at the right moment."
+                            </blockquote>
+                            <cite>Pedro Reyes</cite>
+                            <div class="impact-stats">
+                                <span>✓ 45% Better Prices</span>
+                                <span>✓ 80% Less Spoilage</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-controls">
+                <button class="prev-btn" aria-label="Previous testimonial">❮</button>
+                <div class="testimonial-dots"></div>
+                <button class="next-btn" aria-label="Next testimonial">❯</button>
+            </div>
+        </section>    
+    </main>
+
+    <!-- Back to up option -->
+    <button id="back-to-top" title="Back to Top">↑</button>
+
+    <!-- Founders Section -->
+    <section class="founders-section">
+        <h2>MEET THE FOUNDERS</h2>
+        <div class="founders-container">
+            <div class="founder-card">
+                <div class="founder-image">
+                    <img src="/assets/homepage/jaryl.jpg" alt="Jaryl Kurt S. Benedicto">
+                </div>
+                <div class="founder-info">
+                    <h3>Jaryl Kurt S. Benedicto</h3>
+                    <p class="founder-title">Founder</p>
+                    <p class="founder-desc">Batchelor of Science in Computer Engineering</p>
+                    <p class="founder-desc">Mapua Malayan Colleges Mindanao</p>
+                </div>
+            </div>
+            <div class="founder-card">
+                <div class="founder-image">
+                    <img src="/assets/homepage/founder2.jpg" alt="Maria Garcia">
+                </div>
+                <div class="founder-info">
+                    <h3>Kris Matthew Deximo</h3>
+                    <p class="founder-title">Founder</p>
+                    <p class="founder-desc">Batchelor of Science in Computer Engineering</p>
+                    <p class="founder-desc">Mapua Malayan Colleges Mindanao</p>
+                </div>
+            </div>
+            <div class="founder-card">
+                <div class="founder-image">
+                    <img src="/assets/homepage/founder3.jpg" alt="David Chen">
+                </div>
+                <div class="founder-info">
+                    <h3>Jaden Michael Ventosa</h3>
+                    <p class="founder-title">Founder</p>
+                    <p class="founder-desc">Batchelor of Science in Computer Engineering</p>
+                    <p class="founder-desc">Mapua Malayan Colleges Mindanao</p>
+                </div>
+            </div>
+        </div>    </section>
+
+    <!-- Footer Section -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>About HarvestLink</h3>
+                <p>Connecting farmers directly with consumers for the freshest produce and supporting local agriculture.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/shop">Shop</a></li>
+                    <li><a href="/contacts">Contact</a></li>
+                    <li><a href="/login">Login</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <div class="social-links">
+                    <a href="https://facebook.com/harvestlink" target="_blank" class="social-link">
+                        <img src="/assets/homepage/facebook.png" alt="Facebook">
+                        Facebook
+                    </a>
+                    <a href="https://instagram.com/harvestlink" target="_blank" class="social-link">
+                        <img src="/assets/homepage/instagram.png" alt="Instagram">
+                        Instagram
+                    </a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <p>Email: info@harvestlink.com</p>
+                <p>Phone: +63 912 345 6789</p>
+                <p>Address: Davao City, Philippines</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 HarvestLink Incorporated. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Set active page for navigation
+        window.activePage = 'home';
+    </script>
+</body>
+</html>

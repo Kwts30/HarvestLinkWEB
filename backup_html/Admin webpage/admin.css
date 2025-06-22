@@ -132,6 +132,17 @@ input, select, textarea, button {
     justify-content: center;
     color: white;
     font-size: 1.2rem;
+    overflow: hidden;
+    border: 2px solid var(--background-primary);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 50%;
 }
 
 .admin-details {
@@ -168,10 +179,8 @@ input, select, textarea, button {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem 1.5rem;
-    color: var(--text-secondary);
+    padding: 0.75rem 1.5rem;    color: var(--text-secondary);
     text-decoration: none;
-    transition: all 0.2s ease;
     position: relative;
 }
 
@@ -228,10 +237,8 @@ input, select, textarea, button {
     padding: 0.75rem 1rem;
     background: transparent;
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    color: var(--text-secondary);
+    border-radius: var(--radius-md);    color: var(--text-secondary);
     cursor: pointer;
-    transition: all 0.2s ease;
 }
 
 .logout-button:hover {
@@ -275,10 +282,8 @@ input, select, textarea, button {
     width: 100%;
     padding: 0.75rem 1rem 0.75rem 2.75rem;
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    background: var(--background-secondary);
+    border-radius: var(--radius-lg);    background: var(--background-secondary);
     font-size: 0.875rem;
-    transition: all 0.2s ease;
 }
 
 .search-box input:focus {
@@ -296,9 +301,7 @@ input, select, textarea, button {
 .notification-badge {
     position: relative;
     padding: 0.5rem;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+    border-radius: var(--radius-md);    cursor: pointer;
 }
 
 .notification-badge:hover {
@@ -333,16 +336,10 @@ input, select, textarea, button {
 .content-section {
     display: none;
     padding: 2rem 2rem 1rem 2rem;
-    animation: fadeIn 0.3s ease;
 }
 
 .content-section.active {
     display: block;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
 }
 
 .section-header {
@@ -376,9 +373,7 @@ input, select, textarea, button {
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-light);
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    transition: all 0.2s ease;
+    align-items: center;    justify-content: space-between;
     position: relative;
     overflow: hidden;
 }
@@ -398,7 +393,6 @@ input, select, textarea, button {
 .stat-card.info::before { background: var(--info-color); }
 
 .stat-card:hover {
-    transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
 }
 
@@ -490,10 +484,8 @@ input, select, textarea, button {
 
 .view-all {
     color: var(--primary-color);
-    text-decoration: none;
-    font-size: 0.875rem;
+    text-decoration: none;    font-size: 0.875rem;
     font-weight: 500;
-    transition: color 0.2s ease;
 }
 
 .view-all:hover {
@@ -573,10 +565,8 @@ input, select, textarea, button {
     color: white;
     border: none;
     padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-md);
-    font-weight: 500;
+    border-radius: var(--radius-md);    font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
@@ -584,17 +574,14 @@ input, select, textarea, button {
 
 .btn-primary:hover {
     background: var(--primary-dark);
-    transform: translateY(-1px);
 }
 
 .btn-secondary {
     background: transparent;
     color: var(--text-secondary);
     border: 1px solid var(--border-color);
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius-md);
+    padding: 0.5rem 1rem;    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
@@ -610,10 +597,8 @@ input, select, textarea, button {
     background: var(--danger-color);
     color: white;
     border: none;
-    padding: 0.5rem 0.75rem;
-    border-radius: var(--radius-md);
+    padding: 0.5rem 0.75rem;    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: all 0.2s ease;
 }
 
 .btn-danger:hover {
@@ -641,10 +626,6 @@ td {
     padding: 1rem;
     border-bottom: 1px solid var(--border-light);
     color: var(--text-secondary);
-}
-
-tbody tr {
-    transition: background-color 0.2s ease;
 }
 
 tbody tr:hover {
@@ -715,15 +696,12 @@ input[type="checkbox"] {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
-    opacity: 0;
-    transition: opacity 0.3s ease;
 }
 
 .modal.active {
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 1;
 }
 
 .modal-content {
@@ -731,15 +709,10 @@ input[type="checkbox"] {
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-xl);
     width: 90%;
-    max-width: 500px;
+    max-width: 650px;
     max-height: 90vh;
     overflow-y: auto;
-    transform: scale(0.9);
-    transition: transform 0.3s ease;
-}
-
-.modal.active .modal-content {
-    transform: scale(1);
+    margin: 2rem auto;
 }
 
 .modal-header {
@@ -761,15 +734,215 @@ input[type="checkbox"] {
     border: none;
     font-size: 1.25rem;
     cursor: pointer;
-    color: var(--text-secondary);
-    padding: 0.5rem;
+    color: var(--text-secondary);    padding: 0.5rem;
     border-radius: var(--radius-md);
-    transition: all 0.2s ease;
 }
 
 .modal-close:hover {
     background-color: var(--background-secondary);
     color: var(--text-primary);
+}
+
+/* Modal Form Content */
+.modal form {
+    padding: 1.5rem;
+}
+
+/* Larger spacing for image upload in modals */
+.modal .image-upload-container {
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.modal .image-preview {
+    width: 100px;
+    height: 100px;
+}
+
+/* Image Upload Styles */
+.image-upload-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-lg);
+    background-color: var(--background-secondary);
+}
+
+.image-preview {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: var(--background-primary);
+    border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 50%;
+    display: block;
+}
+
+/* Enhanced modal image preview */
+.modal .image-preview {
+    width: 100px;
+    height: 100px;
+    border: 3px solid var(--primary-color);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.modal .image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 50%;
+}
+
+.placeholder-icon {
+    color: var(--text-light);
+    font-size: 2rem;
+}
+
+.upload-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.upload-btn, .remove-image-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;    font-size: 0.875rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+}
+
+.upload-btn {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.upload-btn:hover {
+    background-color: var(--primary-dark);
+}
+
+.remove-image-btn {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.remove-image-btn:hover {
+    background-color: #dc2626;
+}
+
+/* File size note styling */
+.file-size-note {
+    color: var(--text-light);
+    font-size: 0.75rem;
+    font-style: italic;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* Table Profile Image Styles */
+.user-profile-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.table-profile-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center;
+    border: 2px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.table-profile-image:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.table-profile-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--background-secondary);
+    border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    font-size: 1rem;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.table-profile-placeholder:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+/* Enhanced circular image cropping utilities */
+.circular-image {
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    aspect-ratio: 1 / 1;
+}
+
+.circular-container {
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1 / 1;
+}
+
+/* Profile image hover effects */
+.user-profile-cell {
+    position: relative;
+}
+
+.user-profile-cell .table-profile-image {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-profile-cell:hover .table-profile-image {
+    transform: scale(1.1);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    position: relative;
+}
+
+/* Ensure images maintain aspect ratio in upload preview */
+.image-preview {
+    aspect-ratio: 1 / 1;
+}
+
+.modal .image-preview {
+    aspect-ratio: 1 / 1;
 }
 
 /* Form Styles */
@@ -798,9 +971,7 @@ input[type="checkbox"] {
     padding: 0.75rem;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    background-color: var(--background-secondary);
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
+    background-color: var(--background-secondary);    font-size: 0.875rem;
 }
 
 .form-group input:focus,
@@ -899,15 +1070,13 @@ input[type="checkbox"] {
 @media (max-width: 768px) {
     :root {
         --sidebar-width: 100%;
-    }
-    
+    }    
     .sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
+        left: -280px;
     }
     
     .sidebar.mobile-open {
-        transform: translateX(0);
+        left: 0;
     }
     
     .main-content {
@@ -939,19 +1108,45 @@ input[type="checkbox"] {
     .search-input {
         min-width: auto;
     }
-    
-    .form-row {
+      .form-row {
         grid-template-columns: 1fr;
     }
     
     .form-actions {
         flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .modal-content {
+        width: 95%;
+        max-width: none;
+        margin: 1rem auto;
+    }
+    
+    .modal .image-upload-container {
+        flex-direction: column;
+        text-align: center;
+        padding: 1rem;
     }
 }
 
-@media (max-width: 480px) {    .modal-content {
-        width: 95%;
-        margin: 2% auto;
+@media (max-width: 480px) {    
+    .modal-content {
+        width: 98%;
+        margin: 0.5rem auto;
+        max-height: 95vh;
+    }
+    
+    .modal form {
+        padding: 1rem;
+    }
+    
+    .modal-header {
+        padding: 1rem;
+    }
+    
+    .form-actions {
+        padding: 1rem;
     }
     
     .pagination {

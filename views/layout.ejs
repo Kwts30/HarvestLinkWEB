@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
+    
+    <!-- CSS Files -->
+    <%- include('partials/css') %>
+    
+    <!-- JavaScript Files -->
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/auth.js"></script>
+    <%- include('partials/js') %>
+    
+    <link rel="icon" href="/assets/homepage/harvestlink logo.png" type="image/x-icon">
+</head>
+<body>
+    <!-- Header Section -->
+    <%- include('partials/header') %>
+    
+    <!-- Main Content -->
+    <%- body %>
+    
+    <!-- Back to top option -->
+    <% if (locals.showBackToTop !== false) { %>
+    <button id="back-to-top" title="Back to Top">↑</button>
+    <% } %>
+    
+    <!-- Footer Section -->
+    <% if (locals.showFooter !== false) { %>
+    <%- include('partials/footer') %>
+    <% } %>
+</body>
+</html>
