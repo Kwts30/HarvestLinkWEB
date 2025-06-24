@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HarvestLink - Profile</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="profile.css">
+  <link rel="icon" href="../assets/homepage/harvestlink logo.png" type="image/x-icon">
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/auth.js"></script>
+</head>
+<body>
+  <!-- Header Section -->
+  <header>
+    <nav class="navbar">
+      <div class="nav-left">
+        <h1>HARVESTLINK</h1>
+      </div>
+      <div class="nav-center">
+        <div class="logo-circle">
+          <img src="../assets/homepage/harvestlink logo.png" alt="HarvestLink Logo">
+        </div>
+      </div>
+      <div class="nav-right">
+        <div class="cart-icon" onclick="window.location.href='../cart webpage/cart.html'">
+          <img src="../assets/shop/shopping-cart.png" alt="Shopping Cart" style="width: 24px; height: 24px;">
+          <span class="cart-count">0</span>
+        </div>
+        <div class="hamburger-menu">
+          <div class="hamburger">
+            <div class="line line1"></div>
+            <div class="line line2"></div>
+            <div class="line line3"></div>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div class="nav-overlay">
+      <button class="close-menu">×</button>
+      <div class="nav-logo">
+        <img src="../assets/homepage/harvestlink logo full.png" alt="HarvestLink Logo">
+      </div>
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="../Shop webpage/shop.html">Shop</a></li>
+        <li><a href="../cart webpage/cart.html">Cart</a></li>
+        <li><a href="profile.html" class="shop-link">Profile</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main class="profile-container">
+    <section class="user-info">
+      <h2>My Profile</h2>
+      <div class="profile-picture-container">
+        <img class="profile-picture" src="../../assets/homepage/jaryl.jpg" alt="Profile Picture">
+      </div>
+      <div class="info-group">
+        <label>Full Name:</label>
+        <p>Juan Dela Cruz</p>
+      </div>
+      <div class="info-group">
+        <label>Email:</label>
+        <p>juan@example.com</p>
+      </div>
+      <div class="info-group">
+        <label>Phone:</label>
+        <p>0917-123-4567</p>
+      </div>
+      <div class="info-group">
+        <label>Address:</label>
+        <p>Brgy. Lagao, General Santos City</p>
+      </div>
+      <button class="edit-btn">Edit Profile</button>
+    </section>
+
+    <section class="transaction-history">
+      <h2>Transaction History</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2025-06-21</td>
+            <td>5kg Mangoes, 3kg Tomatoes</td>
+            <td>₱780.00</td>
+            <td>Delivered</td>
+          </tr>
+          <tr>
+            <td>2025-06-15</td>
+            <td>10kg Rice</td>
+            <td>₱500.00</td>
+            <td>Pending</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-logo">
+        <img src="../assets/homepage/harvestlink logo.png" alt="HarvestLink Logo">
+      </div>
+      <div class="social-links">
+        <a href="https://facebook.com/harvestlink" target="_blank">
+          <img src="../assets/homepage/facebook.png" alt="Facebook">
+        </a>
+        <a href="https://instagram.com/harvestlink" target="_blank">
+          <img src="../assets/homepage/instagram.png" alt="Instagram">
+        </a>
+      </div>
+      <p>&copy; 2025 HarvestLink. All rights reserved.</p>
+    </div>
+  </footer>
+  <script src="profile.js"></script>
+</body>
+</html>
