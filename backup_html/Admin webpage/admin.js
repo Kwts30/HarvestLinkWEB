@@ -20,7 +20,9 @@ class ModernAdminDashboard {
         // API Configuration - works for both localhost and live domains
         this.apiConfig = this.setupApiConfig();
         this.init();
-    }    // Setup API configuration for multi-domain support
+    }
+    
+    // Setup API configuration for multi-domain support
     setupApiConfig() {
         // Use the global API config if available, otherwise detect automatically
         if (window.API_CONFIG) {
@@ -52,10 +54,14 @@ class ModernAdminDashboard {
     }
 
     async init() {
-        await this.checkAuth();
-        this.bindEvents();
-        this.initializeTime();
-        this.loadDashboardData();
+        try {
+            await this.checkAuth();
+            this.bindEvents();
+            this.initializeTime();
+            this.loadDashboardData();
+        } catch (error) {
+            console.error('Dashboard initialization error:', error);
+        }
     }
 
     // Authentication
@@ -76,58 +82,95 @@ class ModernAdminDashboard {
         }
     }
 
+    // Helper function to safely add event listeners
+    safeAddEventListener(elementId, event, handler) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.addEventListener(event, handler);
+        } else {
+            console.warn(`Element with ID '${elementId}' not found for event '${event}'`);
+        }
+    }
+
     // Event Bindings
     bindEvents() {
-        // Sidebar navigation
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const section = e.currentTarget.dataset.section;
-                this.showSection(section);
+        try {
+            // Sidebar navigation
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const section = e.currentTarget.dataset.section;
+                    this.showSection(section);
+                });
             });
-        });
 
-        // Logout button
-        document.getElementById('logoutBtn').addEventListener('click', this.handleLogout.bind(this));
+            // Logout button
+            this.safeAddEventListener('logoutBtn', 'click', this.handleLogout.bind(this));
 
-        // Modal controls
-        document.querySelectorAll('.modal-close').forEach(btn => {
-            btn.addEventListener('click', this.closeModal.bind(this));
-        });        // User management
-        document.getElementById('addUserBtn').addEventListener('click', () => this.showUserModal());
-        document.getElementById('userForm').addEventListener('submit', this.handleUserSubmit.bind(this));
-        document.getElementById('userSearch').addEventListener('input', this.debounce(this.searchUsers.bind(this), 300));
-        document.getElementById('userRoleFilter').addEventListener('change', this.filterUsers.bind(this));
-        
-        // User image upload
-        document.getElementById('userProfileImage').addEventListener('change', this.handleUserImagePreview.bind(this));
-        document.getElementById('removeUserImageBtn').addEventListener('click', this.removeUserImage.bind(this));
+            // Modal controls - with safety checks
+            document.querySelectorAll('.modal-close').forEach(btn => {
+                btn.addEventListener('click', this.closeModal.bind(this));
+                });
 
-        // Product management
-        document.getElementById('addProductBtn').addEventListener('click', () => this.showProductModal());
-        document.getElementById('productForm').addEventListener('submit', this.handleProductSubmit.bind(this));
-        document.getElementById('productSearch').addEventListener('input', this.debounce(this.searchProducts.bind(this), 300));
-        document.getElementById('productCategoryFilter').addEventListener('change', this.filterProducts.bind(this));
-        document.getElementById('productStatusFilter').addEventListener('change', this.filterProducts.bind(this));        // Transaction management
-        document.getElementById('transactionStatus').addEventListener('change', this.filterTransactions.bind(this));
-        document.getElementById('transactionDateFrom').addEventListener('change', this.filterTransactions.bind(this));
-        document.getElementById('transactionDateTo').addEventListener('change', this.filterTransactions.bind(this));
-        document.getElementById('exportTransactions').addEventListener('click', this.exportTransactions.bind(this));        // Global search
-        document.getElementById('globalSearch').addEventListener('input', this.handleGlobalSearch.bind(this));
+            // User management - with safety checks
+            this.safeAddEventListener('addUserBtn', 'click', () => this.showUserModal());
+            this.safeAddEventListener('addUserForm', 'submit', this.handleUserSubmit.bind(this));
+            this.safeAddEventListener('editUserForm', 'submit', this.handleEditUserSubmit.bind(this));
+            this.safeAddEventListener('userSearch', 'input', this.debounce(this.searchUsers.bind(this), 300));
+            this.safeAddEventListener('userRoleFilter', 'change', this.filterUsers.bind(this));
+            
+            // Add User Modal controls - with safety checks
+            this.safeAddEventListener('closeAddUserModal', 'click', () => this.closeModal('addUserModal'));
+            this.safeAddEventListener('cancelAddUser', 'click', () => this.closeModal('addUserModal'));
+            this.safeAddEventListener('uploadImageBtn', 'click', () => {
+                const fileInput = document.getElementById('profileImage');
+                if (fileInput) fileInput.click();
+            });
+            this.safeAddEventListener('profileImage', 'change', (e) => this.handleImagePreview('userImagePreview', e));
+            this.safeAddEventListener('removeImageBtn', 'click', () => this.removeImage('userImagePreview'));
+            
+            // Edit User Modal controls - with safety checks
+            this.safeAddEventListener('closeEditUserModal', 'click', () => this.closeModal('editUserModal'));
+            this.safeAddEventListener('cancelEditUser', 'click', () => this.closeModal('editUserModal'));
+            this.safeAddEventListener('editUploadImageBtn', 'click', () => {
+                const fileInput = document.getElementById('editProfileImage');
+                if (fileInput) fileInput.click();
+            });
+            this.safeAddEventListener('editProfileImage', 'change', (e) => this.handleImagePreview('editUserImagePreview', e));
+            this.safeAddEventListener('editRemoveImageBtn', 'click', () => this.removeImage('editUserImagePreview'));
 
-        // Close modals on outside click
-        window.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal')) {
-                this.closeModal();
-            }
-        });
+            // Product management
+            this.safeAddEventListener('addProductBtn', 'click', () => this.showProductModal());
+            this.safeAddEventListener('productForm', 'submit', this.handleProductSubmit.bind(this));
+            this.safeAddEventListener('productSearch', 'input', this.debounce(this.searchProducts.bind(this), 300));
+            this.safeAddEventListener('productCategoryFilter', 'change', this.filterProducts.bind(this));
+            this.safeAddEventListener('productStatusFilter', 'change', this.filterProducts.bind(this));
 
-        // Handle escape key for modals
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.closeModal();
-            }
-        });
+            // Transaction management
+            this.safeAddEventListener('transactionStatus', 'change', this.filterTransactions.bind(this));
+            this.safeAddEventListener('transactionDateFrom', 'change', this.filterTransactions.bind(this));
+            this.safeAddEventListener('transactionDateTo', 'change', this.filterTransactions.bind(this));
+            this.safeAddEventListener('exportTransactions', 'click', this.exportTransactions.bind(this));
+
+            // Global search
+            this.safeAddEventListener('globalSearch', 'input', this.handleGlobalSearch.bind(this));
+
+            // Close modals on outside click
+            window.addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal')) {
+                    this.closeModal();
+                }
+            });
+
+            // Handle escape key for modals
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    this.closeModal();
+                }
+            });
+        } catch (error) {
+            console.error('Error binding events:', error);
+        }
     }
 
     // Time Management
@@ -177,7 +220,9 @@ class ModernAdminDashboard {
                 this.loadTransactions();
                 break;
         }
-    }    // Dashboard Data Loading
+    }
+
+    // Dashboard Data Loading
     async loadDashboardData() {
         try {
             this.showLoading();
@@ -379,88 +424,150 @@ class ModernAdminDashboard {
                 </tbody>
             </table>
         `;
-    }    showUserModal(userId = null) {
-        const modal = document.getElementById('userModal');
-        const form = document.getElementById('userForm');
-        const title = document.getElementById('userModalTitle');
-        const passwordGroup = document.getElementById('passwordGroup');
-
-        // Reset form
-        form.reset();
-        this.clearFormErrors();
-        this.removeUserImage(); // Reset image preview
-
+    }
+    
+    showUserModal(userId = null) {
         if (userId) {
             // Edit mode
-            this.isEditing.user = true;
-            this.editingId.user = userId;
-            title.textContent = 'Edit User';
-            passwordGroup.style.display = 'none';
-            this.loadUserForEdit(userId);
+            this.showEditUserModal(userId);
         } else {
             // Add mode
-            this.isEditing.user = false;
-            this.editingId.user = null;
-            title.textContent = 'Add New User';
-            passwordGroup.style.display = 'block';            document.getElementById('userPassword').required = true;
-        }        modal.style.display = 'flex';
+            this.showAddUserModal();
+        }
+    }
+
+    showAddUserModal() {
+        const modal = document.getElementById('addUserModal');
+        const form = document.getElementById('addUserForm');
+        
+        // Reset form
+        form.reset();
+        this.clearFormErrors('add');
+        this.removeImage('userImagePreview');
+        
         modal.classList.add('active');
-    }async loadUserForEdit(userId) {
+        
+        // Focus on first input
+        setTimeout(() => {
+            document.getElementById('firstName').focus();
+        }, 100);
+    }
+
+    showEditUserModal(userId) {
+        const modal = document.getElementById('editUserModal');
+        const form = document.getElementById('editUserForm');
+        
+        // Reset form
+        form.reset();
+        this.clearFormErrors('edit');
+        this.removeImage('editUserImagePreview');
+        
+        // Set the user ID
+        document.getElementById('editUserId').value = userId;
+        
+        // Load user data
+        this.loadUserForEdit(userId);
+        
+        modal.classList.add('active');
+    }
+    
+    async loadUserForEdit(userId) {
         try {
             const response = await fetch(this.buildApiUrl(`/users/${userId}`), {
                 credentials: 'include'
-            });            if (response.ok) {
+            });
+
+            if (response.ok) {
                 const user = await response.json();
-                document.getElementById('userFirstName').value = user.firstName;
-                document.getElementById('userLastName').value = user.lastName;
-                document.getElementById('userEmail').value = user.email;
-                document.getElementById('userUsername').value = user.username;
-                document.getElementById('userPhone').value = user.phoneNumber || '';
-                document.getElementById('userRole').value = user.role;
+                document.getElementById('editFirstName').value = user.firstName;
+                document.getElementById('editLastName').value = user.lastName;
+                document.getElementById('editEmail').value = user.email;
+                document.getElementById('editPhone').value = user.phoneNumber || '';
+                document.getElementById('editRole').value = user.role;
+                
+                // Load detailed address if exists
+                if (user.address) {
+                    if (typeof user.address === 'string') {
+                        // Old format - single address string, put it in street field
+                        document.getElementById('editStreet').value = user.address;
+                        document.getElementById('editBarangay').value = '';
+                        document.getElementById('editCity').value = '';
+                        document.getElementById('editProvince').value = '';
+                        document.getElementById('editPostalCode').value = '';
+                    } else {
+                        // New format - detailed address object
+                        document.getElementById('editStreet').value = user.address.street || '';
+                        document.getElementById('editBarangay').value = user.address.barangay || '';
+                        document.getElementById('editCity').value = user.address.city || '';
+                        document.getElementById('editProvince').value = user.address.province || '';
+                        document.getElementById('editPostalCode').value = user.address.postalCode || '';
+                    }
+                } else {
+                    // Clear all address fields
+                    document.getElementById('editStreet').value = '';
+                    document.getElementById('editBarangay').value = '';
+                    document.getElementById('editCity').value = '';
+                    document.getElementById('editProvince').value = '';
+                    document.getElementById('editPostalCode').value = '';
+                }
                 
                 // Load profile image if exists
                 if (user.profileImage) {
-                    const previewImg = document.getElementById('userPreviewImg');
-                    const placeholderIcon = document.getElementById('userPlaceholderIcon');
-                    const removeBtn = document.getElementById('removeUserImageBtn');
-                    
-                    previewImg.src = user.profileImage;
-                    previewImg.style.display = 'block';
-                    placeholderIcon.style.display = 'none';
-                    removeBtn.style.display = 'inline-flex';
+                    this.setImagePreview('editUserImagePreview', user.profileImage);
+                    document.getElementById('editRemoveImageBtn').style.display = 'inline-flex';
                 }
             }
         } catch (error) {
             console.error('Error loading user for edit:', error);
             this.showToast('Error loading user data', 'error');
         }
-    }    async handleUserSubmit(e) {
+    }
+    
+    async handleUserSubmit(e) {
         e.preventDefault();
+        
+        if (!this.validateUserForm('add')) {
+            return;
+        }
         
         const formData = new FormData(e.target);
         const imageFile = formData.get('profileImage');
-          // Prepare user data
+        
+        // Prepare user data
         const userData = {
             firstName: formData.get('firstName'),
             lastName: formData.get('lastName'),
             email: formData.get('email'),
-            username: formData.get('username'),
-            phoneNumber: formData.get('phoneNumber'),
-            role: formData.get('role')
+            phoneNumber: formData.get('phone') || null,
+            role: formData.get('role'),
+            address: {
+                street: formData.get('street') || '',
+                barangay: formData.get('barangay') || '',
+                city: formData.get('city') || '',
+                province: formData.get('province') || '',
+                postalCode: formData.get('postalCode') || '',
+                country: 'Philippines'
+            },
+            password: formData.get('password')
         };
-        
-        // Add password only for new users
-        if (!this.isEditing.user) {
-            userData.password = formData.get('password');
-        }
         
         // Handle profile image
         if (imageFile && imageFile.size > 0) {
             try {
+                // Show processing message
+                this.showToast('Processing image...', 'info', 1000);
+                
                 const imageBase64 = await this.convertImageToBase64(imageFile);
                 userData.profileImage = imageBase64;
+                
+                // Validate final size (base64 is ~33% larger than original)
+                if (imageBase64.length > 500000) { // ~375KB original
+                    this.showToast('Processed image is still too large. Please use a smaller image.', 'error');
+                    return;
+                }
             } catch (error) {
-                this.showToast('Error processing image', 'error');
+                console.error('Image processing error:', error);
+                this.showToast('Error processing image. Please try a different image.', 'error');
                 return;
             }
         }
@@ -468,45 +575,184 @@ class ModernAdminDashboard {
         try {
             this.showLoading();
             
-            const url = this.isEditing.user 
-                ? this.buildApiUrl(`/users/${this.editingId.user}`)
-                : this.buildApiUrl('/users');
-            
-            const method = this.isEditing.user ? 'PUT' : 'POST';
-
-            const response = await fetch(url, {
-                method,
+            const response = await fetch(this.buildApiUrl('/users'), {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify(userData)
             });
 
             if (response.ok) {
-                this.closeModal();
+                this.closeModal('addUserModal');
                 this.loadUsers(this.currentPage.users);
-                this.showToast(
-                    this.isEditing.user ? 'User updated successfully!' : 'User created successfully!',
-                    'success'
-                );
+                this.showToast('User created successfully!', 'success');
             } else {
-                const error = await response.json();
-                this.handleFormErrors(error.errors || { general: error.message });
+                // Handle different types of errors
+                let errorMessage = 'Error creating user';
+                
+                if (response.status === 413) {
+                    errorMessage = 'Image file is too large. Please use a smaller image.';
+                } else if (response.status === 400) {
+                    try {
+                        const errorData = await response.json();
+                        this.handleFormErrors(errorData.errors || { general: errorData.message }, 'add');
+                        return;
+                    } catch {
+                        errorMessage = 'Invalid data provided';
+                    }
+                } else if (response.status === 500) {
+                    errorMessage = 'Server error. Please try again later.';
+                }
+                
+                this.showToast(errorMessage, 'error');
             }
         } catch (error) {
-            console.error('Error saving user:', error);
-            this.showToast('Error saving user', 'error');
+            console.error('Error creating user:', error);
+            this.showToast('Network error. Please check your connection.', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    async handleEditUserSubmit(e) {
+        e.preventDefault();
+        
+        if (!this.validateUserForm('edit')) {
+            return;
+        }
+        
+        const formData = new FormData(e.target);
+        const imageFile = formData.get('profileImage');
+        const userId = formData.get('userId');
+        
+        // Prepare user data
+        const userData = {
+            firstName: formData.get('firstName'),
+            lastName: formData.get('lastName'),
+            email: formData.get('email'),
+            phoneNumber: formData.get('phone') || null,
+            role: formData.get('role'),
+            address: {
+                street: formData.get('street') || '',
+                barangay: formData.get('barangay') || '',
+                city: formData.get('city') || '',
+                province: formData.get('province') || '',
+                postalCode: formData.get('postalCode') || '',
+                country: 'Philippines'
+            }
+        };
+        
+        // Handle profile image
+        if (imageFile && imageFile.size > 0) {
+            try {
+                // Show processing message
+                this.showToast('Processing image...', 'info', 1000);
+                
+                const imageBase64 = await this.convertImageToBase64(imageFile);
+                userData.profileImage = imageBase64;
+                
+                // Validate final size
+                if (imageBase64.length > 500000) {
+                    this.showToast('Processed image is still too large. Please use a smaller image.', 'error');
+                    return;
+                }
+            } catch (error) {
+                console.error('Image processing error:', error);
+                this.showToast('Error processing image. Please try a different image.', 'error');
+                return;
+            }
+        }
+
+        try {
+            this.showLoading();
+            
+            const response = await fetch(this.buildApiUrl(`/users/${userId}`), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(userData)
+            });
+
+            if (response.ok) {
+                this.closeModal('editUserModal');
+                this.loadUsers(this.currentPage.users);
+                this.showToast('User updated successfully!', 'success');
+            } else {
+                // Handle different types of errors
+                let errorMessage = 'Error updating user';
+                
+                if (response.status === 413) {
+                    errorMessage = 'Image file is too large. Please use a smaller image.';
+                } else if (response.status === 400) {
+                    try {
+                        const errorData = await response.json();
+                        this.handleFormErrors(errorData.errors || { general: errorData.message }, 'edit');
+                        return;
+                    } catch {
+                        errorMessage = 'Invalid data provided';
+                    }
+                } else if (response.status === 500) {
+                    errorMessage = 'Server error. Please try again later.';
+                }
+                
+                this.showToast(errorMessage, 'error');
+            }
+        } catch (error) {
+            console.error('Error updating user:', error);
+            this.showToast('Network error. Please check your connection.', 'error');
         } finally {
             this.hideLoading();
         }
     }
     
-    // Helper function to convert image to base64
+    // Helper function to convert image to base64 with compression
     convertImageToBase64(file) {
         return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
+            // First, compress the image if it's too large
+            this.compressImage(file)
+                .then(compressedFile => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(compressedFile);
+                })
+                .catch(reject);
+        });
+    }
+
+    // Image compression function
+    compressImage(file, maxWidth = 800, maxHeight = 600, quality = 0.7) {
+        return new Promise((resolve) => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+
+            img.onload = () => {
+                // Calculate new dimensions
+                let { width, height } = img;
+                
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = (height * maxWidth) / width;
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = (width * maxHeight) / height;
+                        height = maxHeight;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                // Draw and compress
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                canvas.toBlob(resolve, 'image/jpeg', quality);
+            };
+
+            img.src = URL.createObjectURL(file);
         });
     }
 
@@ -545,7 +791,9 @@ class ModernAdminDashboard {
 
     filterUsers() {
         this.searchUsers();
-    }    // User Image Handling
+    }
+
+    // User Image Handling
     handleUserImagePreview(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -741,7 +989,9 @@ class ModernAdminDashboard {
 
         modal.style.display = 'flex';
         modal.classList.add('active');
-    }async loadProductForEdit(productId) {
+    }
+    
+    async loadProductForEdit(productId) {
         try {
             const response = await fetch(this.buildApiUrl(`/products/${productId}`), {
                 credentials: 'include'
@@ -950,7 +1200,9 @@ class ModernAdminDashboard {
             this.updateElement('cancelledTransactions', stats.cancelled || 0);
             this.updateElement('todayRevenue', `₱${(stats.todayRevenue || 0).toLocaleString()}`);
         }
-    }    async updateTransactionStatus(transactionId, status) {
+    }
+
+    async updateTransactionStatus(transactionId, status) {
         try {
             const response = await fetch(this.buildApiUrl(`/transactions/${transactionId}`), {
                 method: 'PUT',
@@ -975,7 +1227,8 @@ class ModernAdminDashboard {
         if (!confirm('Are you sure you want to delete this transaction?')) return;
 
         try {
-            this.showLoading();            const response = await fetch(this.buildApiUrl(`/transactions/${transactionId}`), {
+            this.showLoading();            
+            const response = await fetch(this.buildApiUrl(`/transactions/${transactionId}`), {
                 method: 'DELETE',
                 credentials: 'include'
             });
@@ -1031,7 +1284,10 @@ class ModernAdminDashboard {
         } catch (error) {
             console.error('Error exporting transactions:', error);
             this.showToast('Error exporting transactions', 'error');
-        }    }    // Utility Methods
+        }
+    }
+
+    // Utility Methods
     renderPagination(section, currentPage, totalPages) {
         const container = document.getElementById(`${section}Pagination`);
         if (!container) return;
@@ -1119,37 +1375,227 @@ class ModernAdminDashboard {
             // Implement global search across all sections
             this.showToast('Global search functionality coming soon!', 'info');
         }
-    }    // Modal Management
-    closeModal() {
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.classList.remove('active');
-            modal.style.display = 'none';
-        });
+    }
+
+    // Modal Management
+    closeModal(modalId = null) {
+        if (modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        } else {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.classList.remove('active');
+            });
+        }
         this.clearFormErrors();
+    }
+
+    // Image Handling
+    handleImagePreview(previewId, event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            this.showToast('Please select a valid image file', 'error');
+            event.target.value = '';
+            return;
+        }
+
+        // Validate file size (2MB max to prevent server errors)
+        if (file.size > 2 * 1024 * 1024) {
+            this.showToast('Image size must be less than 2MB. Please choose a smaller image.', 'error');
+            event.target.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.setImagePreview(previewId, e.target.result);
+            
+            // Show remove button
+            const removeBtn = previewId.includes('edit') ? 
+                document.getElementById('editRemoveImageBtn') : 
+                document.getElementById('removeImageBtn');
+            if (removeBtn) {
+                removeBtn.style.display = 'inline-flex';
+            }
+            
+            this.showToast('Image uploaded successfully', 'success');
+        };
+        
+        reader.onerror = () => {
+            this.showToast('Error reading image file', 'error');
+            event.target.value = '';
+        };
+        
+        reader.readAsDataURL(file);
+    }
+
+    setImagePreview(previewId, imageSrc) {
+        const preview = document.getElementById(previewId);
+        if (preview) {
+            const img = preview.querySelector('img');
+            const icon = preview.querySelector('.placeholder-icon');
+            
+            if (!img) {
+                // Create img element if it doesn't exist
+                const newImg = document.createElement('img');
+                newImg.src = imageSrc;
+                preview.appendChild(newImg);
+            } else {
+                img.src = imageSrc;
+                img.style.display = 'block';
+            }
+            
+            if (icon) {
+                icon.style.display = 'none';
+            }
+        }
+    }
+
+    removeImage(previewId) {
+        const preview = document.getElementById(previewId);
+        if (preview) {
+            const img = preview.querySelector('img');
+            const icon = preview.querySelector('.placeholder-icon');
+            
+            if (img) {
+                img.remove();
+            }
+            
+            if (icon) {
+                icon.style.display = 'block';
+            }
+        }
+        
+        // Clear file input and hide remove button
+        const isEdit = previewId.includes('edit');
+        const fileInput = document.getElementById(isEdit ? 'editProfileImage' : 'profileImage');
+        const removeBtn = document.getElementById(isEdit ? 'editRemoveImageBtn' : 'removeImageBtn');
+        
+        if (fileInput) fileInput.value = '';
+        if (removeBtn) removeBtn.style.display = 'none';
+    }
+
+    // Form Validation
+    validateUserForm(mode) {
+        let isValid = true;
+        
+        // Required fields with correct IDs
+        const requiredFields = [];
+        
+        if (mode === 'edit') {
+            requiredFields.push(
+                { id: 'editFirstName', name: 'First Name' },
+                { id: 'editLastName', name: 'Last Name' },
+                { id: 'editEmail', name: 'Email' },
+                { id: 'editRole', name: 'Role' }
+            );
+        } else {
+            requiredFields.push(
+                { id: 'firstName', name: 'First Name' },
+                { id: 'lastName', name: 'Last Name' },
+                { id: 'email', name: 'Email' },
+                { id: 'role', name: 'Role' },
+                { id: 'password', name: 'Password' },
+                { id: 'confirmPassword', name: 'Confirm Password' }
+            );
+        }
+        
+        requiredFields.forEach(field => {
+            const element = document.getElementById(field.id);
+            const errorElement = document.getElementById(`${field.id}Error`);
+            
+            if (element && !element.value.trim()) {
+                this.showFieldError(errorElement, `${field.name} is required`);
+                isValid = false;
+            } else if (element) {
+                this.clearFieldError(errorElement);
+            }
+        });
+        
+        // Email validation
+        const emailField = document.getElementById(mode === 'edit' ? 'editEmail' : 'email');
+        const emailError = document.getElementById(mode === 'edit' ? 'editEmailError' : 'emailError');
+        if (emailField && emailField.value && !this.isValidEmail(emailField.value)) {
+            this.showFieldError(emailError, 'Please enter a valid email address');
+            isValid = false;
+        }
+        
+        // Password validation (only for add mode)
+        if (mode === 'add') {
+            const password = document.getElementById('password')?.value;
+            const confirmPassword = document.getElementById('confirmPassword')?.value;
+            const passwordError = document.getElementById('passwordError');
+            const confirmPasswordError = document.getElementById('confirmPasswordError');
+            
+            if (password && password.length < 6) {
+                this.showFieldError(passwordError, 'Password must be at least 6 characters long');
+                isValid = false;
+            }
+            
+            if (password !== confirmPassword) {
+                this.showFieldError(confirmPasswordError, 'Passwords do not match');
+                isValid = false;
+            }
+        }
+        
+        return isValid;
+    }
+
+    isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+
+    showFieldError(errorElement, message) {
+        if (errorElement) {
+            errorElement.textContent = message;
+            errorElement.classList.add('show');
+        }
+    }
+
+    clearFieldError(errorElement) {
+        if (errorElement) {
+            errorElement.textContent = '';
+            errorElement.classList.remove('show');
+        }
     }
 
     // Form Handling
-    clearFormErrors() {
-        document.querySelectorAll('.form-error').forEach(error => {
-            error.style.display = 'none';
-            error.textContent = '';
-        });
-        document.querySelectorAll('.input-error').forEach(input => {
-            input.classList.remove('input-error');
-        });
+    clearFormErrors(mode = 'all') {
+        if (mode === 'all') {
+            document.querySelectorAll('.form-error').forEach(error => {
+                error.classList.remove('show');
+                error.textContent = '';
+            });
+        } else {
+            const prefix = mode === 'edit' ? 'edit' : '';
+            const form = document.getElementById(`${prefix ? 'edit' : 'add'}UserForm`);
+            if (form) {
+                form.querySelectorAll('.form-error').forEach(error => {
+                    error.classList.remove('show');
+                    error.textContent = '';
+                });
+            }
+        }
     }
 
-    handleFormErrors(errors) {
-        this.clearFormErrors();
-        
+    handleFormErrors(errors, mode = 'add') {
         Object.keys(errors).forEach(field => {
-            const errorElement = document.getElementById(`${field}Error`);
-            const inputElement = document.getElementById(field);
+            let fieldId = field;
             
-            if (errorElement && inputElement) {
-                errorElement.textContent = errors[field];
-                errorElement.style.display = 'block';
-                inputElement.classList.add('input-error');
+            // Handle field name mapping for edit mode
+            if (mode === 'edit') {
+                fieldId = `edit${field.charAt(0).toUpperCase() + field.slice(1)}`;
+            }
+            
+            const errorElement = document.getElementById(`${fieldId}Error`);
+            if (errorElement) {
+                this.showFieldError(errorElement, errors[field]);
             }
         });
     }
@@ -1157,20 +1603,28 @@ class ModernAdminDashboard {
     // Loading and Notifications
     showLoading() {
         const overlay = document.getElementById('loadingOverlay');
-        if (overlay) overlay.style.display = 'block';
+        if (overlay) {
+            overlay.style.display = 'flex';
+            overlay.classList.add('show');
+        }
     }
 
     hideLoading() {
         const overlay = document.getElementById('loadingOverlay');
-        if (overlay) overlay.style.display = 'none';
+        if (overlay) {
+            overlay.style.display = 'none';
+            overlay.classList.remove('show');
+        }
     }
 
     showToast(message, type = 'info', duration = 3000) {
-        const container = document.getElementById('toastContainer');
+        let container = document.getElementById('toastContainer');
+        
+        // Create container if it doesn't exist
         if (!container) {
-            // Fallback to simple alert if container doesn't exist
-            alert(message);
-            return;
+            container = document.createElement('div');
+            container.id = 'toastContainer';
+            document.body.appendChild(container);
         }
 
         const toast = document.createElement('div');
@@ -1244,5 +1698,14 @@ class ModernAdminDashboard {
     }
 }
 
-// Initialize the admin dashboard
-const adminDashboard = new ModernAdminDashboard();
+// Initialize dashboard when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the admin dashboard only once
+    if (!window.adminDashboard) {
+        window.adminDashboard = new ModernAdminDashboard();
+        console.log('🚀 Admin Dashboard initialized successfully');
+    }
+});
+
+// Export for global access
+window.ModernAdminDashboard = ModernAdminDashboard;

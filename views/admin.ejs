@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>    
-    <link rel="stylesheet" href="/backup_html/Admin webpage/admin.css">
+    <link rel="stylesheet" href="/backup_html/Admin webpage/admin-basic.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
@@ -22,7 +22,11 @@
             </div>
             <div class="admin-profile">
                 <div class="avatar">
-                    <i class="fas fa-user-shield"></i>
+                    <% if (user.profileImage) { %>
+                        <img src="<%= user.profileImage %>" alt="Admin Profile">
+                    <% } else { %>
+                        <i class="fas fa-user-shield"></i>
+                    <% } %>
                 </div>
                 <div class="admin-details">
                     <span class="admin-name" id="adminName"><%= user.firstName %> <%= user.lastName %></span>
@@ -186,6 +190,7 @@
                         <select id="userRoleFilter" class="filter-select">
                             <option value="">All Roles</option>
                             <option value="user">Users</option>
+                            <option value="farmer">Farmers</option>
                             <option value="admin">Admins</option>
                         </select>
                     </div>
@@ -265,5 +270,257 @@
             </div>
         </section>
     </main>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New User</h3>
+                <button class="modal-close" id="closeAddUserModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="addUserForm">
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name *</label>
+                            <input type="text" id="firstName" name="firstName" required>
+                            <div class="form-error" id="firstNameError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name *</label>
+                            <input type="text" id="lastName" name="lastName" required>
+                            <div class="form-error" id="lastNameError"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" name="email" required>
+                        <div class="form-error" id="emailError"></div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" placeholder="+63 9XX XXX XXXX">
+                            <div class="form-error" id="phoneError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="role">User Role *</label>
+                            <select id="role" name="role" required>
+                                <option value="">Select Role</option>
+                                <option value="user">User</option>
+                                <option value="farmer">Farmer</option>
+                                <option value="admin">Administrator</option>
+                            </select>
+                            <div class="form-error" id="roleError"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Detailed Address Section -->
+                    <div class="address-section">
+                        <h4>Address Information</h4>
+                        
+                        <div class="form-group">
+                            <label for="street">Street Address</label>
+                            <input type="text" id="street" name="street" placeholder="House/Unit number, Street">
+                            <div class="form-error" id="streetError"></div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="barangay">Barangay</label>
+                                <input type="text" id="barangay" name="barangay" placeholder="Barangay">
+                                <div class="form-error" id="barangayError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="city">City</label>
+                                <input type="text" id="city" name="city" placeholder="City">
+                                <div class="form-error" id="cityError"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="province">Province</label>
+                                <input type="text" id="province" name="province" placeholder="Province">
+                                <div class="form-error" id="provinceError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="postalCode">Postal Code</label>
+                                <input type="text" id="postalCode" name="postalCode" placeholder="1234">
+                                <div class="form-error" id="postalCodeError"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="password">Password *</label>
+                            <input type="password" id="password" name="password" required>
+                            <div class="form-error" id="passwordError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm Password *</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" required>
+                            <div class="form-error" id="confirmPasswordError"></div>
+                        </div>
+                    </div>
+
+                    <div class="image-upload-container">
+                        <div class="image-preview" id="userImagePreview">
+                            <i class="fas fa-user placeholder-icon"></i>
+                        </div>
+                        <div class="upload-controls">
+                            <input type="file" id="profileImage" name="profileImage" accept="image/*" style="display: none;">
+                            <button type="button" class="upload-btn" id="uploadImageBtn">
+                                <i class="fas fa-camera"></i>
+                                Upload Photo
+                            </button>
+                            <button type="button" class="remove-image-btn" id="removeImageBtn" style="display: none;">
+                                <i class="fas fa-trash"></i>
+                                Remove Photo
+                            </button>
+                            <span class="file-size-note">Max size: 2MB. Formats: JPG, PNG, GIF. Images will be automatically compressed.</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancelAddUser">Cancel</button>
+                    <button type="submit" class="btn-primary" id="submitAddUser">
+                        <i class="fas fa-plus"></i>
+                        Add User
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit User</h3>
+                <button class="modal-close" id="closeEditUserModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editUserForm">
+                <input type="hidden" id="editUserId" name="userId">
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editFirstName">First Name *</label>
+                            <input type="text" id="editFirstName" name="firstName" required>
+                            <div class="form-error" id="editFirstNameError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="editLastName">Last Name *</label>
+                            <input type="text" id="editLastName" name="lastName" required>
+                            <div class="form-error" id="editLastNameError"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editEmail">Email Address *</label>
+                        <input type="email" id="editEmail" name="email" required>
+                        <div class="form-error" id="editEmailError"></div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editPhone">Phone Number</label>
+                            <input type="tel" id="editPhone" name="phone" placeholder="+63 9XX XXX XXXX">
+                            <div class="form-error" id="editPhoneError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="editRole">User Role *</label>
+                            <select id="editRole" name="role" required>
+                                <option value="">Select Role</option>
+                                <option value="user">User</option>
+                                <option value="farmer">Farmer</option>
+                                <option value="admin">Administrator</option>
+                            </select>
+                            <div class="form-error" id="editRoleError"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Detailed Address Section -->
+                    <div class="address-section">
+                        <h4>Address Information</h4>
+                        
+                        <div class="form-group">
+                            <label for="editStreet">Street Address</label>
+                            <input type="text" id="editStreet" name="street" placeholder="House/Unit number, Street">
+                            <div class="form-error" id="editStreetError"></div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editBarangay">Barangay</label>
+                                <input type="text" id="editBarangay" name="barangay" placeholder="Barangay">
+                                <div class="form-error" id="editBarangayError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="editCity">City</label>
+                                <input type="text" id="editCity" name="city" placeholder="City">
+                                <div class="form-error" id="editCityError"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editProvince">Province</label>
+                                <input type="text" id="editProvince" name="province" placeholder="Province">
+                                <div class="form-error" id="editProvinceError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="editPostalCode">Postal Code</label>
+                                <input type="text" id="editPostalCode" name="postalCode" placeholder="1234">
+                                <div class="form-error" id="editPostalCodeError"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="image-upload-container">
+                        <div class="image-preview" id="editUserImagePreview">
+                            <i class="fas fa-user placeholder-icon"></i>
+                        </div>
+                        <div class="upload-controls">
+                            <input type="file" id="editProfileImage" name="profileImage" accept="image/*" style="display: none;">
+                            <button type="button" class="upload-btn" id="editUploadImageBtn">
+                                <i class="fas fa-camera"></i>
+                                Change Photo
+                            </button>
+                            <button type="button" class="remove-image-btn" id="editRemoveImageBtn" style="display: none;">
+                                <i class="fas fa-trash"></i>
+                                Remove Photo
+                            </button>
+                            <span class="file-size-note">Max size: 2MB. Formats: JPG, PNG, GIF. Images will be automatically compressed.</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancelEditUser">Cancel</button>
+                    <button type="submit" class="btn-primary" id="submitEditUser">
+                        <i class="fas fa-save"></i>
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
 </body>
 </html>

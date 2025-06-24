@@ -196,6 +196,19 @@ router.put('/users/:id', requireAdmin, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    // Update session if the updated user is the current session user
+    if (req.session.userId && req.session.userId.toString() === req.params.id) {
+      req.session.user = {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        profileImage: user.profileImage
+      };
+    }
+
     res.json(user);
   } catch (error) {
     console.error('Update user error:', error);
