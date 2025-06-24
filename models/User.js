@@ -10,6 +10,18 @@ const UserSchema = new mongoose.Schema({
   role:     { type: String, default: 'user' },
   phoneNumber: { type: String, default: null }, // Phone number for user
   profileImage: { type: String, default: null }, // Profile image URL or base64 string
+  
+  // Simple address field for admin-managed users (backward compatibility)
+  address: {
+    street: { type: String, default: '' },
+    barangay: { type: String, default: '' },
+    city: { type: String, default: '' },
+    province: { type: String, default: '' },
+    postalCode: { type: String, default: '' },
+    country: { type: String, default: 'Philippines' }
+  },
+  
+  // Complex addresses array for user-managed checkout addresses
   addresses: [{
     type: {
       type: String,

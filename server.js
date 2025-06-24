@@ -3,14 +3,14 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import session from 'express-session';
-import connect from '../database/mongodb-connect.js';
+import connect from './server/database/mongodb-connect.js';
 import cors from 'cors';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Load environment variables from project root
-dotenv.config({ path: path.join(__dirname, '../../.env') });
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,7 +20,7 @@ connect();
 
 // Set EJS as template engine
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, '../../views'));
+app.set('views', path.join(__dirname, 'views'));
 
 // Middleware
 app.use(cors({
@@ -68,7 +68,7 @@ app.use(session({
 
 // Custom middleware to block HTML files and serve other static files
 app.use((req, res, next) => {
-    // Block direct access to HTML files
+    // Block direct access to HTML files but allow CSS and JS files
     if (req.path.endsWith('.html')) {
         return res.status(404).send('HTML files are not accessible. Please use the proper routes.');
     }
@@ -76,10 +76,11 @@ app.use((req, res, next) => {
 });
 
 // Static files middleware for assets only
-app.use('/assets', express.static(path.join(__dirname, '../../assets')));
-app.use('/style.css', express.static(path.join(__dirname, '../../style.css')));
-app.use('/script.js', express.static(path.join(__dirname, '../../script.js')));
-app.use(express.static(path.join(__dirname, '../../'), {
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
+app.use('/backup_html', express.static(path.join(__dirname, 'backup_html')));
+app.use('/style.css', express.static(path.join(__dirname, 'style.css')));
+app.use('/script.js', express.static(path.join(__dirname, 'script.js')));
+app.use(express.static(path.join(__dirname), {
     index: false, // Disable directory indexing
     dotfiles: 'deny' // Deny access to dotfiles
 }));
@@ -105,9 +106,9 @@ app.use((req, res, next) => {
 });
 
 // Import routes and models
-import userRoutes from '../../routes/users.js';
-import adminRoutes from '../../routes/admin.js';
-import User from '../../models/User.js';
+import userRoutes from './routes/users.js';
+import adminRoutes from './routes/admin.js';
+import User from './models/User.js';
 
 // Routes
 // API health check endpoint

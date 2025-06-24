@@ -91,7 +91,8 @@ router.post('/login', async (req, res) => {
       lastName: user.lastName,
       username: user.username,
       email: user.email,
-      role: user.role
+      role: user.role,
+      profileImage: user.profileImage
     };
       // Remove password from response
     const userResponse = user.toObject();
