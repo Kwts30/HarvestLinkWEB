@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import session from 'express-session';
-import connect from '../database/mongodb-connect.js';
+import connect from './server/database/mongodb-connect.js';
 import cors from 'cors';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -105,9 +105,9 @@ app.use((req, res, next) => {
 });
 
 // Import routes and models
-import userRoutes from '../../routes/users.js';
-import adminRoutes from '../../routes/admin.js';
-import User from '../../models/User.js';
+import userRoutes from './routes/users.js';
+import adminRoutes from './routes/admin.js';
+import User from './models/User.js';
 
 // Routes
 // API health check endpoint
