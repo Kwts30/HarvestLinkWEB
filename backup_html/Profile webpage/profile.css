@@ -392,3 +392,33 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   background: #fff;
 }
+
+.horizontal-layout {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.horizontal-layout .user-info {
+  flex: 1 1 300px;
+  max-width: 340px;
+}
+
+.horizontal-layout .transaction-history {
+  flex: 2 1 500px;
+  min-width: 320px;
+}
+
+@media (max-width: 900px) {
+  .horizontal-layout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .horizontal-layout .user-info,
+  .horizontal-layout .transaction-history {
+    max-width: 100%;
+    min-width: 0;
+  }
+}
