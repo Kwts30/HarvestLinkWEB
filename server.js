@@ -80,6 +80,10 @@ app.use('/assets', express.static(path.join(__dirname, 'assets')));
 app.use('/backup_html', express.static(path.join(__dirname, 'backup_html')));
 app.use('/style.css', express.static(path.join(__dirname, 'style.css')));
 app.use('/script.js', express.static(path.join(__dirname, 'script.js')));
+
+// Serve CSS and JS files from view subdirectories
+app.use('/views', express.static(path.join(__dirname, 'views')));
+
 app.use(express.static(path.join(__dirname), {
     index: false, // Disable directory indexing
     dotfiles: 'deny' // Deny access to dotfiles
@@ -135,7 +139,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/signup', (req, res) => {
-    res.render('signup', { 
+    res.render('Signup/signup', { 
         title: 'HarvestLink - Sign Up',
         user: req.session.user || null,
         isAuthenticated: !!req.session.userId
@@ -143,7 +147,7 @@ app.get('/signup', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-    res.render('login', { 
+    res.render('Login/login', { 
         title: 'HarvestLink - Login',
         user: req.session.user || null,
         isAuthenticated: !!req.session.userId
@@ -151,7 +155,7 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/cart', (req, res) => {
-    res.render('cart', { 
+    res.render('Cart/cart', { 
         title: 'HarvestLink - Shopping Cart',
         user: req.session.user || null,
         isAuthenticated: !!req.session.userId
@@ -159,7 +163,7 @@ app.get('/cart', (req, res) => {
 });
 
 app.get('/checkout', (req, res) => {
-    res.render('checkout', { 
+    res.render('Checkout/checkout', { 
         title: 'HarvestLink - Checkout',
         user: req.session.user || null,
         isAuthenticated: !!req.session.userId
@@ -171,7 +175,7 @@ app.get('/admin', (req, res) => {
     if (!req.session.userId || !req.session.user || req.session.user.role !== 'admin') {
         return res.redirect('/login');
     }
-    res.render('admin', { 
+    res.render('Admin/admin', { 
         title: 'HarvestLink - Admin Dashboard',
         user: req.session.user,
         isAuthenticated: true
@@ -179,7 +183,7 @@ app.get('/admin', (req, res) => {
 });
 
 app.get('/shop', (req, res) => {
-    res.render('shop', { 
+    res.render('Shop/shop', { 
         title: 'HarvestLink - Shop',
         user: req.session.user || null,
         isAuthenticated: !!req.session.userId
@@ -187,7 +191,7 @@ app.get('/shop', (req, res) => {
 });
 
 app.get('/contacts', (req, res) => {
-    res.render('contacts', { 
+    res.render('Contacts/contacts', { 
         title: 'HarvestLink - Contact',
         user: req.session.user || null,
         isAuthenticated: !!req.session.userId
