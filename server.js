@@ -198,6 +198,24 @@ app.get('/contacts', (req, res) => {
     });
 });
 
+app.get('/profile', (req, res) => {
+    // Example data, replace with real user/session logic as needed
+    const user = {
+        profilePicture: '/assets/homepage/jaryl.jpg',
+        fullName: 'Juan Dela Cruz',
+        email: 'juan@example.com',
+        phone: '0917-123-4567',
+        address: 'Brgy. Lagao, General Santos City'
+    };
+    const transactions = [
+        { date: '2025-06-21', items: '5kg Mangoes, 3kg Tomatoes', total: '780.00', status: 'Delivered' },
+        { date: '2025-06-15', items: '10kg Rice', total: '500.00', status: 'Pending' }
+    ];
+    const cartCount = 0;
+    res.render('Profile/profile', { user, transactions, cartCount });
+});
+
+
 // Start server
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
