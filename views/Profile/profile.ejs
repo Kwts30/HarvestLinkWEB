@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HarvestLink - Profile</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/views/Profile/profile.css">
+  <link rel="icon" href="/assets/homepage/harvestlink logo.png" type="image/x-icon">
+  <script src="/js/config.js"></script>
+  <script src="/js/auth.js"></script>
+</head>
+<body>
+  <!-- Header Section -->
+  <header>
+    <nav class="navbar">
+      <div class="nav-left">
+        <h1>HARVESTLINK</h1>
+      </div>
+      <div class="nav-center">
+        <div class="logo-circle">
+          <img src="/assets/homepage/harvestlink logo.png" alt="HarvestLink Logo">
+        </div>
+      </div>
+      <div class="nav-right">
+        <div class="cart-icon" onclick="window.location.href='/cart'">
+          <img src="/assets/shop/shopping-cart.png" alt="Shopping Cart" style="width: 24px; height: 24px;">
+          <span class="cart-count"><%= cartCount || 0 %></span>
+        </div>
+        <div class="hamburger-menu">
+          <div class="hamburger">
+            <div class="line line1"></div>
+            <div class="line line2"></div>
+            <div class="line line3"></div>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div class="nav-overlay">
+      <button class="close-menu">×</button>
+      <div class="nav-logo">
+        <img src="/assets/homepage/harvestlink logo full.png" alt="HarvestLink Logo">
+      </div>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/shop">Shop</a></li>
+        <li><a href="/cart">Cart</a></li>
+        <li><a href="/profile" class="shop-link">Profile</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main class="profile-container horizontal-layout">
+    <section class="user-info">
+      <h2>My Profile</h2>
+      <div class="profile-picture-container">
+        <img class="profile-picture" src="<%= user.profilePicture || '/assets/homepage/jaryl.jpg' %>" alt="Profile Picture">
+      </div>
+      <div class="info-group">
+        <label>Full Name:</label>
+        <p><%= user.fullName %></p>
+      </div>
+      <div class="info-group">
+        <label>Email:</label>
+        <p><%= user.email %></p>
+      </div>
+      <div class="info-group">
+        <label>Phone:</label>
+        <p><%= user.phone %></p>
+      </div>
+      <div class="info-group">
+        <label>Address:</label>
+        <p><%= user.address %></p>
+      </div>
+      <button class="edit-btn">Edit Profile</button>
+    </section>
+
+    <section class="transaction-history">
+      <h2>Transaction History</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% transactions.forEach(function(tx) { %>
+            <tr>
+              <td><%= tx.date %></td>
+              <td><%= tx.items %></td>
+              <td>₱<%= tx.total %></td>
+              <td><%= tx.status %></td>
+              <td>
+                <% if (tx.status === 'Pending') { %>
+                  <button class="track-order-btn" onclick="trackOrder('<%= tx.date %>')">Track Order</button>
+                <% } %>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <script>
+        function trackOrder(orderDate) {
+          alert('Tracking information for order on ' + orderDate + ':\n\nStatus: In Transit\nExpected Delivery: 2025-06-18');
+        }
+      </script>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-logo">
+        <img src="/assets/homepage/harvestlink logo.png" alt="HarvestLink Logo">
+      </div>
+      <div class="social-links">
+        <a href="https://facebook.com/harvestlink" target="_blank">
+          <img src="/assets/homepage/facebook.png" alt="Facebook">
+        </a>
+        <a href="https://instagram.com/harvestlink" target="_blank">
+          <img src="/assets/homepage/instagram.png" alt="Instagram">
+        </a>
+      </div>
+      <p>&copy; 2025 HarvestLink. All rights reserved.</p>
+    </div>
+  </footer>
+  <script src="/js/profile.js"></script>
+</body>
+</html>
