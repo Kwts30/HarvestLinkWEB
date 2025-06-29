@@ -85,6 +85,10 @@ app.use('/assets', express.static(path.join(__dirname, 'assets')));
 app.use('/backup_html', express.static(path.join(__dirname, 'backup_html')));
 app.use('/style.css', express.static(path.join(__dirname, 'style.css')));
 app.use('/script.js', express.static(path.join(__dirname, 'script.js')));
+
+// Serve CSS and JS files from view subdirectories
+app.use('/views', express.static(path.join(__dirname, 'views')));
+
 app.use(express.static(path.join(__dirname), {
     index: false, // Disable directory indexing
     dotfiles: 'deny' // Deny access to dotfiles
@@ -170,7 +174,7 @@ app.get('/admin', (req, res) => {
 });
 
 app.get('/shop', (req, res) => {
-    res.render('shop', { 
+    res.render('Shop/shop', { 
         title: 'HarvestLink - Shop',
         user: req.session.user || null,
         isAuthenticated: !!req.session.userId
@@ -178,12 +182,30 @@ app.get('/shop', (req, res) => {
 });
 
 app.get('/contacts', (req, res) => {
-    res.render('contacts', { 
+    res.render('Contacts/contacts', { 
         title: 'HarvestLink - Contact',
         user: req.session.user || null,
         isAuthenticated: !!req.session.userId
     });
 });
+
+app.get('/profile', (req, res) => {
+    // Example data, replace with real user/session logic as needed
+    const user = {
+        profilePicture: '/assets/homepage/jaryl.jpg',
+        fullName: 'Juan Dela Cruz',
+        email: 'juan@example.com',
+        phone: '0917-123-4567',
+        address: 'Brgy. Lagao, General Santos City'
+    };
+    const transactions = [
+        { date: '2025-06-21', items: '5kg Mangoes, 3kg Tomatoes', total: '780.00', status: 'Delivered' },
+        { date: '2025-06-15', items: '10kg Rice', total: '500.00', status: 'Pending' }
+    ];
+    const cartCount = 0;
+    res.render('Profile/profile', { user, transactions, cartCount });
+});
+
 
 // Start server
 app.listen(PORT, () => {

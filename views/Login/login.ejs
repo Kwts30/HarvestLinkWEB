@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title><%= title %></title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/backup_html/Signup webpage/signup.css"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/views/Login/login.css" />
     <script src="/assets/js/config.js"></script>
-    <script src="/backup_html/Signup webpage/signup.js" defer></script>
+    <script src="/assets/js/auth.js"></script>
+    <script src="/views/Login/login.js" defer></script>
     <link rel="icon" href="/assets/homepage/harvestlink logo.png" type="image/x-icon">
 </head>
 <body>
@@ -53,33 +55,25 @@
         </div>    
     </header>
 
-    <div class="form-container">
-        <h1>Nice to meet you!</h1>
-        <p>Let's Sign Up Your Account</p>
-        
-        <form id="signupForm">
-            <div class="form-row">
-                <input type="text" name="firstName" placeholder="First Name" required>
-                <input type="text" name="lastName" placeholder="Last Name" required>
-            </div>
-            <div class="form-row">
-                <input type="text" name="username" placeholder="Username" required>
-                <input type="email" name="email" placeholder="Email" required>
-            </div>
-            <div class="form-row">
-                <input type="password" name="password" placeholder="Password" required>
-                <input type="password" name="confirmPassword" placeholder="Confirm Password" required>
-            </div>
-
-            <button type="submit" class="signup-btn">Sign Up</button>
-
-            <div id="message" class="message"></div>
+    <main>
+        <div class="form-container">      
+            <h1>Login</h1>
+            <p>Welcome back! Please login to your account.</p>
+            
+            <form id="loginForm">
+                <div class="form-row">
+                    <input type="email" name="email" placeholder="Email" required />
+                    <input type="password" name="password" placeholder="Password" required />
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+                
+                <div id="message" class="message"></div>
+            </form>
 
             <div class="footer">
-                Are you a farmer and already have an account? <a href="/login">Login Now</a>
+                Don't have an account? <a href="/signup">Register here</a>
             </div>
-        </form>
-    </div>
-
+        </div>
+    </main>
 </body>
 </html>
