@@ -139,6 +139,12 @@ class ModernAdminDashboard {
             this.safeAddEventListener('editProfileImage', 'change', (e) => this.handleImagePreview('editUserImagePreview', e));
             this.safeAddEventListener('editRemoveImageBtn', 'click', () => this.removeImage('editUserImagePreview'));
 
+            // Address Management
+            this.safeAddEventListener('addUserAddressBtn', 'click', () => this.showAddressModal());
+            this.safeAddEventListener('addressForm', 'submit', this.handleAddressSubmit.bind(this));
+            this.safeAddEventListener('closeAddressModal', 'click', () => this.closeModal('addressManagementModal'));
+            this.safeAddEventListener('cancelAddressBtn', 'click', () => this.closeModal('addressManagementModal'));
+
             // Product management
             this.safeAddEventListener('addProductBtn', 'click', () => this.showProductModal());
             this.safeAddEventListener('productForm', 'submit', this.handleProductSubmit.bind(this));
@@ -485,31 +491,8 @@ class ModernAdminDashboard {
                 document.getElementById('editPhone').value = user.phoneNumber || '';
                 document.getElementById('editRole').value = user.role;
                 
-                // Load detailed address if exists
-                if (user.address) {
-                    if (typeof user.address === 'string') {
-                        // Old format - single address string, put it in street field
-                        document.getElementById('editStreet').value = user.address;
-                        document.getElementById('editBarangay').value = '';
-                        document.getElementById('editCity').value = '';
-                        document.getElementById('editProvince').value = '';
-                        document.getElementById('editPostalCode').value = '';
-                    } else {
-                        // New format - detailed address object
-                        document.getElementById('editStreet').value = user.address.street || '';
-                        document.getElementById('editBarangay').value = user.address.barangay || '';
-                        document.getElementById('editCity').value = user.address.city || '';
-                        document.getElementById('editProvince').value = user.address.province || '';
-                        document.getElementById('editPostalCode').value = user.address.postalCode || '';
-                    }
-                } else {
-                    // Clear all address fields
-                    document.getElementById('editStreet').value = '';
-                    document.getElementById('editBarangay').value = '';
-                    document.getElementById('editCity').value = '';
-                    document.getElementById('editProvince').value = '';
-                    document.getElementById('editPostalCode').value = '';
-                }
+                // Load user addresses for the address management system
+                await this.loadUserAddresses(userId);
                 
                 // Load profile image if exists
                 if (user.profileImage) {
@@ -540,14 +523,6 @@ class ModernAdminDashboard {
             email: formData.get('email'),
             phoneNumber: formData.get('phone') || null,
             role: formData.get('role'),
-            address: {
-                street: formData.get('street') || '',
-                barangay: formData.get('barangay') || '',
-                city: formData.get('city') || '',
-                province: formData.get('province') || '',
-                postalCode: formData.get('postalCode') || '',
-                country: 'Philippines'
-            },
             password: formData.get('password')
         };
         
@@ -631,15 +606,7 @@ class ModernAdminDashboard {
             lastName: formData.get('lastName'),
             email: formData.get('email'),
             phoneNumber: formData.get('phone') || null,
-            role: formData.get('role'),
-            address: {
-                street: formData.get('street') || '',
-                barangay: formData.get('barangay') || '',
-                city: formData.get('city') || '',
-                province: formData.get('province') || '',
-                postalCode: formData.get('postalCode') || '',
-                country: 'Philippines'
-            }
+            role: formData.get('role')
         };
         
         // Handle profile image
@@ -858,7 +825,291 @@ class ModernAdminDashboard {
         this.showToast('Profile image removed', 'info');
     }
 
+    // ===============================
+    // Address Management Methods
+    // ===============================
+    
+    // Load user addresses for editing
+    async loadUserAddresses(userId) {
+        try {
+            const container = document.getElementById('userAddressesContainer');
+            const loadingDiv = document.getElementById('loadingAddresses');
+            const noAddressesDiv = document.getElementById('noAddresses');
+            
+            // Show loading state
+            loadingDiv.style.display = 'flex';
+            noAddressesDiv.style.display = 'none';
+            
+            const response = await fetch(this.buildApiUrl(`/users/${userId}`), {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to load user data');
+            }
+            
+            const userData = await response.json();
+            const addresses = userData.addresses || [];
+            
+            // Hide loading
+            loadingDiv.style.display = 'none';
+            
+            if (addresses.length === 0) {
+                noAddressesDiv.style.display = 'block';
+                return;
+            }
+            
+            // Render addresses
+            this.renderUserAddresses(addresses, userId);
+            
+        } catch (error) {
+            console.error('Error loading user addresses:', error);
+            document.getElementById('loadingAddresses').style.display = 'none';
+            document.getElementById('noAddresses').style.display = 'block';
+            this.showToast('Error loading user addresses', 'error');
+        }
+    }
+    
+    // Render user addresses
+    renderUserAddresses(addresses, userId) {
+        const container = document.getElementById('userAddressesContainer');
+        const existingAddresses = container.querySelectorAll('.address-card');
+        existingAddresses.forEach(card => card.remove());
+        
+        addresses.forEach(address => {
+            const addressCard = this.createAddressCard(address, userId);
+            container.appendChild(addressCard);
+        });
+    }
+    
+    // Create address card element
+    createAddressCard(address, userId) {
+        const card = document.createElement('div');
+        card.className = `address-card ${address.isPrimary ? 'primary' : ''}`;
+        card.dataset.addressId = address._id;
+        
+        card.innerHTML = `
+            <div class="address-type-badge ${address.isPrimary ? 'primary' : ''}" data-type="${address.type}">${address.type}</div>
+            <div class="address-content">
+                <h5>${address.fullName}</h5>
+                <div class="address-text">
+                    ${address.street}<br>
+                    ${address.barangay}, ${address.city}<br>
+                    ${address.province}
+                </div>
+                <div class="phone">
+                    <i class="fas fa-phone"></i>
+                    ${address.phone}
+                </div>
+            </div>
+            <div class="address-actions">
+                <button class="btn edit-address-btn" onclick="adminDashboard.editAddress('${userId}', '${address._id}')">
+                    <i class="fas fa-edit"></i>
+                    Edit
+                </button>
+                ${!address.isPrimary ? `
+                    <button class="btn set-primary-btn" onclick="adminDashboard.setPrimaryAddress('${userId}', '${address._id}')">
+                        <i class="fas fa-star"></i>
+                        Set Primary
+                    </button>
+                ` : ''}
+                <button class="btn delete-address-btn" onclick="adminDashboard.deleteAddress('${userId}', '${address._id}')">
+                    <i class="fas fa-trash"></i>
+                    Delete
+                </button>
+            </div>
+        `;
+        
+        return card;
+    }
+    
+    // Show address management modal
+    showAddressModal(userId = null, addressId = null) {
+        const modal = document.getElementById('addressManagementModal');
+        const form = document.getElementById('addressForm');
+        const title = document.getElementById('addressModalTitle');
+        
+        // Clear form
+        form.reset();
+        this.clearFormErrors('addressForm');
+        
+        // Set user ID
+        const userIdInput = document.getElementById('addressUserId');
+        if (userIdInput) {
+            userIdInput.value = userId || document.getElementById('editUserId').value;
+        }
+        
+        if (addressId) {
+            // Editing existing address
+            title.textContent = 'Edit Address';
+            document.getElementById('addressId').value = addressId;
+            this.populateAddressForm(userId || document.getElementById('editUserId').value, addressId);
+        } else {
+            // Adding new address
+            title.textContent = 'Add New Address';
+            document.getElementById('addressId').value = '';
+        }
+        
+        this.showModal('addressManagementModal');
+    }
+    
+    // Populate address form for editing
+    async populateAddressForm(userId, addressId) {
+        try {
+            const response = await fetch(this.buildApiUrl(`/addresses/${addressId}`), {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to load address data');
+            }
+            
+            const addressData = await response.json();
+            const address = addressData.address;
+            
+            if (!address) {
+                this.showToast('Address not found', 'error');
+                return;
+            }
+            
+            // Populate form fields
+            document.getElementById('addressType').value = address.type || '';
+            document.getElementById('isPrimary').checked = address.isPrimary || false;
+            document.getElementById('addressFullName').value = address.fullName || '';
+            document.getElementById('addressStreet').value = address.street || '';
+            document.getElementById('addressBarangay').value = address.barangay || '';
+            document.getElementById('addressCity').value = address.city || '';
+            document.getElementById('addressProvince').value = address.province || '';
+            document.getElementById('addressPhone').value = address.phone || '';
+            
+        } catch (error) {
+            console.error('Error loading address data:', error);
+            this.showToast('Error loading address data', 'error');
+        }
+    }
+    
+    // Handle address form submission
+    async handleAddressSubmit(e) {
+        e.preventDefault();
+        
+        try {
+            this.showLoading();
+            
+            const formData = new FormData(e.target);
+            const userId = formData.get('userId');
+            const addressId = formData.get('addressId');
+            
+            const addressData = {
+                type: formData.get('type'),
+                isPrimary: formData.has('isPrimary'),
+                fullName: formData.get('fullName'),
+                street: formData.get('street'),
+                barangay: formData.get('barangay'),
+                city: formData.get('city'),
+                province: formData.get('province'),
+                phone: formData.get('phone')
+            };
+            
+            const url = addressId 
+                ? this.buildApiUrl(`/users/${userId}/addresses/${addressId}`)
+                : this.buildApiUrl(`/users/${userId}/addresses`);
+            
+            const method = addressId ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(addressData)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                this.showToast(
+                    addressId ? 'Address updated successfully!' : 'Address added successfully!',
+                    'success'
+                );
+                this.closeModal('addressManagementModal');
+                
+                // Reload addresses in the edit user modal
+                await this.loadUserAddresses(userId);
+            } else {
+                throw new Error(result.message || 'Failed to save address');
+            }
+            
+        } catch (error) {
+            console.error('Error saving address:', error);
+            this.showToast(error.message || 'Error saving address', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+    
+    // Edit existing address
+    editAddress(userId, addressId) {
+        this.showAddressModal(userId, addressId);
+    }
+    
+    // Set primary address
+    async setPrimaryAddress(userId, addressId) {
+        try {
+            this.showLoading();
+            
+            const response = await fetch(this.buildApiUrl(`/users/${userId}/addresses/${addressId}/primary`), {
+                method: 'PUT',
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                this.showToast('Primary address updated successfully!', 'success');
+                await this.loadUserAddresses(userId);
+            } else {
+                throw new Error('Failed to set primary address');
+            }
+            
+        } catch (error) {
+            console.error('Error setting primary address:', error);
+            this.showToast('Error setting primary address', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+    
+    // Delete address
+    async deleteAddress(userId, addressId) {
+        if (!confirm('Are you sure you want to delete this address?')) {
+            return;
+        }
+        
+        try {
+            this.showLoading();
+            
+            const response = await fetch(this.buildApiUrl(`/users/${userId}/addresses/${addressId}`), {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                this.showToast('Address deleted successfully!', 'success');
+                await this.loadUserAddresses(userId);
+            } else {
+                throw new Error('Failed to delete address');
+            }
+            
+        } catch (error) {
+            console.error('Error deleting address:', error);
+            this.showToast('Error deleting address', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    // ===============================
     // Product Management
+    // ===============================
     async loadProducts(page = 1, search = '', category = '', status = '') {
         try {
             this.showLoading();
@@ -1378,6 +1629,13 @@ class ModernAdminDashboard {
     }
 
     // Modal Management
+    showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('active');
+        }
+    }
+
     closeModal(modalId = null) {
         if (modalId) {
             const modal = document.getElementById(modalId);

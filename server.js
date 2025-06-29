@@ -3,8 +3,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import session from 'express-session';
-import connect from './server/database/mongodb-connect.js';
+import connect from './database/mongodb-connect.js';
 import cors from 'cors';
+
+// Import routes and middlewares
+import routes from './routes/index.js';
+import { redirectIfNotAuthenticated, redirectTodosIfAuthenticated, validateSession, requireAdminPage } from './middlewares/index.js';
+import User from './models/User.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -105,27 +110,13 @@ app.use((req, res, next) => {
     next();
 });
 
-// Import routes and models
-import userRoutes from './routes/users.js';
-import adminRoutes from './routes/admin.js';
-import User from './models/User.js';
+// Session validation middleware
+app.use(validateSession);
 
-// Routes
-// API health check endpoint
-app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'ok', 
-        message: 'HarvestLink API is running',
-        timestamp: new Date().toISOString(),
-        host: req.get('host'),
-        origin: req.get('origin') || 'none'
-    });
-});
+// API and auth routes
+app.use('/', routes);
 
-app.use('/api/users', userRoutes);
-app.use('/api/admin', adminRoutes);
-
-// Serve static files
+// Page routes
 app.get('/', (req, res) => {
     res.render('home', { 
         title: 'HarvestLink - Fresh Goods for You',
@@ -135,7 +126,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/signup', (req, res) => {
-    res.render('signup', { 
+    res.render('Signup/signup', { 
         title: 'HarvestLink - Sign Up',
         user: req.session.user || null,
         isAuthenticated: !!req.session.userId
@@ -143,7 +134,7 @@ app.get('/signup', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-    res.render('login', { 
+    res.render('Login/login', { 
         title: 'HarvestLink - Login',
         user: req.session.user || null,
         isAuthenticated: !!req.session.userId
@@ -151,7 +142,7 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/cart', (req, res) => {
-    res.render('cart', { 
+    res.render('Cart/cart', { 
         title: 'HarvestLink - Shopping Cart',
         user: req.session.user || null,
         isAuthenticated: !!req.session.userId
@@ -159,7 +150,7 @@ app.get('/cart', (req, res) => {
 });
 
 app.get('/checkout', (req, res) => {
-    res.render('checkout', { 
+    res.render('Checkout/checkout', { 
         title: 'HarvestLink - Checkout',
         user: req.session.user || null,
         isAuthenticated: !!req.session.userId
@@ -171,7 +162,7 @@ app.get('/admin', (req, res) => {
     if (!req.session.userId || !req.session.user || req.session.user.role !== 'admin') {
         return res.redirect('/login');
     }
-    res.render('admin', { 
+    res.render('Admin/admin', { 
         title: 'HarvestLink - Admin Dashboard',
         user: req.session.user,
         isAuthenticated: true

@@ -7,7 +7,7 @@ class ShopManager {
         this.init();
     }
 
-    // Setup API configuration - same as admin page
+    // Setup API configuration for public shop access
     setupApiConfig() {
         const currentHost = window.location.host;
         const currentProtocol = window.location.protocol;
@@ -30,7 +30,7 @@ class ShopManager {
         
         return {
             baseUrl: baseUrl,
-            apiPath: '/api/admin'
+            apiPath: '/api'  // Use public API path, not admin
         };
     }
 
@@ -38,7 +38,9 @@ class ShopManager {
         this.loadProducts();
         this.setupProductDetailHandlers();
         this.setupCartHandlers();
-    }    // API helper method - same as admin page
+    }
+
+    // API helper method for public shop endpoints
     buildApiUrl(endpoint) {
         const url = `${this.apiConfig.baseUrl}${this.apiConfig.apiPath}${endpoint}`;
         console.log('🌐 Building Shop API URL:', { endpoint, config: this.apiConfig, finalUrl: url });
@@ -49,17 +51,26 @@ class ShopManager {
     async loadProducts() {
         try {
             this.showLoading();
-              // Fetch only active products for the shop
-            const response = await fetch(this.buildApiUrl('/products?isActive=true&limit=100'), {
+            // Fetch only active products for the shop
+            const apiUrl = this.buildApiUrl('/products?isActive=true&limit=100');
+            console.log('🔍 DEBUG: Making API call to:', apiUrl);
+            console.log('🔍 DEBUG: API Config:', this.apiConfig);
+            
+            const response = await fetch(apiUrl, {
                 credentials: 'include'
             });
 
+            console.log('🔍 DEBUG: Response status:', response.status);
+            console.log('🔍 DEBUG: Response OK:', response.ok);
+
             if (response.ok) {
                 const data = await response.json();
+                console.log('🔍 DEBUG: Products data received:', data);
                 this.products = data.products || [];
                 
                 this.renderProducts(this.products);
             } else {
+                console.error('🔍 DEBUG: Response not OK. Status:', response.status, 'Status Text:', response.statusText);
                 throw new Error(`Server responded with status: ${response.status}`);
             }        } catch (error) {
             console.error('Error loading products:', error);
