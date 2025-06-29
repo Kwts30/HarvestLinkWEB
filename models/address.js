@@ -95,13 +95,20 @@ const addressSchema = new mongoose.Schema({
     default: Date.now
   }
 }, {
-  timestamps: true // This will automatically handle createdAt and updatedAt
+  timestamps: true, // This will automatically handle createdAt and updatedAt
+  toJSON: { virtuals: true }, // Include virtual properties in JSON output
+  toObject: { virtuals: true } // Include virtual properties in object output
 });
 
 // Indexes for better performance
 addressSchema.index({ userId: 1, isPrimary: 1 });
 addressSchema.index({ userId: 1, type: 1 });
 addressSchema.index({ fullName: 'text', street: 'text', city: 'text' }); // For text search
+
+// Virtual for display address (used in checkout)
+addressSchema.virtual('displayAddress').get(function() {
+  return this.fullAddress;
+});
 
 // Virtual for full address
 addressSchema.virtual('fullAddress').get(function() {

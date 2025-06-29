@@ -40,8 +40,6 @@ class ModernAdminDashboard {
         const isLocalFile = protocol === 'file:' || host.includes(':5500');
         const baseUrl = isLocalFile ? 'http://localhost:3000' : currentUrl;
         
-        console.log('🌐 API Base URL configured:', baseUrl);
-        
         return {
             baseUrl: baseUrl,
             apiPath: '/api/admin'
@@ -468,6 +466,9 @@ class ModernAdminDashboard {
         this.clearFormErrors('edit');
         this.removeImage('editUserImagePreview');
         
+        // Clear any existing addresses immediately
+        this.clearAddressesContainer();
+        
         // Set the user ID
         document.getElementById('editUserId').value = userId;
         
@@ -836,6 +837,9 @@ class ModernAdminDashboard {
             const loadingDiv = document.getElementById('loadingAddresses');
             const noAddressesDiv = document.getElementById('noAddresses');
             
+            // Clear any existing addresses first
+            this.clearAddressesContainer();
+            
             // Show loading state
             loadingDiv.style.display = 'flex';
             noAddressesDiv.style.display = 'none';
@@ -859,14 +863,40 @@ class ModernAdminDashboard {
                 return;
             }
             
+            // Verify addresses belong to the correct user
+            const validAddresses = addresses.filter(addr => 
+                addr.userId === userId || addr.userId.toString() === userId.toString()
+            );
+            
+            if (validAddresses.length === 0) {
+                console.log('No valid addresses found for user after filtering:', userId);
+                noAddressesDiv.style.display = 'block';
+                return;
+            }
+            
             // Render addresses
-            this.renderUserAddresses(addresses, userId);
+            this.renderUserAddresses(validAddresses, userId);
             
         } catch (error) {
             console.error('Error loading user addresses:', error);
             document.getElementById('loadingAddresses').style.display = 'none';
             document.getElementById('noAddresses').style.display = 'block';
             this.showToast('Error loading user addresses', 'error');
+        }
+    }
+    
+    // Clear addresses container 
+    clearAddressesContainer() {
+        const container = document.getElementById('userAddressesContainer');
+        if (container) {
+            const existingAddresses = container.querySelectorAll('.address-card');
+            existingAddresses.forEach(card => card.remove());
+        }
+        
+        // Also hide the no addresses message initially
+        const noAddressesDiv = document.getElementById('noAddresses');
+        if (noAddressesDiv) {
+            noAddressesDiv.style.display = 'none';
         }
     }
     
@@ -1641,11 +1671,18 @@ class ModernAdminDashboard {
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.remove('active');
+                
+                // Clear addresses when closing edit user modal
+                if (modalId === 'editUserModal') {
+                    this.clearAddressesContainer();
+                }
             }
         } else {
             document.querySelectorAll('.modal').forEach(modal => {
                 modal.classList.remove('active');
             });
+            // Clear addresses when closing all modals
+            this.clearAddressesContainer();
         }
         this.clearFormErrors();
     }
@@ -1961,7 +1998,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize the admin dashboard only once
     if (!window.adminDashboard) {
         window.adminDashboard = new ModernAdminDashboard();
-        console.log('🚀 Admin Dashboard initialized successfully');
     }
 });
 

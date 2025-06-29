@@ -10,8 +10,6 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/views/Profile/profile.css">
   <link rel="icon" href="/assets/homepage/harvestlink logo.png" type="image/x-icon">
-  <script src="/js/config.js"></script>
-  <script src="/js/auth.js"></script>
 </head>
 <body>
   <!-- Header Section -->
@@ -78,6 +76,16 @@
       <button class="edit-btn">Edit Profile</button>
     </section>
 
+    <section class="address-management">
+      <h2>My Addresses</h2>
+      <div class="address-actions">
+        <button class="add-address-btn" onclick="showAddAddressModal()">Add New Address</button>
+      </div>
+      <div class="addresses-container" id="addressesContainer">
+        <div class="loading-addresses">Loading your addresses...</div>
+      </div>
+    </section>
+
     <section class="transaction-history">
       <h2>Transaction History</h2>
       <table>
@@ -130,6 +138,88 @@
       <p>&copy; 2025 HarvestLink. All rights reserved.</p>
     </div>
   </footer>
-  <script src="/js/profile.js"></script>
+
+  <!-- Add Address Modal -->
+  <div id="addAddressModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add New Address</h3>
+        <span class="close-modal" onclick="closeAddressModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="addAddressForm">
+          <div class="form-group">
+            <label for="addressType">Address Type</label>
+            <select id="addressType" name="type" required>
+              <option value="">Select type</option>
+              <option value="Home">Home</option>
+              <option value="Work">Work</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="fullName">Full Name</label>
+            <input type="text" id="fullName" name="fullName" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="street">Street Address</label>
+            <input type="text" id="street" name="street" placeholder="House/Unit number, Street" required>
+          </div>
+
+          <div class="form-group">
+            <label for="barangay">Barangay</label>
+            <input type="text" id="barangay" name="barangay" placeholder="Barangay" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="city">City</label>
+            <input type="text" id="city" name="city" placeholder="City" required>
+          </div>
+
+          <div class="form-group">
+            <label for="province">Province</label>
+            <input type="text" id="province" name="province" placeholder="Province" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" placeholder="+63 912 345 6789" required>
+          </div>
+
+          <div class="form-group">
+            <label for="postalCode">Postal Code (Optional)</label>
+            <input type="text" id="postalCode" name="postalCode" placeholder="1234">
+          </div>
+
+          <div class="form-group">
+            <label for="landmark">Landmark (Optional)</label>
+            <input type="text" id="landmark" name="landmark" placeholder="Near mall, church, etc.">
+          </div>
+
+          <div class="form-group">
+            <label for="deliveryInstructions">Delivery Instructions (Optional)</label>
+            <textarea id="deliveryInstructions" name="deliveryInstructions" placeholder="Special delivery instructions..."></textarea>
+          </div>
+          
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" id="isPrimary" name="isPrimary">
+              Set as primary address
+            </label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="saveAddress()">Save Address</button>
+        <button class="btn-secondary" onclick="closeAddressModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/js/config.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/views/Profile/profile.js"></script>
 </body>
 </html>

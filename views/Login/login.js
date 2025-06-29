@@ -7,16 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const navbar = document.querySelector('.navbar');
     const loginForm = document.querySelector('#loginForm');
     const messageDiv = document.querySelector('#message');
-
-    // Debug: Check if elements exist
-    console.log('Elements found:', {
-        hamburger: !!hamburger,
-        navOverlay: !!navOverlay,
-        closeMenu: !!closeMenu,
-        loginForm: !!loginForm,
-        messageDiv: !!messageDiv
-    });
-
     // Handle form submission
     if (loginForm) {
         loginForm.addEventListener('submit', async function (e) {

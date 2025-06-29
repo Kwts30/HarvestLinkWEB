@@ -822,6 +822,7 @@ address {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
+    -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
 }
 
@@ -955,6 +956,7 @@ address {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
+    -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
 }
 
@@ -1507,4 +1509,184 @@ address {
 
 .edit-address-icon svg {
     color: white;
+}
+
+/* ================================
+   TOAST NOTIFICATION STYLES
+   ================================ */
+
+.toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    color: rgb(0, 0, 0);
+    font-family: 'DM Serif Text', serif;
+    font-weight: 500;
+    font-size: 0.95rem;
+    z-index: 3000;
+    transform: translateX(400px);
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    max-width: 350px;
+    word-wrap: break-word;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.toast.show {
+    transform: translateX(0);
+}
+
+.toast-success {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    border-left: 4px solid #28a745;
+    color: #155724;
+}
+
+.toast-error {
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    border-left: 4px solid #dc3545;
+    color: #721c24;
+}
+
+.toast-warning {
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    border-left: 4px solid #ffc107;
+    color: #856404;
+}
+
+.toast-info {
+    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+    border-left: 4px solid #17a2b8;
+    color: #0c5460;
+}
+
+/* Toast icon styles */
+.toast-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    vertical-align: middle;
+}
+
+.toast-icon-img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.toast-message {
+    flex: 1;
+    line-height: 1.4;
+    margin: 0;
+    padding: 0;
+}
+
+/* Ensure proper spacing between icon and message */
+.toast-with-icon {
+    align-items: flex-start;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.toast-with-icon .toast-icon {
+    margin-top: 0.1rem; /* Slight adjustment for better visual alignment */
+}
+
+/* ================================
+   TOAST OVERRIDE FOR CHECKOUT PAGE
+   ================================ */
+
+/* Ensure toasts are always properly positioned on checkout page */
+.checkout-container ~ .toast,
+body .toast {
+    position: fixed !important;
+    bottom: 30px !important;
+    right: 30px !important;
+    left: auto !important;
+    top: auto !important;
+    z-index: 9999 !important;
+    margin: 0 !important;
+}
+
+/* Prevent any interference from checkout layout */
+@media (max-width: 768px) {
+    .checkout-container ~ .toast,
+    body .toast {
+        bottom: 20px !important;
+        right: 20px !important;
+        left: 20px !important;
+        right: 20px !important;
+    }
+}
+
+/* Make sure toast container doesn't interfere with page layout */
+.toast-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.toast-container .toast {
+    pointer-events: all;
+    position: relative !important;
+    bottom: auto !important;
+    right: auto !important;
+    margin-bottom: 10px;
+}
+
+/* Toast click interaction */
+.toast {
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), transform 0.2s ease;
+}
+
+.toast:hover {
+    transform: translateX(-5px) scale(1.02);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.toast:active {
+    transform: translateX(-3px) scale(0.98);
+}
+
+/* Ensure proper stacking context */
+.toast {
+    will-change: transform, opacity;
+}
+
+/* Improved mobile responsiveness */
+@media (max-width: 480px) {
+    .toast {
+        font-size: 0.9rem;
+        padding: 0.9rem 1.2rem;
+        max-width: calc(100vw - 30px);
+        gap: 10px;
+    }
+    
+    .toast-icon {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .toast-icon-img {
+        width: 18px;
+        height: 18px;
+    }
 }

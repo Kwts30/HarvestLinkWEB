@@ -1,7 +1,7 @@
 import User from '../models/User.js';
 import failIfUnauthorized from './failIfUnauthorized.js';
 import redirectIfNotAuthenticated from './redirectIfNotAuthenticated.js';
-import redirectTodosIfAuthenticated from './redirectIfAuthenticated.js';
+import redirectIfAuthenticated from './redirectIfAuthenticated.js';
 import requireAdminPage from './requireAdminPage.js';
 
 // Enhanced authentication middleware with user loading
@@ -194,7 +194,7 @@ export {
   rateLimit,
   failIfUnauthorized,
   redirectIfNotAuthenticated,
-  redirectTodosIfAuthenticated,
+  redirectIfAuthenticated,
   requireAdminPage
 };
 
@@ -208,6 +208,6 @@ export default {
   rateLimit,
   failIfUnauthorized,
   redirectIfNotAuthenticated,
-  redirectTodosIfAuthenticated,
+  redirectIfAuthenticated,
   requireAdminPage
 };

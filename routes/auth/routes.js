@@ -1,10 +1,11 @@
 import express from 'express';
 import User from '../../models/User.js';
+import { redirectIfAuthenticated } from '../../middlewares/index.js';
 
 const router = express.Router();
 
-// Create a new user (signup)
-router.post('/register', async (req, res) => {
+// Create a new user (signup) - redirect if already authenticated
+router.post('/register', redirectIfAuthenticated, async (req, res) => {
   try {
     const { firstName, lastName, username, email, password, confirmPassword } = req.body;
     
@@ -50,8 +51,8 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// User login
-router.post('/login', async (req, res) => {
+// User login - redirect if already authenticated
+router.post('/login', redirectIfAuthenticated, async (req, res) => {
   try {
     const { email, password } = req.body;
     

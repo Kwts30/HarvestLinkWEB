@@ -8,8 +8,7 @@ import cors from 'cors';
 
 // Import routes and middlewares
 import routes from './routes/index.js';
-import { redirectIfNotAuthenticated, redirectTodosIfAuthenticated, validateSession, requireAdminPage } from './middlewares/index.js';
-import User from './models/User.js';
+import { redirectIfNotAuthenticated, redirectIfAuthenticated, validateSession, requireAdminPage } from './middlewares/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -82,17 +81,16 @@ app.use((req, res, next) => {
 
 // Static files middleware for assets only
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
-app.use('/backup_html', express.static(path.join(__dirname, 'backup_html')));
-app.use('/style.css', express.static(path.join(__dirname, 'style.css')));
-app.use('/script.js', express.static(path.join(__dirname, 'script.js')));
+
+// Serve home page specific CSS and JS files
+app.use('/home', express.static(path.join(__dirname, 'views', 'home')));
+
+// Global CSS and JS files (point to home for now, but can be moved later)
+app.use('/style.css', express.static(path.join(__dirname, 'views', 'home', 'style.css')));
+app.use('/script.js', express.static(path.join(__dirname, 'views', 'home', 'script.js')));
 
 // Serve CSS and JS files from view subdirectories
 app.use('/views', express.static(path.join(__dirname, 'views')));
-
-app.use(express.static(path.join(__dirname), {
-    index: false, // Disable directory indexing
-    dotfiles: 'deny' // Deny access to dotfiles
-}));
 
 // Middleware to add base URL and universal helpers to all views
 app.use((req, res, next) => {
@@ -129,7 +127,7 @@ app.get('/', (req, res) => {
     });
 });
 
-app.get('/signup', (req, res) => {
+app.get('/signup', redirectIfAuthenticated, (req, res) => {
     res.render('Signup/signup', { 
         title: 'HarvestLink - Sign Up',
         user: req.session.user || null,
@@ -137,7 +135,7 @@ app.get('/signup', (req, res) => {
     });
 });
 
-app.get('/login', (req, res) => {
+app.get('/login', redirectIfAuthenticated, (req, res) => {
     res.render('Login/login', { 
         title: 'HarvestLink - Login',
         user: req.session.user || null,
@@ -145,7 +143,7 @@ app.get('/login', (req, res) => {
     });
 });
 
-app.get('/cart', (req, res) => {
+app.get('/cart', redirectIfNotAuthenticated, (req, res) => {
     res.render('Cart/cart', { 
         title: 'HarvestLink - Shopping Cart',
         user: req.session.user || null,
@@ -153,7 +151,7 @@ app.get('/cart', (req, res) => {
     });
 });
 
-app.get('/checkout', (req, res) => {
+app.get('/checkout', redirectIfNotAuthenticated, (req, res) => {
     res.render('Checkout/checkout', { 
         title: 'HarvestLink - Checkout',
         user: req.session.user || null,
@@ -161,11 +159,7 @@ app.get('/checkout', (req, res) => {
     });
 });
 
-app.get('/admin', (req, res) => {
-    // Check if user is admin
-    if (!req.session.userId || !req.session.user || req.session.user.role !== 'admin') {
-        return res.redirect('/login');
-    }
+app.get('/admin', requireAdminPage, (req, res) => {
     res.render('Admin/admin', { 
         title: 'HarvestLink - Admin Dashboard',
         user: req.session.user,
@@ -189,21 +183,12 @@ app.get('/contacts', (req, res) => {
     });
 });
 
-app.get('/profile', (req, res) => {
-    // Example data, replace with real user/session logic as needed
-    const user = {
-        profilePicture: '/assets/homepage/jaryl.jpg',
-        fullName: 'Juan Dela Cruz',
-        email: 'juan@example.com',
-        phone: '0917-123-4567',
-        address: 'Brgy. Lagao, General Santos City'
-    };
-    const transactions = [
-        { date: '2025-06-21', items: '5kg Mangoes, 3kg Tomatoes', total: '780.00', status: 'Delivered' },
-        { date: '2025-06-15', items: '10kg Rice', total: '500.00', status: 'Pending' }
-    ];
-    const cartCount = 0;
-    res.render('Profile/profile', { user, transactions, cartCount });
+app.get('/profile', redirectIfNotAuthenticated, (req, res) => {
+    res.render('Profile/profile', { 
+        title: 'HarvestLink - Profile',
+        user: req.session.user || null,
+        isAuthenticated: !!req.session.userId
+    });
 });
 
 

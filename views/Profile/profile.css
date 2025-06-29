@@ -422,3 +422,389 @@ body {
     min-width: 0;
   }
 }
+
+/* ================================
+   ADDRESS MANAGEMENT STYLES
+   ================================ */
+
+.address-management {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2rem;
+  border-radius: 20px;
+  margin: 1rem;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.address-management h2 {
+  color: #8B4513;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+}
+
+.address-actions {
+  margin-bottom: 1.5rem;
+}
+
+.add-address-btn {
+  background: linear-gradient(135deg, #8B4513, #A0522D);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'DM Serif Text', serif;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.add-address-btn:hover {
+  background: linear-gradient(135deg, #A0522D, #8B4513);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.addresses-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.address-card {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 15px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.address-card:hover {
+  border-color: #8B4513;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.address-card.primary {
+  border-color: #8B4513;
+  background: linear-gradient(135deg, #fff8f0, #ffffff);
+}
+
+.address-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.address-type {
+  background: #8B4513;
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 15px;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.primary-badge {
+  background: #28a745;
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.address-details h4 {
+  color: #8B4513;
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.address-details p {
+  color: #666;
+  margin-bottom: 0.3rem;
+  line-height: 1.4;
+}
+
+.address-actions {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.btn-sm {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'DM Serif Text', serif;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #8B4513;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #A0522D;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+}
+
+.no-addresses, .address-error, .loading-addresses {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  grid-column: 1 / -1;
+}
+
+.no-addresses p, .address-error p {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+/* Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: white;
+  margin: 5% auto;
+  padding: 0;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #8B4513, #A0522D);
+  color: white;
+  border-radius: 20px 20px 0 0;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.close-modal {
+  font-size: 2rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: white;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.close-modal:hover {
+  opacity: 1;
+}
+
+.modal-body {
+  padding: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #8B4513;
+  font-weight: bold;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.8rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-family: 'DM Serif Text', serif;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #8B4513;
+}
+
+.form-group textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: auto;
+  margin-right: 0.5rem;
+}
+
+.modal-footer {
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.modal-footer button {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'DM Serif Text', serif;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+/* Toast Notifications */
+.toast {
+  position: fixed;
+  top: 100px;
+  right: 20px;
+  padding: 1rem 1.5rem;
+  border-radius: 10px;
+  color: white;
+  font-family: 'DM Serif Text', serif;
+  font-weight: bold;
+  z-index: 3000;
+  transform: translateX(400px);
+  transition: transform 0.3s ease;
+  max-width: 300px;
+  word-wrap: break-word;
+}
+
+.toast.show {
+  transform: translateX(0);
+}
+
+.toast-success {
+  background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.toast-error {
+  background: linear-gradient(135deg, #dc3545, #e83e8c);
+}
+
+.toast-info {
+  background: linear-gradient(135deg, #17a2b8, #6f42c1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .address-management {
+    margin: 0.5rem;
+    padding: 1.5rem;
+  }
+  
+  .addresses-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-content {
+    width: 95%;
+    margin: 10% auto;
+  }
+  
+  .modal-body {
+    padding: 1.5rem;
+  }
+  
+  .modal-footer {
+    flex-direction: column;
+  }
+  
+  .modal-footer button {
+    width: 100%;
+  }
+  
+  .address-actions {
+    justify-content: center;
+  }
+}
+
+/* Update horizontal layout for address management */
+@media (min-width: 1200px) {
+  .horizontal-layout {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    grid-template-rows: auto auto;
+    gap: 1rem;
+    align-items: start;
+  }
+  
+  .horizontal-layout .user-info {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  
+  .horizontal-layout .address-management {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  
+  .horizontal-layout .transaction-history {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+}

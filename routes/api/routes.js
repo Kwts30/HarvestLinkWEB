@@ -2,6 +2,7 @@ import express from 'express';
 import User from '../../models/User.js';
 import Product from '../../models/Product.js';
 import Transaction from '../../models/Transaction.js';
+import Address from '../../models/address.js';
 import { requireAuth, requireAdmin } from '../../middlewares/index.js';
 
 const router = express.Router();
@@ -166,15 +167,83 @@ router.delete('/cart/:productId', requireAuth, async (req, res) => {
   }
 });
 
-// Checkout
+// ============ CHECKOUT & ADDRESS API ============
+
+// Get addresses for checkout
+router.get('/checkout/addresses', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const addresses = await Address.findByUserId(userId);
+    
+    // Add formatted display address to each address
+    const formattedAddresses = addresses.map(address => ({
+      ...address.toObject(),
+      displayAddress: address.fullAddress
+    }));
+    
+    // Find primary address
+    const primaryAddress = addresses.find(addr => addr.isPrimary);
+    
+    res.json({
+      success: true,
+      addresses: formattedAddresses,
+      primaryAddressId: primaryAddress?._id || null
+    });
+  } catch (error) {
+    console.error('Get checkout addresses error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to fetch addresses' 
+    });
+  }
+});
+
+// Process checkout with address
 router.post('/checkout', requireAuth, async (req, res) => {
   try {
-    const { shippingInfo, paymentMethod } = req.body;
+    const { addressId, paymentMethod, bank, deliveryInstructions } = req.body;
+    const user = await User.findById(req.user.id).populate('cart.productId');
     
-    const user = await User.findById(req.user._id).populate('cart.productId');
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'User not found' 
+      });
+    }
     
     if (!user.cart || user.cart.length === 0) {
-      return res.status(400).json({ error: 'Cart is empty' });
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Cart is empty' 
+      });
+    }
+    
+    if (!addressId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Delivery address is required' 
+      });
+    }
+    
+    if (!paymentMethod) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Payment method is required' 
+      });
+    }
+    
+    // Verify address belongs to user
+    const address = await Address.findOne({ 
+      _id: addressId, 
+      userId: req.user.id, 
+      isActive: true 
+    });
+    
+    if (!address) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Address not found or invalid' 
+      });
     }
     
     // Calculate total
@@ -183,12 +252,19 @@ router.post('/checkout', requireAuth, async (req, res) => {
     
     for (const cartItem of user.cart) {
       const product = cartItem.productId;
+      
       if (!product || !product.isActive) {
-        return res.status(400).json({ error: `Product ${product?.name || 'unknown'} is no longer available` });
+        return res.status(400).json({ 
+          success: false, 
+          error: `Product "${product?.name || 'Unknown'}" is no longer available` 
+        });
       }
       
       if (product.stock < cartItem.quantity) {
-        return res.status(400).json({ error: `Insufficient stock for ${product.name}` });
+        return res.status(400).json({ 
+          success: false, 
+          error: `Insufficient stock for "${product.name}". Available: ${product.stock}` 
+        });
       }
       
       const itemTotal = product.price * cartItem.quantity;
@@ -203,14 +279,56 @@ router.post('/checkout', requireAuth, async (req, res) => {
       });
     }
     
+    // Add shipping cost (₱60.00)
+    const shippingCost = 60.00;
+    totalAmount += shippingCost;
+    
+    // Add tax (12%)
+    const taxAmount = totalAmount * 0.12;
+    totalAmount += taxAmount;
+    
+    // Create delivery address object
+    const deliveryAddress = {
+      fullName: address.fullName,
+      phone: address.phone,
+      address: address.fullAddress,
+      street: address.street,
+      barangay: address.barangay,
+      city: address.city,
+      province: address.province,
+      postalCode: address.postalCode,
+      landmark: address.landmark,
+      deliveryInstructions: deliveryInstructions || address.deliveryInstructions
+    };
+    
+    // Create payment info object
+    const paymentInfo = {
+      method: paymentMethod,
+      ...(bank && { bank }),
+      status: paymentMethod === 'cod' ? 'pending' : 'pending_payment'
+    };
+    
+    // Generate transaction ID
+    const transactionId = `HL${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    
+    // Set estimated delivery date (3-5 business days)
+    const estimatedDelivery = new Date();
+    estimatedDelivery.setDate(estimatedDelivery.getDate() + 5);
+    
     // Create transaction
     const transaction = new Transaction({
+      transactionId,
       userId: user._id,
       items,
       totalAmount,
-      shippingInfo,
-      paymentMethod,
-      status: 'pending'
+      subtotal: totalAmount - shippingCost - taxAmount,
+      shippingCost,
+      taxAmount,
+      deliveryAddress,
+      paymentMethod: paymentInfo,
+      estimatedDelivery,
+      status: 'pending',
+      notes: deliveryInstructions || ''
     });
     
     await transaction.save();
@@ -228,13 +346,24 @@ router.post('/checkout', requireAuth, async (req, res) => {
     await user.save();
     
     res.json({ 
+      success: true,
       message: 'Order placed successfully', 
-      transaction: transaction._id,
-      totalAmount 
+      transaction: {
+        id: transaction._id,
+        transactionId: transaction.transactionId,
+        totalAmount: transaction.totalAmount,
+        deliveryAddress: transaction.deliveryAddress,
+        estimatedDelivery: transaction.estimatedDelivery,
+        paymentMethod: transaction.paymentMethod,
+        status: transaction.status
+      }
     });
   } catch (error) {
     console.error('Checkout error:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Server error during checkout' 
+    });
   }
 });
 

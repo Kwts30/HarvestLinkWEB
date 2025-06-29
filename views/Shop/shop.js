@@ -26,15 +26,14 @@ class ShopManager {
             baseUrl = `${currentProtocol}//${currentHost}`;
         }
         
-        console.log('🌐 Shop API Base URL configured:', baseUrl);
-        
         return {
             baseUrl: baseUrl,
             apiPath: '/api'  // Use public API path, not admin
         };
     }
 
-    init() {        this.setupNavigationHandlers();
+    init() {
+        this.setupNavigationHandlers();
         this.loadProducts();
         this.setupProductDetailHandlers();
         this.setupCartHandlers();
@@ -43,7 +42,6 @@ class ShopManager {
     // API helper method for public shop endpoints
     buildApiUrl(endpoint) {
         const url = `${this.apiConfig.baseUrl}${this.apiConfig.apiPath}${endpoint}`;
-        console.log('🌐 Building Shop API URL:', { endpoint, config: this.apiConfig, finalUrl: url });
         return url;
     }
 
@@ -53,26 +51,20 @@ class ShopManager {
             this.showLoading();
             // Fetch only active products for the shop
             const apiUrl = this.buildApiUrl('/products?isActive=true&limit=100');
-            console.log('🔍 DEBUG: Making API call to:', apiUrl);
-            console.log('🔍 DEBUG: API Config:', this.apiConfig);
             
             const response = await fetch(apiUrl, {
                 credentials: 'include'
             });
 
-            console.log('🔍 DEBUG: Response status:', response.status);
-            console.log('🔍 DEBUG: Response OK:', response.ok);
-
             if (response.ok) {
                 const data = await response.json();
-                console.log('🔍 DEBUG: Products data received:', data);
                 this.products = data.products || [];
                 
                 this.renderProducts(this.products);
             } else {
-                console.error('🔍 DEBUG: Response not OK. Status:', response.status, 'Status Text:', response.statusText);
                 throw new Error(`Server responded with status: ${response.status}`);
-            }        } catch (error) {
+            }
+        } catch (error) {
             console.error('Error loading products:', error);
             this.showError('Unable to connect to the server. Please check your connection and try again.');
         } finally {
@@ -114,7 +106,9 @@ class ShopManager {
                 </div>
             `;
         }
-    }    // Create product card from database data
+    }
+
+    // Create product card from database data
     createProductCard(product) {
         const card = document.createElement('div');
         card.className = 'product-card';
@@ -267,7 +261,9 @@ class ShopManager {
         // Reset quantity input
         if (quantityInput) {
             quantityInput.value = 1;
-        }        // Handle image URL in detail view
+        }
+
+        // Handle image URL in detail view
         if (product.image && product.image.trim() !== '') {
             detailImage.src = product.image;
             detailImage.style.display = 'block';
