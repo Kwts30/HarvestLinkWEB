@@ -11,57 +11,37 @@ const UserSchema = new mongoose.Schema({
   phoneNumber: { type: String, default: null }, // Phone number for user
   profileImage: { type: String, default: null }, // Profile image URL or base64 string
   
-  // Simple address field for admin-managed users (backward compatibility)
-  address: {
-    street: { type: String, default: '' },
-    barangay: { type: String, default: '' },
-    city: { type: String, default: '' },
-    province: { type: String, default: '' },
-    postalCode: { type: String, default: '' },
-    country: { type: String, default: 'Philippines' }
-  },
+  // Migration flags
+  addressesMigrated: { type: Boolean, default: false }, // Track if addresses were migrated
   
-  // Complex addresses array for user-managed checkout addresses
-  addresses: [{
-    type: {
-      type: String,
-      enum: ['Home', 'Work', 'Other'],
-      required: true
-    },
-    isPrimary: {
-      type: Boolean,
-      default: false
-    },
-    fullName: {
-      type: String,
-      required: true
-    },
-    street: {
-      type: String,
-      required: true
-    },
-    barangay: {
-      type: String,
-      required: true
-    },
-    city: {
-      type: String,
-      required: true
-    },
-    province: {
-      type: String,
-      required: true
-    },
-    phone: {
-      type: String,
-      required: true
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now
-    }
-  }]
-}, { timestamps: true });
+}, { 
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+// Virtual for addresses (from separate Address collection)
+UserSchema.virtual('addresses', {
+  ref: 'Address',
+  localField: '_id',
+  foreignField: 'userId',
+  match: { isActive: true },
+  options: { sort: { isPrimary: -1, createdAt: -1 } }
+});
+
+// Virtual for primary address
+UserSchema.virtual('primaryAddress', {
+  ref: 'Address',
+  localField: '_id',
+  foreignField: 'userId',
+  justOne: true,
+  match: { isActive: true, isPrimary: true }
+});
+
+// Virtual for full name
+UserSchema.virtual('fullName').get(function() {
+  return `${this.firstName} ${this.lastName}`;
+});
 
 // Hash password before saving
 UserSchema.pre('save', async function(next) {
@@ -79,6 +59,16 @@ UserSchema.pre('save', async function(next) {
 // Method to compare password
 UserSchema.methods.comparePassword = async function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
+};
+
+// Method to get user addresses
+UserSchema.methods.getAddresses = function() {
+  return mongoose.model('Address').findByUserId(this._id);
+};
+
+// Method to get primary address
+UserSchema.methods.getPrimaryAddress = function() {
+  return mongoose.model('Address').findPrimaryByUserId(this._id);
 };
 
 export default mongoose.model('User', UserSchema);

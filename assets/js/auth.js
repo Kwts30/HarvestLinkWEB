@@ -217,3 +217,11 @@ window.AuthUtils = {
 document.addEventListener('DOMContentLoaded', () => {
     window.AuthUtils.updateNavigation();
 });
+
+// Global logout function for templates to use
+window.logout = function() {
+    // Show confirmation before logout
+    if (confirm('Are you sure you want to logout?')) {
+        return window.AuthUtils.logout();
+    }
+};

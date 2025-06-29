@@ -1,9 +1,12 @@
 import express from 'express';
-import User from '../models/User.js';
+import User from '../../models/User.js';
+import { requireAuth } from '../../middlewares/index.js';
 
 const router = express.Router();
 
-// Create a new user (signup)
+// ============ AUTH ROUTES FOR BACKWARD COMPATIBILITY ============
+
+// Create a new user (signup) - backward compatibility
 router.post('/register', async (req, res) => {
   try {
     const { firstName, lastName, username, email, password, confirmPassword } = req.body;
@@ -50,7 +53,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// User login
+// User login - backward compatibility
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -94,74 +97,195 @@ router.post('/login', async (req, res) => {
       role: user.role,
       profileImage: user.profileImage
     };
-      // Remove password from response
+    
+    // Remove password from response
     const userResponse = user.toObject();
     delete userResponse.password;
-    
-    // Ensure both _id and id are available for frontend compatibility
     userResponse.id = userResponse._id;
     
     res.json({ 
       success: true, 
       message: 'Login successful', 
-      user: userResponse 
+      user: userResponse,
+      redirectUrl: user.role === 'admin' ? '/admin' : '/'
     });
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ 
       success: false, 
-      message: 'Login failed. Please try again.' 
+      message: 'Login failed' 
     });
   }
 });
 
-// User logout
+// User logout - backward compatibility
 router.post('/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) {
+      console.error('Logout error:', err);
       return res.status(500).json({ 
         success: false, 
-        message: 'Could not log out' 
+        message: 'Logout failed' 
       });
     }
-    res.clearCookie('connect.sid');
+    
+    res.clearCookie('connect.sid'); // Clear session cookie
     res.json({ 
       success: true, 
-      message: 'Logged out successfully' 
+      message: 'Logout successful' 
     });
   });
 });
 
-// Check authentication status
+// Check authentication status - backward compatibility
 router.get('/auth-status', (req, res) => {
-  if (req.session.userId) {
-    res.json({ 
-      success: true, 
-      authenticated: true, 
-      user: req.session.user 
+  if (req.session.userId && req.session.user) {
+    res.json({
+      success: true,
+      authenticated: true,
+      user: req.session.user
     });
   } else {
-    res.json({ 
-      success: true, 
-      authenticated: false 
+    res.json({
+      success: true,
+      authenticated: false,
+      user: null
     });
   }
 });
 
-// Get all users (for testing - remove in production)
-router.get('/', async (req, res) => {
+// ============ USER PROFILE ROUTES ============
+
+// Get user profile
+router.get('/profile', requireAuth, async (req, res) => {
   try {
-    const users = await User.find().select('-password');
-    res.json({ success: true, users });
+    const user = await User.findById(req.user._id).select('-password');
+    res.json({
+      success: true,
+      user
+    });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('Get profile error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get profile'
+    });
+  }
+});
+
+// Update user profile
+router.put('/profile', requireAuth, async (req, res) => {
+  try {
+    const { firstName, lastName, username, email, phone, profileImage } = req.body;
+    
+    // Check if username or email already exists (excluding current user)
+    const existingUser = await User.findOne({
+      $and: [
+        { _id: { $ne: req.user._id } },
+        {
+          $or: [
+            { email: email },
+            { username: username }
+          ]
+        }
+      ]
+    });
+    
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username or email already exists'
+      });
+    }
+    
+    // Update user
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        firstName,
+        lastName,
+        username,
+        email,
+        phone,
+        profileImage
+      },
+      { new: true, select: '-password' }
+    );
+    
+    // Update session data
+    req.session.user = {
+      ...req.session.user,
+      firstName,
+      lastName,
+      username,
+      email,
+      profileImage
+    };
+    
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: updatedUser
+    });
+  } catch (err) {
+    console.error('Update profile error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update profile'
+    });
+  }
+});
+
+// Change password
+router.post('/change-password', requireAuth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+    
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'All password fields are required'
+      });
+    }
+    
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'New passwords do not match'
+      });
+    }
+    
+    const user = await User.findById(req.user._id);
+    
+    // Verify current password
+    const isCurrentPasswordValid = await user.comparePassword(currentPassword);
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+    
+    // Update password
+    user.password = newPassword;
+    await user.save();
+    
+    res.json({
+      success: true,
+      message: 'Password changed successfully'
+    });
+  } catch (err) {
+    console.error('Change password error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to change password'
+    });
   }
 });
 
 // Add address to user
-router.post('/:userId/addresses', async (req, res) => {
+router.post('/addresses', requireAuth, async (req, res) => {
   try {
-    const { userId } = req.params;
     const { type, isPrimary, fullName, street, barangay, city, province, phone } = req.body;
     
     // Validate required fields
@@ -172,14 +296,7 @@ router.post('/:userId/addresses', async (req, res) => {
       });
     }
     
-    // Find the user
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
+    const user = await User.findById(req.user._id);
     
     // If this address is set as primary, unset other primary addresses
     if (isPrimary) {
@@ -226,17 +343,9 @@ router.post('/:userId/addresses', async (req, res) => {
 });
 
 // Get user addresses
-router.get('/:userId/addresses', async (req, res) => {
+router.get('/addresses', requireAuth, async (req, res) => {
   try {
-    const { userId } = req.params;
-    
-    const user = await User.findById(userId).select('addresses');
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
+    const user = await User.findById(req.user._id).select('addresses');
     
     res.json({
       success: true,
@@ -252,18 +361,12 @@ router.get('/:userId/addresses', async (req, res) => {
 });
 
 // Update address
-router.put('/:userId/addresses/:addressId', async (req, res) => {
+router.put('/addresses/:addressId', requireAuth, async (req, res) => {
   try {
-    const { userId, addressId } = req.params;
+    const { addressId } = req.params;
     const { type, isPrimary, fullName, street, barangay, city, province, phone } = req.body;
     
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
+    const user = await User.findById(req.user._id);
     
     // Find the address to update
     const addressIndex = user.addresses.findIndex(addr => addr._id.toString() === addressId);
@@ -313,17 +416,11 @@ router.put('/:userId/addresses/:addressId', async (req, res) => {
 });
 
 // Delete address
-router.delete('/:userId/addresses/:addressId', async (req, res) => {
+router.delete('/addresses/:addressId', requireAuth, async (req, res) => {
   try {
-    const { userId, addressId } = req.params;
+    const { addressId } = req.params;
     
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
+    const user = await User.findById(req.user._id);
     
     // Find and remove the address
     const addressIndex = user.addresses.findIndex(addr => addr._id.toString() === addressId);
@@ -354,6 +451,34 @@ router.delete('/:userId/addresses/:addressId', async (req, res) => {
     res.status(500).json({
       success: false,
       message: err.message || 'Failed to delete address'
+    });
+  }
+});
+
+// Get user dashboard data
+router.get('/dashboard', requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id)
+      .select('-password')
+      .populate('cart.productId');
+    
+    // Get user's recent orders (you'll need to implement Transaction model)
+    // const recentOrders = await Transaction.find({ userId: req.user._id })
+    //   .sort({ createdAt: -1 })
+    //   .limit(5);
+    
+    res.json({
+      success: true,
+      user,
+      cartItemsCount: user.cart?.length || 0,
+      addressesCount: user.addresses?.length || 0
+      // recentOrders
+    });
+  } catch (err) {
+    console.error('Get dashboard error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get dashboard data'
     });
   }
 });

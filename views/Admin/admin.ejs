@@ -327,39 +327,6 @@
                     
                     <!-- Detailed Address Section -->
                     <div class="address-section">
-                        <h4>Address Information</h4>
-                        
-                        <div class="form-group">
-                            <label for="street">Street Address</label>
-                            <input type="text" id="street" name="street" placeholder="House/Unit number, Street">
-                            <div class="form-error" id="streetError"></div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="barangay">Barangay</label>
-                                <input type="text" id="barangay" name="barangay" placeholder="Barangay">
-                                <div class="form-error" id="barangayError"></div>
-                            </div>
-                            <div class="form-group">
-                                <label for="city">City</label>
-                                <input type="text" id="city" name="city" placeholder="City">
-                                <div class="form-error" id="cityError"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="province">Province</label>
-                                <input type="text" id="province" name="province" placeholder="Province">
-                                <div class="form-error" id="provinceError"></div>
-                            </div>
-                            <div class="form-group">
-                                <label for="postalCode">Postal Code</label>
-                                <input type="text" id="postalCode" name="postalCode" placeholder="1234">
-                                <div class="form-error" id="postalCodeError"></div>
-                            </div>
-                        </div>
                     </div>
                     
                     <div class="form-row">
@@ -454,41 +421,29 @@
                         </div>
                     </div>
                     
-                    <!-- Detailed Address Section -->
+                    <!-- Address Management Section -->
                     <div class="address-section">
-                        <h4>Address Information</h4>
-                        
-                        <div class="form-group">
-                            <label for="editStreet">Street Address</label>
-                            <input type="text" id="editStreet" name="street" placeholder="House/Unit number, Street">
-                            <div class="form-error" id="editStreetError"></div>
+                        <div class="address-header">
+                            <h4>Address Management</h4>
+                            <button type="button" class="btn-secondary add-address-btn" id="addUserAddressBtn">
+                                <i class="fas fa-plus"></i>
+                                Add Address
+                            </button>
                         </div>
                         
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="editBarangay">Barangay</label>
-                                <input type="text" id="editBarangay" name="barangay" placeholder="Barangay">
-                                <div class="form-error" id="editBarangayError"></div>
+                        <!-- User Addresses List -->
+                        <div class="user-addresses-container" id="userAddressesContainer">
+                            <div class="loading-addresses" id="loadingAddresses">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                Loading addresses...
                             </div>
-                            <div class="form-group">
-                                <label for="editCity">City</label>
-                                <input type="text" id="editCity" name="city" placeholder="City">
-                                <div class="form-error" id="editCityError"></div>
+                            <div class="no-addresses" id="noAddresses" style="display: none;">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <p>No addresses found for this user</p>
+                                <small>Click "Add Address" to create the first address</small>
                             </div>
                         </div>
                         
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="editProvince">Province</label>
-                                <input type="text" id="editProvince" name="province" placeholder="Province">
-                                <div class="form-error" id="editProvinceError"></div>
-                            </div>
-                            <div class="form-group">
-                                <label for="editPostalCode">Postal Code</label>
-                                <input type="text" id="editPostalCode" name="postalCode" placeholder="1234">
-                                <div class="form-error" id="editPostalCodeError"></div>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="image-upload-container">
@@ -515,6 +470,90 @@
                     <button type="submit" class="btn-primary" id="submitEditUser">
                         <i class="fas fa-save"></i>
                         Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Address Management Modal -->
+    <div id="addressManagementModal" class="modal">
+        <div class="modal-content address-modal-content">
+            <div class="modal-header">
+                <h3 id="addressModalTitle">Add New Address</h3>
+                <button class="modal-close" id="closeAddressModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="addressForm">
+                <input type="hidden" id="addressUserId" name="userId">
+                <input type="hidden" id="addressId" name="addressId">
+                
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="addressType">Address Type *</label>
+                            <select id="addressType" name="type" required>
+                                <option value="">Select type</option>
+                                <option value="Home">Home</option>
+                                <option value="Work">Work</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <div class="form-error" id="addressTypeError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="isPrimary" name="isPrimary">
+                                <span class="checkmark"></span>
+                                Set as Primary Address
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="addressFullName">Full Name *</label>
+                        <input type="text" id="addressFullName" name="fullName" required>
+                        <div class="form-error" id="addressFullNameError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="addressStreet">Street Address *</label>
+                        <input type="text" id="addressStreet" name="street" placeholder="House/Unit number, Street" required>
+                        <div class="form-error" id="addressStreetError"></div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="addressBarangay">Barangay *</label>
+                            <input type="text" id="addressBarangay" name="barangay" placeholder="Barangay" required>
+                            <div class="form-error" id="addressBarangayError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="addressCity">City *</label>
+                            <input type="text" id="addressCity" name="city" placeholder="City" required>
+                            <div class="form-error" id="addressCityError"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="addressProvince">Province *</label>
+                            <input type="text" id="addressProvince" name="province" placeholder="Province" required>
+                            <div class="form-error" id="addressProvinceError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="addressPhone">Phone Number *</label>
+                            <input type="tel" id="addressPhone" name="phone" placeholder="+63 912 345 6789" required>
+                            <div class="form-error" id="addressPhoneError"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="cancelAddressBtn">Cancel</button>
+                    <button type="submit" class="btn-primary" id="saveAddressBtn">
+                        <i class="fas fa-save"></i>
+                        Save Address
                     </button>
                 </div>
             </form>

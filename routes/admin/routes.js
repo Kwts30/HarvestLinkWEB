@@ -1,28 +1,14 @@
 import express from 'express';
-import User from '../models/User.js';
-import Product from '../models/Product.js';
-import Transaction from '../models/Transaction.js';
+import User from '../../models/User.js';
+import Product from '../../models/Product.js';
+import Transaction from '../../models/Transaction.js';
+import Address from '../../models/address.js';
+import { requireAdmin } from '../../middlewares/index.js';
 
 const router = express.Router();
 
-// Middleware to check admin access
-const requireAdmin = async (req, res, next) => {
-  try {
-    if (!req.session.userId) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    const user = await User.findById(req.session.userId);
-    if (!user || user.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
-
-    req.user = user;
-    next();
-  } catch (error) {
-    res.status(500).json({ error: 'Server error' });
-  }
-};
+// Apply admin middleware to all routes
+router.use(requireAdmin);
 
 // Get dashboard stats
 router.get('/dashboard/stats', async (req, res) => {
@@ -126,13 +112,21 @@ router.get('/users', async (req, res) => {
 });
 
 // Get single user by ID
-router.get('/users/:id', requireAdmin, async (req, res) => {
+router.get('/users/:id', async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.json(user);
+    
+    // Get user addresses from the Address collection
+    const addresses = await Address.findByUserId(user._id);
+    
+    // Add addresses to user object
+    const userWithAddresses = user.toObject();
+    userWithAddresses.addresses = addresses;
+    
+    res.json(userWithAddresses);
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ error: 'Server error' });
@@ -140,7 +134,7 @@ router.get('/users/:id', requireAdmin, async (req, res) => {
 });
 
 // Create user
-router.post('/users', requireAdmin, async (req, res) => {
+router.post('/users', async (req, res) => {
   try {
     const bcrypt = await import('bcrypt');
     const { password, ...userData } = req.body;
@@ -176,7 +170,7 @@ router.post('/users', requireAdmin, async (req, res) => {
 });
 
 // Update user
-router.put('/users/:id', requireAdmin, async (req, res) => {
+router.put('/users/:id', async (req, res) => {
   try {
     const { password, ...updateData } = req.body;
     
@@ -230,7 +224,7 @@ router.put('/users/:id', requireAdmin, async (req, res) => {
 });
 
 // Delete user
-router.delete('/users/:id', requireAdmin, async (req, res) => {
+router.delete('/users/:id', async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) {
@@ -239,6 +233,205 @@ router.delete('/users/:id', requireAdmin, async (req, res) => {
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
     console.error('Delete user error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ============ USER ADDRESS MANAGEMENT ============
+
+// Add address to user
+router.post('/users/:id/addresses', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { type, isPrimary, fullName, street, barangay, city, province, phone, landmark, deliveryInstructions } = req.body;
+    
+    // Validation
+    if (!type || !fullName || !street || !barangay || !city || !province || !phone) {
+      return res.status(400).json({ 
+        error: 'All required address fields must be provided',
+        missingFields: ['type', 'fullName', 'street', 'barangay', 'city', 'province', 'phone']
+      });
+    }
+    
+    // Verify user exists
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Create new address
+    const newAddress = new Address({
+      userId: id,
+      type,
+      isPrimary: isPrimary || false,
+      fullName,
+      street,
+      barangay,
+      city,
+      province,
+      phone,
+      landmark: landmark || '',
+      deliveryInstructions: deliveryInstructions || ''
+    });
+    
+    // Save address (middleware will handle primary address logic)
+    await newAddress.save();
+    
+    res.json({ 
+      message: 'Address added successfully',
+      address: newAddress 
+    });
+  } catch (error) {
+    console.error('Add address error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update address
+router.put('/users/:id/addresses/:addressId', async (req, res) => {
+  try {
+    const { id, addressId } = req.params;
+    const { type, isPrimary, fullName, street, barangay, city, province, phone, landmark, deliveryInstructions } = req.body;
+    
+    // Verify user exists
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Find and update address
+    const address = await Address.findOne({ _id: addressId, userId: id });
+    if (!address) {
+      return res.status(404).json({ error: 'Address not found' });
+    }
+    
+    // Update address fields
+    if (type) address.type = type;
+    if (fullName) address.fullName = fullName;
+    if (street) address.street = street;
+    if (barangay) address.barangay = barangay;
+    if (city) address.city = city;
+    if (province) address.province = province;
+    if (phone) address.phone = phone;
+    if (landmark !== undefined) address.landmark = landmark;
+    if (deliveryInstructions !== undefined) address.deliveryInstructions = deliveryInstructions;
+    if (isPrimary !== undefined) address.isPrimary = isPrimary;
+    
+    await address.save();
+    
+    res.json({ 
+      message: 'Address updated successfully',
+      address: address 
+    });
+  } catch (error) {
+    console.error('Update address error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Set primary address
+router.put('/users/:id/addresses/:addressId/primary', async (req, res) => {
+  try {
+    const { id, addressId } = req.params;
+    
+    // Verify user exists
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Find address
+    const address = await Address.findOne({ _id: addressId, userId: id });
+    if (!address) {
+      return res.status(404).json({ error: 'Address not found' });
+    }
+    
+    // Set as primary (middleware will handle unsetting others)
+    await address.setPrimary();
+    
+    res.json({ message: 'Primary address updated successfully' });
+  } catch (error) {
+    console.error('Set primary address error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Delete address
+router.delete('/users/:id/addresses/:addressId', async (req, res) => {
+  try {
+    const { id, addressId } = req.params;
+    
+    // Verify user exists
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Find address
+    const address = await Address.findOne({ _id: addressId, userId: id });
+    if (!address) {
+      return res.status(404).json({ error: 'Address not found' });
+    }
+    
+    const wasPrimary = address.isPrimary;
+    
+    // Soft delete the address
+    await address.softDelete();
+    
+    // If deleted address was primary, set another address as primary
+    if (wasPrimary) {
+      const remainingAddresses = await Address.findByUserId(id);
+      if (remainingAddresses.length > 0) {
+        await remainingAddresses[0].setPrimary();
+      }
+    }
+    
+    res.json({ message: 'Address deleted successfully' });
+  } catch (error) {
+    console.error('Delete address error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Search addresses by user name or details
+router.get('/addresses/search', async (req, res) => {
+  try {
+    const { q: searchTerm, limit = 10 } = req.query;
+    
+    if (!searchTerm) {
+      return res.status(400).json({ error: 'Search term is required' });
+    }
+    
+    const addresses = await Address.searchAddresses(searchTerm, parseInt(limit));
+    
+    res.json({
+      addresses,
+      total: addresses.length,
+      searchTerm
+    });
+  } catch (error) {
+    console.error('Search addresses error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get single address by ID
+router.get('/addresses/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const address = await Address.findById(id).populate('userId', 'firstName lastName email');
+    
+    if (!address || !address.isActive) {
+      return res.status(404).json({ error: 'Address not found' });
+    }
+    
+    res.json({
+      success: true,
+      address
+    });
+  } catch (error) {
+    console.error('Get address error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -300,7 +493,7 @@ router.get('/products', async (req, res) => {
 });
 
 // Get single product by ID
-router.get('/products/:id', requireAdmin, async (req, res) => {
+router.get('/products/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) {
@@ -314,13 +507,11 @@ router.get('/products/:id', requireAdmin, async (req, res) => {
 });
 
 // Get top products
-// Get top products
 router.get('/products/top', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 5;
     
     // For now, return products sorted by stock (as a proxy for sales)
-    // In a real app, you'd have a sales tracking system
     const topProducts = await Product.find({ isActive: true })
       .sort({ stock: -1 })
       .limit(limit);
@@ -333,7 +524,7 @@ router.get('/products/top', async (req, res) => {
 });
 
 // Create product
-router.post('/products', requireAdmin, async (req, res) => {
+router.post('/products', async (req, res) => {
   try {
     const product = new Product(req.body);
     await product.save();
@@ -352,7 +543,7 @@ router.post('/products', requireAdmin, async (req, res) => {
 });
 
 // Update product
-router.put('/products/:id', requireAdmin, async (req, res) => {
+router.put('/products/:id', async (req, res) => {
   try {
     const product = await Product.findByIdAndUpdate(
       req.params.id,
@@ -379,7 +570,7 @@ router.put('/products/:id', requireAdmin, async (req, res) => {
 });
 
 // Delete product
-router.delete('/products/:id', requireAdmin, async (req, res) => {
+router.delete('/products/:id', async (req, res) => {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
     if (!product) {
@@ -394,7 +585,6 @@ router.delete('/products/:id', requireAdmin, async (req, res) => {
 
 // ============ TRANSACTION MANAGEMENT ============
 
-// Get all transactions
 // Get all transactions
 router.get('/transactions', async (req, res) => {
   try {
@@ -466,7 +656,7 @@ router.get('/transactions', async (req, res) => {
 });
 
 // Update transaction status
-router.put('/transactions/:id', requireAdmin, async (req, res) => {
+router.put('/transactions/:id', async (req, res) => {
   try {
     const transaction = await Transaction.findByIdAndUpdate(
       req.params.id,
@@ -486,7 +676,7 @@ router.put('/transactions/:id', requireAdmin, async (req, res) => {
 });
 
 // Delete transaction
-router.delete('/transactions/:id', requireAdmin, async (req, res) => {
+router.delete('/transactions/:id', async (req, res) => {
   try {
     const transaction = await Transaction.findByIdAndDelete(req.params.id);
     if (!transaction) {
@@ -500,7 +690,7 @@ router.delete('/transactions/:id', requireAdmin, async (req, res) => {
 });
 
 // Export transactions
-router.get('/transactions/export', requireAdmin, async (req, res) => {
+router.get('/transactions/export', async (req, res) => {
   try {
     const transactions = await Transaction.find()
       .populate('user', 'firstName lastName email')
@@ -531,7 +721,7 @@ router.get('/transactions/export', requireAdmin, async (req, res) => {
 // ============ ANALYTICS ============
 
 // Get analytics data
-router.get('/analytics', requireAdmin, async (req, res) => {
+router.get('/analytics', async (req, res) => {
   try {
     const range = parseInt(req.query.range) || 30; // days
     const startDate = new Date();
@@ -583,7 +773,7 @@ router.get('/analytics', requireAdmin, async (req, res) => {
 });
 
 // Get sales chart data
-router.get('/charts/sales', requireAdmin, async (req, res) => {
+router.get('/charts/sales', async (req, res) => {
   try {
     const period = parseInt(req.query.period) || 7; // days
     const endDate = new Date();
