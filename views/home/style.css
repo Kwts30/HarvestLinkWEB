@@ -212,6 +212,23 @@ body {
     width: 100%;
 }
 
+/* Profile link specific styling */
+.nav-links .profile-link {
+    position: relative;
+}
+
+.nav-links .profile-link::before {
+    content: '👤';
+    margin-right: 0.5rem;
+    font-size: 1.5rem;
+}
+
+.nav-links .admin-link::before {
+    content: '⚙️';
+    margin-right: 0.5rem;
+    font-size: 1.5rem;
+}
+
 .nav-right {
     display: flex;
     align-items: center;
@@ -993,11 +1010,17 @@ body {
     }
 }
 
-.footer {
+.footer,
+footer {
     background-color: #1a1a1a;
     color: white;
     padding: 3rem 0;
     margin-top: 0rem;
+    transition: opacity 0.3s ease;
+}
+
+footer.in-view {
+    opacity: 1;
 }
 
 .footer-content {
@@ -1018,6 +1041,25 @@ body {
     color: #4CAF50;
     margin-bottom: 1rem;
     font-size: 1.2rem;
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-section ul li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-section ul li a {
+    color: white;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-section ul li a:hover {
+    color: #4CAF50;
 }
 
 .social-links {

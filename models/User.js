@@ -71,4 +71,21 @@ UserSchema.methods.getPrimaryAddress = function() {
   return mongoose.model('Address').findPrimaryByUserId(this._id);
 };
 
+// Method to get user's cart from Cart collection
+UserSchema.methods.getCart = function() {
+  return mongoose.model('Cart').findOne({ userId: this._id });
+};
+
+// Method to get cart items count
+UserSchema.methods.getCartCount = async function() {
+  const cart = await this.getCart();
+  if (!cart || !cart.items) return 0;
+  return cart.items.reduce((total, item) => total + item.quantity, 0);
+};
+
+// Method to clear user's cart (used on logout)
+UserSchema.methods.clearCart = function() {
+  return mongoose.model('Cart').findOneAndDelete({ userId: this._id });
+};
+
 export default mongoose.model('User', UserSchema);

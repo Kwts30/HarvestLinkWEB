@@ -27,6 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Close menu when clicking a link
     navLinks.forEach(link => {
         link.addEventListener('click', function() {
+            const href = this.getAttribute('href');
+            
             hamburger.classList.remove('active');
             navOverlay.classList.remove('active');
             document.body.style.overflow = '';
@@ -141,4 +143,110 @@ backToTopButton.addEventListener('click', () => {
         top: 0,
         behavior: 'smooth'
     });
+});
+
+// Footer functionality
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize footer functionality
+    initializeFooter();
+    
+    // Handle footer navigation clicks
+    const footerLinks = document.querySelectorAll('footer a[href^="/"]');
+    
+    footerLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+        });
+    });
+    
+    // Handle social media links
+    const socialLinks = document.querySelectorAll('.social-link');
+    
+    socialLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            // Ensure external links open in new tab
+            if (!this.hasAttribute('target')) {
+                this.setAttribute('target', '_blank');
+                this.setAttribute('rel', 'noopener noreferrer');
+            }
+        });
+    });
+    
+    // Handle footer logout functionality (if present)
+    const footerLogoutLink = document.querySelector('footer a[onclick*="logout"]');
+    if (footerLogoutLink) {
+        footerLogoutLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Call the global logout function
+            if (typeof window.logout === 'function') {
+                window.logout();
+            } else {
+                console.error('Logout function not available');
+            }
+        });
+    }
+});
+
+// Initialize footer functionality
+function initializeFooter() {
+    // Check if user is logged in and update footer accordingly
+    if (typeof window.AuthUtils !== 'undefined' && window.AuthUtils.isLoggedIn()) {
+        updateFooterForLoggedInUser();
+    }
+    
+    // Add smooth scroll for internal links
+    const internalLinks = document.querySelectorAll('footer a[href^="/"], footer a[href^="#"]');
+    internalLinks.forEach(link => {
+        if (link.getAttribute('href').startsWith('#')) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        }
+    });
+}
+
+// Update footer for logged in users
+function updateFooterForLoggedInUser() {
+    const footerLoginLink = document.querySelector('footer a[href="/login"]');
+    if (footerLoginLink && typeof window.AuthUtils !== 'undefined') {
+        const user = window.AuthUtils.getCurrentUser();
+        if (user) {
+            // Replace login link with logout
+            footerLoginLink.setAttribute('href', '#');
+            footerLoginLink.setAttribute('onclick', 'logout()');
+            footerLoginLink.textContent = 'Logout';
+            
+            // Add profile link before logout
+            const profileLi = document.createElement('li');
+            profileLi.innerHTML = '<a href="/profile">Profile</a>';
+            footerLoginLink.parentElement.parentElement.insertBefore(profileLi, footerLoginLink.parentElement);
+            
+            // Add admin link if user is admin
+            if (user.role === 'admin') {
+                const adminLi = document.createElement('li');
+                adminLi.innerHTML = '<a href="/admin">Admin</a>';
+                footerLoginLink.parentElement.parentElement.insertBefore(adminLi, footerLoginLink.parentElement);
+            }
+        }
+    }
+}
+
+// Footer scroll effects
+window.addEventListener('scroll', () => {
+    const footer = document.querySelector('footer');
+    if (footer) {
+        const footerTop = footer.offsetTop;
+        const scrollPosition = window.scrollY + window.innerHeight;
+        
+        // Add class when footer comes into view
+        if (scrollPosition >= footerTop) {
+            footer.classList.add('in-view');
+        } else {
+            footer.classList.remove('in-view');
+        }
+    }
 });

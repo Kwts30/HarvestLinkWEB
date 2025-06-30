@@ -97,6 +97,16 @@ window.AuthUtils = {
                 });
             }
 
+            // Add profile link if it doesn't exist
+            const profileLinkExists = navLinksContainer.querySelector('a[href*="profile"]');
+            if (!profileLinkExists) {
+                const profileLi = document.createElement('li');
+                profileLi.innerHTML = '<a href="' + this.createUrl('/profile') + '" class="profile-link">Profile</a>';
+                // Insert before logout link
+                const logoutLi = navLinksContainer.querySelector('.logout-link').parentElement;
+                navLinksContainer.insertBefore(profileLi, logoutLi);
+            }
+
             // Add admin dashboard link for admin users
             if (user.role === 'admin') {
                 const adminLinkExists = navLinksContainer.querySelector('a[href*="admin"]');
@@ -113,6 +123,12 @@ window.AuthUtils = {
             const loginLink = navLinksContainer.querySelector('a[href*="login"]');
             const logoutLink = navLinksContainer.querySelector('.logout-link');
             const adminLink = navLinksContainer.querySelector('.admin-link');
+            const profileLink = navLinksContainer.querySelector('.profile-link');
+            
+            // Remove profile link if exists
+            if (profileLink) {
+                profileLink.parentElement.remove();
+            }
             
             // Remove admin link if exists
             if (adminLink) {

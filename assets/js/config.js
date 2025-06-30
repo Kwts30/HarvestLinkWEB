@@ -42,78 +42,173 @@ console.log('🔧 API Config:', {
 // Export for use in other files
 window.API_CONFIG = API_CONFIG;
 
-// Shared Cart Utilities
+// Shared Cart Utilities - Database-backed persistent cart
 window.CartUtils = {
-    // Get cart from localStorage
-    getCart: function() {
-        return JSON.parse(localStorage.getItem('harvestlink-cart')) || [];
+    // Get cart from API (database)
+    getCart: async function() {
+        try {
+            const response = await fetch('/api/cart', {
+                method: 'GET',
+                credentials: 'include'
+            });
+            
+            if (response.status === 401) {
+                // User not authenticated, return empty cart
+                return [];
+            }
+            
+            if (response.ok) {
+                const data = await response.json();
+                return data.cart || [];
+            } else {
+                console.warn('Could not fetch cart, using empty cart');
+                return [];
+            }
+        } catch (error) {
+            console.error('Error fetching cart:', error);
+            return [];
+        }
     },
     
-    // Save cart to localStorage
-    saveCart: function(cart) {
-        localStorage.setItem('harvestlink-cart', JSON.stringify(cart));
-    },
-    
-    // Get cart count
-    getCartCount: function() {
-        const cart = this.getCart();
-        return cart.reduce((total, item) => total + item.quantity, 0);
+    // Get cart count from API
+    getCartCount: async function() {
+        try {
+            const response = await fetch('/api/cart', {
+                method: 'GET',
+                credentials: 'include'
+            });
+            
+            if (response.status === 401) {
+                // User not authenticated, return 0
+                return 0;
+            }
+            
+            if (response.ok) {
+                const data = await response.json();
+                return data.cartCount || 0;
+            } else {
+                return 0;
+            }
+        } catch (error) {
+            console.error('Error fetching cart count:', error);
+            return 0;
+        }
     },
     
     // Update cart count display on current page
-    updateCartCount: function() {
+    updateCartCount: async function() {
         const cartCountElement = document.querySelector('.cart-count');
         if (cartCountElement) {
-            cartCountElement.textContent = this.getCartCount();
+            const count = await this.getCartCount();
+            cartCountElement.textContent = count;
         }
     },
     
-    // Add item to cart
-    addToCart: function(product, quantity = 1) {
-        let cart = this.getCart();
-        const existingItem = cart.find(item => item.id === product.id);
-        
-        if (existingItem) {
-            existingItem.quantity += quantity;
-        } else {
-            cart.push({
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                image: product.image,
-                quantity: quantity,
-                stock: product.stock
+    // Add item to cart via API
+    addToCart: async function(product, quantity = 1) {
+        try {
+            const response = await fetch('/api/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    productId: product.id || product._id,
+                    quantity: quantity
+                })
             });
-        }
-        
-        this.saveCart(cart);
-        this.updateCartCount();
-        return cart;
-    },
-    
-    // Remove item from cart
-    removeFromCart: function(productId) {
-        let cart = this.getCart();
-        cart = cart.filter(item => item.id !== productId);
-        this.saveCart(cart);
-        this.updateCartCount();
-        return cart;
-    },
-    
-    // Update item quantity
-    updateQuantity: function(productId, newQuantity) {
-        let cart = this.getCart();
-        const item = cart.find(item => item.id === productId);
-        
-        if (item) {
-            if (newQuantity <= 0) {
-                cart = cart.filter(item => item.id !== productId);
-            } else {
-                item.quantity = newQuantity;
+            
+            if (response.status === 401) {
+                // User not authenticated, show login prompt
+                if (confirm('You need to be logged in to add items to cart. Would you like to go to the login page?')) {
+                    window.location.href = '/login';
+                }
+                throw new Error('Please log in to add items to your cart');
             }
-            this.saveCart(cart);
-            this.updateCartCount();
+            
+            if (response.ok) {
+                const data = await response.json();
+                await this.updateCartCount();
+                return data.cart || [];
+            } else {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to add to cart');
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            throw error;
         }
-        return cart;
+    },
+    
+    // Remove item from cart via API
+    removeFromCart: async function(productId) {
+        try {
+            const response = await fetch(`/api/cart/${productId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                await this.updateCartCount();
+                return data.cart || [];
+            } else {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to remove from cart');
+            }
+        } catch (error) {
+            console.error('Error removing from cart:', error);
+            throw error;
+        }
+    },
+    
+    // Update item quantity via API
+    updateQuantity: async function(productId, newQuantity) {
+        try {
+            const response = await fetch(`/api/cart/${productId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    quantity: newQuantity
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                await this.updateCartCount();
+                return data.cart || [];
+            } else {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to update cart');
+            }
+        } catch (error) {
+            console.error('Error updating cart:', error);
+            throw error;
+        }
+    },
+    
+    // Clear entire cart via API
+    clearCart: async function() {
+        try {
+            const response = await fetch('/api/cart', {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                await this.updateCartCount();
+                return [];
+            } else {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to clear cart');
+            }
+        } catch (error) {
+            console.error('Error clearing cart:', error);
+            throw error;
+        }
     }
 };

@@ -427,12 +427,14 @@ body {
 }
 
 .cart-item {
-    display: flex;
+    display: grid;
+    grid-template-columns: 100px 1fr auto auto;
     align-items: center;
     background: white;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    padding: 20px 24px;margin-bottom: 20px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
     min-height: 120px;
     border: 1px solid #e5e5e5;
     gap: 20px;
@@ -440,36 +442,52 @@ body {
 
 .cart-item-image {
     flex-shrink: 0;
-    width: 80px;
-    height: 80px;
-    border-radius: 8px;
+    width: 90px;
+    height: 90px;
+    border-radius: 12px;
     overflow: hidden;
-    border: 1px solid #e0e0e0;
+    border: 2px solid #e0e0e0;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .cart-item-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    background: none !important;
+    background-image: none !important;
+    background-color: transparent !important;
+    border-radius: 8px;
+}
+
+.cart-item img.product-image {
+    background: none !important;
+    background-image: none !important;
+    background-color: #f8f9fa !important;
 }
 
 .cart-item-info {
-    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
+    align-self: start;
+    padding-top: 5px;
 }
 
 .cart-item-name {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     font-weight: 600;
     color: #333;
     margin: 0;
+    line-height: 1.3;
 }
 
 .cart-item-price {
-    font-size: 1.1rem;
-    font-weight: 500;
+    font-size: 1.2rem;
+    font-weight: 600;
     color: #4caf50;
     margin: 0;
 }
@@ -477,47 +495,54 @@ body {
 .cart-item-stock {
     background: #f0f8f0;
     color: #2e7d32;
-    border-radius: 4px;
-    padding: 2px 8px;
+    border-radius: 6px;
+    padding: 4px 10px;
     font-size: 0.85rem;
     width: fit-content;
     border: 1px solid #c8e6c9;
     margin: 0;
+    font-weight: 500;
 }
 
 .cart-item-quantity {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     flex-shrink: 0;
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
 }
 
 .quantity-btn {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border: 1px solid #ddd;
     background: white;
-    border-radius: 6px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 1.1rem;
-    font-weight: 600;
+    font-size: 1.2rem;
+    font-weight: 700;
     color: #666;
+    transition: all 0.2s ease;
 }
 
 .quantity-btn:hover {
-    background: #f5f5f5;
+    background: #4caf50;
     border-color: #4caf50;
-    color: #4caf50;
+    color: white;
+    transform: scale(1.1);
 }
 
 .quantity-value {
-    font-size: 1.1rem;
-    font-weight: 600;
+    font-size: 1.2rem;
+    font-weight: 700;
     color: #333;
-    min-width: 30px;
+    min-width: 35px;
     text-align: center;
 }
 
@@ -525,14 +550,16 @@ body {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 10px;
+    gap: 12px;
     flex-shrink: 0;
+    justify-self: end;
 }
 
 .cart-item-total {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     font-weight: 700;
     color: #333;
+    text-align: right;
 }
 
 .cart-item-delete {
@@ -540,19 +567,19 @@ body {
     color: #e53935;
     border: 1px solid #ffcdd2;
     padding: 8px 12px;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 0.9rem;
     cursor: pointer;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 4px;
+    gap: 5px;
 }
 
 .cart-item-delete:hover {
     background: #ffebee;
     border-color: #ef5350;
-    color: #d32f2f;
+    transform: scale(1.05);
 }
 
 .delete-icon {
@@ -571,33 +598,63 @@ body {
 }
 
 /* Responsive for mobile */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
     .cart-item {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 16px;        gap: 12px;
+        grid-template-columns: 80px 1fr;
+        grid-template-rows: auto auto;
+        gap: 15px;
+        padding: 16px;
     }
     
     .cart-item-image {
-        align-self: center;
-        width: 60px;
-        height: 60px;
+        grid-row: 1 / 3;
+        width: 75px;
+        height: 75px;
+        align-self: start;
     }
     
     .cart-item-info {
-        width: 100%;
-        text-align: center;
+        grid-column: 2;
+        grid-row: 1;
     }
     
     .cart-item-quantity {
-        align-self: center;
+        grid-column: 2;
+        grid-row: 2;
+        justify-self: start;
+        margin-top: 10px;
     }
     
     .cart-item-actions {
-        align-items: center;
-        width: 100%;
+        grid-column: 1 / 3;
+        grid-row: 3;
         flex-direction: row;
         justify-content: space-between;
+        align-items: center;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #f0f0f0;
+    }
+}
+
+@media (max-width: 480px) {
+    .cart-item {
+        grid-template-columns: 70px 1fr;
+        gap: 12px;
+        padding: 12px;
+    }
+    
+    .cart-item-image {
+        width: 65px;
+        height: 65px;
+    }
+    
+    .cart-item-name {
+        font-size: 1.1rem;
+    }
+    
+    .cart-item-price {
+        font-size: 1rem;
     }
 }
 
@@ -1726,6 +1783,33 @@ body {
     font-size: 0.85rem;
     color: #4caf50;
     margin: 0;
+}
+
+/* Cart Image Override - Ensure no "No Image" backgrounds from shop.css */
+.cart-item-image img {
+    background: none !important;
+    background-image: none !important;
+    background-color: #f8f9fa !important;
+}
+
+/* Remove any inherited product-image styles that might show "No Image" */
+.cart-item img.product-image,
+.cart-item-image img.product-image {
+    background: none !important;
+    background-image: none !important;
+    background-color: #f8f9fa !important;
+}
+
+/* Ensure clean display for cart item images */
+.cart-item-image {
+    background: #f8f9fa;
+}
+
+/* Override any pseudo-elements that might show "No Image" text */
+.cart-item-image img::before,
+.cart-item-image img::after {
+    display: none !important;
+    content: none !important;
 }
 
 

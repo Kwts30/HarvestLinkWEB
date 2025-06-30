@@ -28,7 +28,7 @@
             </div>            <div class="nav-right">
                 <div class="cart-icon" onclick="window.location.href='/cart'">
                     <img src="/assets/shop/shopping-cart.png" alt="Shopping Cart" style="width: 24px; height: 24px;">
-                    <span class="cart-count">0</span>
+                    <span class="cart-count"><%= cartCount || 0 %></span>
                 </div>
                 <div class="hamburger-menu">
                     <div class="hamburger">
@@ -92,7 +92,7 @@
                     <template id="cart-item-template">
                         <div class="cart-item" data-product-id="">
                             <div class="cart-item-image">
-                                <img src="/assets/shop/placeholder.png" alt="" onerror="this.src='/assets/shop/placeholder.png'">
+                                <img src="/assets/shop/placeholder.png" alt="" style="background: none; background-image: none; background-color: #f8f9fa;">
                             </div>
                             <div class="cart-item-info">
                                 <h3 class="cart-item-name"></h3>

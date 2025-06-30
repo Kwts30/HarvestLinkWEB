@@ -117,6 +117,8 @@ router.post('/login', redirectIfAuthenticated, async (req, res) => {
 
 // User logout
 router.post('/logout', (req, res) => {
+  // Cart data remains in database (persistent cart)
+  // Only clear session data
   req.session.destroy((err) => {
     if (err) {
       console.error('Logout error:', err);

@@ -448,14 +448,15 @@ class CheckoutManager {
     // CART MANAGEMENT
     // ================================
 
-    loadCartData() {
+    async loadCartData() {
         try {
-            const cart = JSON.parse(localStorage.getItem('harvestlink-cart')) || [];
-            this.cartItems = cart;
+            // Load cart from API instead of localStorage
+            this.cartItems = await window.CartUtils.getCart();
             this.updateCartDisplay();
         } catch (error) {
             console.error('Error loading cart:', error);
             this.cartItems = [];
+            this.updateCartDisplay();
         }
     }
 
@@ -489,19 +490,34 @@ class CheckoutManager {
 
         let subtotal = 0;
         const cartRows = this.cartItems.map(item => {
-            const itemTotal = item.price * item.quantity;
+            // Handle image display - ensure no "No Image" background
+            const productInfo = item.productId || item;
+            const itemPrice = parseFloat(item.price || productInfo.price || 0);
+            const itemQuantity = item.quantity || 0;
+            const itemTotal = itemPrice * itemQuantity;
             subtotal += itemTotal;
+            
+            // Check if product has a valid image
+            const hasValidImage = productInfo.image && 
+                                 productInfo.image.trim() !== '' && 
+                                 !productInfo.image.includes('placeholder.png') &&
+                                 productInfo.image !== 'undefined' &&
+                                 productInfo.image !== 'null';
+            
+            const imageHtml = hasValidImage ? 
+                `<img src="${productInfo.image}" alt="${productInfo.name}" class="item-image" style="background: none; background-image: none;">` : 
+                `<img src="/assets/shop/placeholder.png" alt="${productInfo.name}" class="item-image" style="background: none; background-image: none;">`;
             
             return `
                 <tr>
                     <td>
                         <div class="item-info">
-                            ${item.image ? `<img src="${item.image}" alt="${item.name}" class="item-image">` : ''}
-                            <span class="item-name">${item.name}</span>
+                            ${imageHtml}
+                            <span class="item-name">${productInfo.name || 'Unknown Product'}</span>
                         </div>
                     </td>
-                    <td>${item.quantity}</td>
-                    <td>₱${item.price.toFixed(2)}</td>
+                    <td>${itemQuantity}</td>
+                    <td>₱${itemPrice.toFixed(2)}</td>
                     <td>₱${itemTotal.toFixed(2)}</td>
                 </tr>
             `;
@@ -578,8 +594,13 @@ class CheckoutManager {
 
             if (result.success) {
                 this.showCheckoutSuccess(result.transaction);
-                // Clear cart
-                localStorage.removeItem('harvestlink-cart');
+                // Clear cart using API
+                try {
+                    await window.CartUtils.clearCart();
+                } catch (clearError) {
+                    console.error('Error clearing cart after checkout:', clearError);
+                    // Still proceed with success even if cart clear fails
+                }
             } else {
                 this.showError(result.error || 'Failed to process order');
             }
@@ -597,7 +618,7 @@ class CheckoutManager {
         modal.className = 'success-modal active';
         modal.innerHTML = `
             <div class="success-content">
-                <div class="success-icon">✅</div>
+                <img src="/assets/checkout webpage/success.png" alt="Success" class="success-icon">
                 <h2>Order Placed Successfully!</h2>
                 <p>Thank you for your order!</p>
                 <div class="order-details">
@@ -618,6 +639,16 @@ class CheckoutManager {
             </div>
         `;
         document.body.appendChild(modal);
+        
+        // Add auto-remove after 10 seconds for better UX
+        setTimeout(() => {
+            if (modal && modal.parentNode) {
+                modal.classList.add('fade-out');
+                setTimeout(() => {
+                    modal.remove();
+                }, 300);
+            }
+        }, 10000);
     }
 
     // ================================

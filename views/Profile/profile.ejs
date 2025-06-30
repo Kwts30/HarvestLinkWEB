@@ -55,23 +55,23 @@
     <section class="user-info">
       <h2>My Profile</h2>
       <div class="profile-picture-container">
-        <img class="profile-picture" src="<%= user.profilePicture || '/assets/homepage/jaryl.jpg' %>" alt="Profile Picture">
+        <img class="profile-picture" src="<%= (user && user.profilePicture) || '/assets/homepage/jaryl.jpg' %>" alt="Profile Picture">
       </div>
       <div class="info-group">
         <label>Full Name:</label>
-        <p><%= user.fullName %></p>
+        <p><%= (user && user.fullName) || (user && user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Not provided') %></p>
       </div>
       <div class="info-group">
         <label>Email:</label>
-        <p><%= user.email %></p>
+        <p><%= (user && user.email) || 'Not provided' %></p>
       </div>
       <div class="info-group">
         <label>Phone:</label>
-        <p><%= user.phone %></p>
+        <p><%= (user && user.phone) || 'Not provided' %></p>
       </div>
       <div class="info-group">
         <label>Address:</label>
-        <p><%= user.address %></p>
+        <p><%= (user && user.address) || 'Not provided' %></p>
       </div>
       <button class="edit-btn">Edit Profile</button>
     </section>
@@ -99,19 +99,34 @@
           </tr>
         </thead>
         <tbody>
-          <% transactions.forEach(function(tx) { %>
+          <% if (transactions && transactions.length > 0) { %>
+            <% transactions.forEach(function(tx) { %>
+              <tr>
+                <td><%= tx.date %></td>
+                <td><%= tx.items %></td>
+                <td>₱<%= tx.total %></td>
+                <td><%= tx.status %></td>
+                <td>
+                  <% if (tx.status === 'Pending') { %>
+                    <button class="track-order-btn" onclick="trackOrder('<%= tx.date %>')">Track Order</button>
+                  <% } %>
+                </td>
+              </tr>
+            <% }); %>
+          <% } else { %>
             <tr>
-              <td><%= tx.date %></td>
-              <td><%= tx.items %></td>
-              <td>₱<%= tx.total %></td>
-              <td><%= tx.status %></td>
-              <td>
-                <% if (tx.status === 'Pending') { %>
-                  <button class="track-order-btn" onclick="trackOrder('<%= tx.date %>')">Track Order</button>
-                <% } %>
+              <td colspan="5" style="text-align: center; padding: 3rem; color: #666; font-size: 1.1rem;">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                  <div style="font-size: 3rem;">📋</div>
+                  <div>
+                    <strong>No Transaction History</strong><br>
+                    You haven't made any purchases yet.<br>
+                    <a href="/shop" style="color: #4CAF50; text-decoration: none; font-weight: bold;">Start shopping now!</a>
+                  </div>
+                </div>
               </td>
             </tr>
-          <% }); %>
+          <% } %>
         </tbody>
       </table>
       <script>

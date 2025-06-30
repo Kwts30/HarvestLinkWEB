@@ -45,6 +45,7 @@
                 <li><a href="/shop" class="shop-link">Shop</a></li>
                 <li><a href="/contacts">Contact</a></li>
                 <% if (isAuthenticated) { %>
+                    <li><a href="/profile">Profile</a></li>
                     <% if (user && user.role === 'admin') { %>
                         <li><a href="/admin">Admin</a></li>
                     <% } %>
@@ -254,7 +255,15 @@
                     <li><a href="/">Home</a></li>
                     <li><a href="/shop">Shop</a></li>
                     <li><a href="/contacts">Contact</a></li>
-                    <li><a href="/login">Login</a></li>
+                    <% if (isAuthenticated) { %>
+                        <li><a href="/profile">Profile</a></li>
+                        <% if (user && user.role === 'admin') { %>
+                            <li><a href="/admin">Admin</a></li>
+                        <% } %>
+                        <li><a href="#" onclick="logout()">Logout</a></li>
+                    <% } else { %>
+                        <li><a href="/login">Login</a></li>
+                    <% } %>
                 </ul>
             </div>
             <div class="footer-section">
@@ -285,6 +294,31 @@
     <script>
         // Set active page for navigation
         window.activePage = 'home';
+        
+        // Debug: Check if footer JavaScript is working
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Home page JavaScript loaded successfully');
+            console.log('Footer element found:', !!document.querySelector('footer'));
+            console.log('Auth utils available:', typeof window.AuthUtils !== 'undefined');
+            console.log('Logout function available:', typeof window.logout !== 'undefined');
+            
+            // Test footer links
+            const footerLinks = document.querySelectorAll('footer a');
+            console.log(`Found ${footerLinks.length} footer links`);
+            
+            // Check for profile links
+            const profileLinks = document.querySelectorAll('a[href="/profile"]');
+            console.log(`Found ${profileLinks.length} profile links`);
+            
+            // Check authentication state
+            if (typeof window.AuthUtils !== 'undefined') {
+                console.log('User logged in:', window.AuthUtils.isLoggedIn());
+                const user = window.AuthUtils.getCurrentUser();
+                if (user) {
+                    console.log('User role:', user.role);
+                }
+            }
+        });
     </script>
 </body>
 </html>

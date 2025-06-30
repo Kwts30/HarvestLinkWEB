@@ -145,7 +145,28 @@ class ModernAdminDashboard {
 
             // Product management
             this.safeAddEventListener('addProductBtn', 'click', () => this.showProductModal());
-            this.safeAddEventListener('productForm', 'submit', this.handleProductSubmit.bind(this));
+            this.safeAddEventListener('closeAddProductModal', 'click', () => this.closeModal('addProductModal'));
+            this.safeAddEventListener('cancelAddProduct', 'click', () => this.closeModal('addProductModal'));
+            this.safeAddEventListener('uploadProductImageBtn', 'click', () => {
+                const fileInput = document.getElementById('productImage');
+                if (fileInput) fileInput.click();
+            });
+            this.safeAddEventListener('productImage', 'change', (e) => this.handleImagePreview('productImagePreview', e));
+            this.safeAddEventListener('removeProductImageBtn', 'click', () => this.removeProductImage('productImagePreview'));
+            
+            // Edit Product Modal controls
+            this.safeAddEventListener('closeEditProductModal', 'click', () => this.closeModal('editProductModal'));
+            this.safeAddEventListener('cancelEditProduct', 'click', () => this.closeModal('editProductModal'));
+            this.safeAddEventListener('editUploadProductImageBtn', 'click', () => {
+                const fileInput = document.getElementById('editProductImage');
+                if (fileInput) fileInput.click();
+            });
+            this.safeAddEventListener('editProductImage', 'change', (e) => this.handleImagePreview('editProductImagePreview', e));
+            this.safeAddEventListener('editRemoveProductImageBtn', 'click', () => this.removeProductImage('editProductImagePreview'));
+            
+            // Form submissions
+            this.safeAddEventListener('addProductForm', 'submit', this.handleAddProductSubmit.bind(this));
+            this.safeAddEventListener('editProductForm', 'submit', this.handleEditProductSubmit.bind(this));
             this.safeAddEventListener('productSearch', 'input', this.debounce(this.searchProducts.bind(this), 300));
             this.safeAddEventListener('productCategoryFilter', 'change', this.filterProducts.bind(this));
             this.safeAddEventListener('productStatusFilter', 'change', this.filterProducts.bind(this));
@@ -234,7 +255,7 @@ class ModernAdminDashboard {
             // Load all dashboard stats
             const [statsResponse, recentTransactionsResponse, topProductsResponse] = await Promise.all([
                 fetch(this.buildApiUrl('/dashboard/stats'), { credentials: 'include' }),
-                fetch(this.buildApiUrl('/transactions?limit=5&sort=-createdAt'), { credentials: 'include' }),
+                fetch(this.buildApiUrl('/transactions?limit=5'), { credentials: 'include' }),
                 fetch(this.buildApiUrl('/products/top?limit=5'), { credentials: 'include' })
             ]);
 
@@ -306,7 +327,7 @@ class ModernAdminDashboard {
                 <div class="item-info">
                     <div class="item-title">#${transaction.transactionId}</div>
                     <div class="item-subtitle">
-                        ${transaction.user.firstName} ${transaction.user.lastName} • 
+                        ${(transaction.user || transaction.userId)?.firstName || 'Unknown'} ${(transaction.user || transaction.userId)?.lastName || 'Customer'} • 
                         ${new Date(transaction.createdAt).toLocaleDateString()}
                     </div>
                 </div>
@@ -1247,29 +1268,45 @@ class ModernAdminDashboard {
     }
 
     showProductModal(productId = null) {
-        const modal = document.getElementById('productModal');
-        const form = document.getElementById('productForm');
-        const title = document.getElementById('productModalTitle');
-
-        // Reset form
-        form.reset();
-        this.clearFormErrors();
+        const addModal = document.getElementById('addProductModal');
+        const editModal = document.getElementById('editProductModal');
+        let modal, form, title;
 
         if (productId) {
-            // Edit mode
+            // Edit mode - use edit modal
+            modal = editModal;
+            form = document.getElementById('editProductForm');
+            title = document.querySelector('#editProductModal .modal-header h3');
+            
+            // Reset form and clear image preview
+            if (form) form.reset();
+            this.clearFormErrors();
+            this.removeProductImage('editProductImagePreview');
+            
             this.isEditing.product = true;
             this.editingId.product = productId;
-            title.textContent = 'Edit Product';
+            if (title) title.textContent = 'Edit Product';
             this.loadProductForEdit(productId);
         } else {
-            // Add mode
+            // Add mode - use add modal
+            modal = addModal;
+            form = document.getElementById('addProductForm');
+            title = document.querySelector('#addProductModal .modal-header h3');
+            
+            // Reset form and clear image preview
+            if (form) form.reset();
+            this.clearFormErrors();
+            this.removeProductImage('productImagePreview');
+            
             this.isEditing.product = false;
             this.editingId.product = null;
-            title.textContent = 'Add New Product';
-            document.getElementById('productActive').checked = true;        }
+            if (title) title.textContent = 'Add New Product';
+        }
 
-        modal.style.display = 'flex';
-        modal.classList.add('active');
+        if (modal) {
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+        }
     }
     
     async loadProductForEdit(productId) {
@@ -1280,14 +1317,27 @@ class ModernAdminDashboard {
 
             if (response.ok) {
                 const product = await response.json();
-                document.getElementById('productName').value = product.name;
-                document.getElementById('productDescription').value = product.description;
-                document.getElementById('productPrice').value = product.price;
-                document.getElementById('productCategory').value = product.category;
-                document.getElementById('productStock').value = product.stock;
-                document.getElementById('productUnit').value = product.unit;
-                document.getElementById('productImage').value = product.image || '';
-                document.getElementById('productActive').checked = product.isActive;
+                
+                // Populate edit form fields
+                document.getElementById('editProductId').value = productId;
+                document.getElementById('editProductName').value = product.name || '';
+                document.getElementById('editProductDescription').value = product.description || '';
+                document.getElementById('editProductPrice').value = product.price || '';
+                document.getElementById('editProductCategory').value = product.category || '';
+                document.getElementById('editProductStock').value = product.stock || '';
+                document.getElementById('editProductUnit').value = product.unit || '';
+                document.getElementById('editProductFarmer').value = product.farmer || '';
+                
+                // Load existing image if available
+                if (product.image) {
+                    this.setImagePreview('editProductImagePreview', product.image);
+                    const removeBtn = document.getElementById('editRemoveProductImageBtn');
+                    if (removeBtn) {
+                        removeBtn.style.display = 'inline-flex';
+                    }
+                }
+            } else {
+                throw new Error('Failed to load product data');
             }
         } catch (error) {
             console.error('Error loading product for edit:', error);
@@ -1295,46 +1345,150 @@ class ModernAdminDashboard {
         }
     }
 
-    async handleProductSubmit(e) {
+    async handleAddProductSubmit(e) {
         e.preventDefault();
+        
+        if (!this.validateProductForm('add')) {
+            return;
+        }
         
         const formData = new FormData(e.target);
         const productData = Object.fromEntries(formData.entries());
         
-        // Convert checkbox to boolean
-        productData.isActive = productData.isActive === 'on';
+        // Get base64 image if uploaded
+        const imageInput = document.getElementById('productImage');
+        if (imageInput.files[0]) {
+            const base64Image = await this.fileToBase64(imageInput.files[0]);
+            productData.image = base64Image;
+        }
 
         try {
-            this.showLoading();            const url = this.isEditing.product 
-                ? this.buildApiUrl(`/products/${this.editingId.product}`)
-                : this.buildApiUrl('/products');
+            this.showLoading();
             
-            const method = this.isEditing.product ? 'PUT' : 'POST';
-
-            const response = await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
+            const response = await fetch(this.buildApiUrl('/products'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 credentials: 'include',
                 body: JSON.stringify(productData)
             });
 
             if (response.ok) {
-                this.closeModal();
-                this.loadProducts(this.currentPage.products);
-                this.showToast(
-                    this.isEditing.product ? 'Product updated successfully!' : 'Product created successfully!',
-                    'success'
-                );
+                const result = await response.json();
+                this.showToast('Product added successfully!', 'success');
+                this.closeModal('addProductModal');
+                this.loadProducts(); // Refresh the products list
             } else {
                 const error = await response.json();
-                this.handleFormErrors(error.errors || { general: error.message });
+                this.showToast(error.message || 'Failed to add product', 'error');
             }
         } catch (error) {
-            console.error('Error saving product:', error);
-            this.showToast('Error saving product', 'error');
+            console.error('Error adding product:', error);
+            this.showToast('Error adding product', 'error');
         } finally {
             this.hideLoading();
         }
+    }
+
+    async handleEditProductSubmit(e) {
+        e.preventDefault();
+        
+        if (!this.validateProductForm('edit')) {
+            return;
+        }
+        
+        const formData = new FormData(e.target);
+        const productData = Object.fromEntries(formData.entries());
+        const productId = document.getElementById('editProductId').value;
+        
+        // Get base64 image if uploaded
+        const imageInput = document.getElementById('editProductImage');
+        if (imageInput.files[0]) {
+            const base64Image = await this.fileToBase64(imageInput.files[0]);
+            productData.image = base64Image;
+        }
+
+        try {
+            this.showLoading();
+            
+            const response = await fetch(this.buildApiUrl(`/products/${productId}`), {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(productData)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                this.showToast('Product updated successfully!', 'success');
+                this.closeModal('editProductModal');
+                this.loadProducts(); // Refresh the products list
+            } else {
+                const error = await response.json();
+                this.showToast(error.message || 'Failed to update product', 'error');
+            }
+        } catch (error) {
+            console.error('Error updating product:', error);
+            this.showToast('Error updating product', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    // Helper function to convert file to base64
+    fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
+
+    // Product validation function
+    validateProductForm(mode) {
+        let isValid = true;
+        const requiredFields = [];
+        
+        if (mode === 'edit') {
+            requiredFields.push(
+                { id: 'editProductName', name: 'Product Name' },
+                { id: 'editProductCategory', name: 'Category' },
+                { id: 'editProductPrice', name: 'Price' },
+                { id: 'editProductStock', name: 'Stock' },
+                { id: 'editProductUnit', name: 'Unit' }
+            );
+        } else {
+            requiredFields.push(
+                { id: 'productName', name: 'Product Name' },
+                { id: 'productCategory', name: 'Category' },
+                { id: 'productPrice', name: 'Price' },
+                { id: 'productStock', name: 'Stock' },
+                { id: 'productUnit', name: 'Unit' }
+            );
+        }
+
+        requiredFields.forEach(field => {
+            const element = document.getElementById(field.id);
+            const errorElement = document.getElementById(field.id + 'Error');
+            
+            if (element && (!element.value || element.value.trim() === '')) {
+                if (errorElement) {
+                    errorElement.textContent = `${field.name} is required`;
+                    errorElement.style.display = 'block';
+                }
+                element.classList.add('error');
+                isValid = false;
+            } else if (element && errorElement) {
+                errorElement.style.display = 'none';
+                element.classList.remove('error');
+            }
+        });
+
+        return isValid;
     }
 
     async editProduct(productId) {
@@ -1443,14 +1597,17 @@ class ModernAdminDashboard {
                                 <div class="text-sm text-secondary">${transaction.items?.length || 0} items</div>
                             </td>
                             <td>
-                                <div>${transaction.user.firstName} ${transaction.user.lastName}</div>
-                                <div class="text-sm text-secondary">${transaction.user.email}</div>
+                                <div>${(transaction.user || transaction.userId)?.firstName || 'Unknown'} ${(transaction.user || transaction.userId)?.lastName || 'Customer'}</div>
+                                <div class="text-sm text-secondary">${(transaction.user || transaction.userId)?.email || 'No email'}</div>
                             </td>
                             <td class="font-semibold">₱${transaction.totalAmount.toLocaleString()}</td>
                             <td>
                                 <select onchange="adminDashboard.updateTransactionStatus('${transaction._id}', this.value)" class="status-select">
                                     <option value="pending" ${transaction.status === 'pending' ? 'selected' : ''}>Pending</option>
-                                    <option value="completed" ${transaction.status === 'completed' ? 'selected' : ''}>Completed</option>
+                                    <option value="confirmed" ${transaction.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                                    <option value="processing" ${transaction.status === 'processing' ? 'selected' : ''}>Processing</option>
+                                    <option value="shipped" ${transaction.status === 'shipped' ? 'selected' : ''}>Shipped</option>
+                                    <option value="delivered" ${transaction.status === 'delivered' ? 'selected' : ''}>Delivered</option>
                                     <option value="cancelled" ${transaction.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
                                     <option value="refunded" ${transaction.status === 'refunded' ? 'selected' : ''}>Refunded</option>
                                 </select>
@@ -1710,10 +1867,18 @@ class ModernAdminDashboard {
         reader.onload = (e) => {
             this.setImagePreview(previewId, e.target.result);
             
-            // Show remove button
-            const removeBtn = previewId.includes('edit') ? 
-                document.getElementById('editRemoveImageBtn') : 
-                document.getElementById('removeImageBtn');
+            // Show remove button based on preview type
+            let removeBtn = null;
+            if (previewId.includes('product')) {
+                removeBtn = previewId.includes('edit') ? 
+                    document.getElementById('editRemoveProductImageBtn') : 
+                    document.getElementById('removeProductImageBtn');
+            } else {
+                removeBtn = previewId.includes('edit') ? 
+                    document.getElementById('editRemoveImageBtn') : 
+                    document.getElementById('removeImageBtn');
+            }
+            
             if (removeBtn) {
                 removeBtn.style.display = 'inline-flex';
             }
@@ -1770,6 +1935,30 @@ class ModernAdminDashboard {
         const isEdit = previewId.includes('edit');
         const fileInput = document.getElementById(isEdit ? 'editProfileImage' : 'profileImage');
         const removeBtn = document.getElementById(isEdit ? 'editRemoveImageBtn' : 'removeImageBtn');
+        
+        if (fileInput) fileInput.value = '';
+        if (removeBtn) removeBtn.style.display = 'none';
+    }
+
+    removeProductImage(previewId) {
+        const preview = document.getElementById(previewId);
+        if (preview) {
+            const img = preview.querySelector('img');
+            const icon = preview.querySelector('.placeholder-icon');
+            
+            if (img) {
+                img.remove();
+            }
+            
+            if (icon) {
+                icon.style.display = 'block';
+            }
+        }
+        
+        // Clear file input and hide remove button
+        const isEdit = previewId.includes('edit');
+        const fileInput = document.getElementById(isEdit ? 'editProductImage' : 'productImage');
+        const removeBtn = document.getElementById(isEdit ? 'editRemoveProductImageBtn' : 'removeProductImageBtn');
         
         if (fileInput) fileInput.value = '';
         if (removeBtn) removeBtn.style.display = 'none';

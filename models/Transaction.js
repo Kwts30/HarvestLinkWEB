@@ -124,7 +124,6 @@ TransactionSchema.virtual('orderSummary').get(function() {
 
 // Index for better performance
 TransactionSchema.index({ userId: 1, createdAt: -1 });
-TransactionSchema.index({ transactionId: 1 });
 TransactionSchema.index({ status: 1 });
 TransactionSchema.index({ 'paymentMethod.status': 1 });
 

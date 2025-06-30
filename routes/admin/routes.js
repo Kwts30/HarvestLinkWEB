@@ -13,12 +13,16 @@ router.use(requireAdmin);
 // Get dashboard stats
 router.get('/dashboard/stats', async (req, res) => {
   try {
+    console.log('Getting dashboard stats...');
+    
     const totalUsers = await User.countDocuments({ role: 'user' });
     const totalProducts = await Product.countDocuments();
     const totalTransactions = await Transaction.countDocuments();
     
+    console.log('Basic counts:', { totalUsers, totalProducts, totalTransactions });
+    
     const totalRevenueResult = await Transaction.aggregate([
-      { $match: { status: 'completed' } },
+      { $match: { status: 'delivered' } },
       { $group: { _id: null, total: { $sum: '$totalAmount' } } }
     ]);
     
@@ -37,7 +41,7 @@ router.get('/dashboard/stats', async (req, res) => {
     const revenueThisMonthResult = await Transaction.aggregate([
       { 
         $match: { 
-          status: 'completed',
+          status: 'delivered',
           createdAt: { $gte: currentMonth }
         } 
       },
@@ -58,7 +62,7 @@ router.get('/dashboard/stats', async (req, res) => {
       isActive: true 
     });
 
-    res.json({
+    const stats = {
       totalUsers,
       totalProducts,
       totalTransactions,
@@ -67,10 +71,13 @@ router.get('/dashboard/stats', async (req, res) => {
       revenueThisMonth,
       transactionsToday,
       productsInStock
-    });
+    };
+
+    console.log('Dashboard stats:', stats);
+    res.json(stats);
   } catch (error) {
     console.error('Dashboard stats error:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 
@@ -510,23 +517,35 @@ router.get('/products/:id', async (req, res) => {
 router.get('/products/top', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 5;
+    console.log('Getting top products with limit:', limit);
     
     // For now, return products sorted by stock (as a proxy for sales)
     const topProducts = await Product.find({ isActive: true })
       .sort({ stock: -1 })
-      .limit(limit);
+      .limit(limit)
+      .lean(); // Use lean for better performance
 
-    res.json(topProducts);
+    console.log('Found top products:', topProducts?.length || 0);
+    res.json(topProducts || []);
   } catch (error) {
     console.error('Get top products error:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 
 // Create product
 router.post('/products', async (req, res) => {
   try {
-    const product = new Product(req.body);
+    const productData = { ...req.body };
+    
+    // Handle image upload if present
+    if (req.body.image && req.body.image.startsWith('data:image/')) {
+      // For now, store base64 directly in the database
+      // In production, you'd save to a file system or cloud storage
+      productData.image = req.body.image;
+    }
+    
+    const product = new Product(productData);
     await product.save();
     res.status(201).json(product);
   } catch (error) {
@@ -545,9 +564,19 @@ router.post('/products', async (req, res) => {
 // Update product
 router.put('/products/:id', async (req, res) => {
   try {
+    const updateData = { ...req.body };
+    
+    // Handle image upload if present
+    if (req.body.image && req.body.image.startsWith('data:image/')) {
+      updateData.image = req.body.image;
+    } else if (req.body.image === '') {
+      // If image is empty string, remove it
+      updateData.image = '';
+    }
+    
     const product = await Product.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
     
@@ -588,6 +617,8 @@ router.delete('/products/:id', async (req, res) => {
 // Get all transactions
 router.get('/transactions', async (req, res) => {
   try {
+    console.log('Getting transactions with query:', req.query);
+    
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const status = req.query.status || '';
@@ -612,12 +643,30 @@ router.get('/transactions', async (req, res) => {
       }
     }
 
+    console.log('Transaction query:', query);
+
     const transactions = await Transaction.find(query)
-      .populate('user', 'firstName lastName username email')
-      .populate('items.product', 'name')
+      .populate({
+        path: 'user',
+        select: 'firstName lastName username email',
+        options: { strictPopulate: false }
+      })
+      .populate({
+        path: 'userId',
+        select: 'firstName lastName username email',
+        options: { strictPopulate: false }
+      })
+      .populate({
+        path: 'items.productId',
+        select: 'name',
+        options: { strictPopulate: false }
+      })
       .sort({ createdAt: -1 })
       .limit(limit * 1)
-      .skip((page - 1) * limit);
+      .skip((page - 1) * limit)
+      .lean(); // Use lean for better performance
+
+    console.log('Found transactions:', transactions?.length || 0);
 
     const total = await Transaction.countDocuments(query);
 
@@ -628,7 +677,7 @@ router.get('/transactions', async (req, res) => {
     const todayRevenue = await Transaction.aggregate([
       { 
         $match: { 
-          status: 'completed',
+          status: 'delivered',
           createdAt: { $gte: today }
         } 
       },
@@ -636,14 +685,14 @@ router.get('/transactions', async (req, res) => {
     ]);
 
     const stats = {
-      completed: await Transaction.countDocuments({ status: 'completed' }),
+      delivered: await Transaction.countDocuments({ status: 'delivered' }),
       pending: await Transaction.countDocuments({ status: 'pending' }),
       cancelled: await Transaction.countDocuments({ status: 'cancelled' }),
       todayRevenue: todayRevenue[0]?.total || 0
     };
 
     res.json({
-      transactions,
+      transactions: transactions || [],
       totalPages: Math.ceil(total / limit),
       currentPage: page,
       total,
@@ -651,7 +700,7 @@ router.get('/transactions', async (req, res) => {
     });
   } catch (error) {
     console.error('Get transactions error:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 
@@ -693,18 +742,40 @@ router.delete('/transactions/:id', async (req, res) => {
 router.get('/transactions/export', async (req, res) => {
   try {
     const transactions = await Transaction.find()
-      .populate('user', 'firstName lastName email')
-      .populate('items.product', 'name')
+      .populate({
+        path: 'user',
+        select: 'firstName lastName email',
+        options: { strictPopulate: false }
+      })
+      .populate({
+        path: 'userId',
+        select: 'firstName lastName email',
+        options: { strictPopulate: false }
+      })
+      .populate({
+        path: 'items.productId',
+        select: 'name',
+        options: { strictPopulate: false }
+      })
       .sort({ createdAt: -1 });
 
     // Create CSV content
     const csvHeader = 'Transaction ID,Customer Name,Email,Amount,Status,Date,Items\n';
     const csvRows = transactions.map(transaction => {
-      const customerName = `${transaction.user.firstName} ${transaction.user.lastName}`;
-      const items = transaction.items.map(item => `${item.product.name} (x${item.quantity})`).join('; ');
+      // Handle both user and userId fields for backward compatibility
+      const user = transaction.user || transaction.userId;
+      const customerName = user ? `${user.firstName} ${user.lastName}` : 'Unknown Customer';
+      const email = user ? user.email : 'Unknown Email';
+      
+      // Handle productId field
+      const items = transaction.items.map(item => {
+        const productName = item.productId?.name || item.name || 'Unknown Product';
+        return `${productName} (x${item.quantity})`;
+      }).join('; ');
+      
       const date = transaction.createdAt.toISOString().split('T')[0];
       
-      return `${transaction.transactionId},"${customerName}","${transaction.user.email}",${transaction.totalAmount},"${transaction.status}","${date}","${items}"`;
+      return `${transaction.transactionId},"${customerName}","${email}",${transaction.totalAmount},"${transaction.status}","${date}","${items}"`;
     }).join('\n');
 
     const csvContent = csvHeader + csvRows;

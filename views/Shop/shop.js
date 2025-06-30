@@ -184,17 +184,17 @@ class ShopManager {
     setupAddToCartHandlers() {
         const addToCartBtns = document.querySelectorAll('.add-to-cart-btn:not(.sold-out)');
         addToCartBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 const productCard = e.target.closest('.product-card');
                 const productId = productCard.dataset.productId;
-                this.addToCart(productId);
+                await this.addToCart(productId);
             });
         });
     }
 
     // Add product to cart
-    addToCart(productId, quantity = 1) {
+    async addToCart(productId, quantity = 1) {
         const product = this.products.find(p => p._id === productId);
         if (!product || product.stock <= 0) return;
 
@@ -207,17 +207,18 @@ class ShopManager {
             stock: product.stock
         };
         
-        window.CartUtils.addToCart(productData, quantity);
-
-        // Show feedback
-        const productCard = document.querySelector(`[data-product-id="${productId}"]`);
-        if (productCard) {
-            const btn = productCard.querySelector('.add-to-cart-btn');
-            if (btn) {
-                const originalText = btn.textContent;
-                
-                btn.textContent = 'Added!';
-                btn.style.backgroundColor = '#45a049';
+        try {
+            await window.CartUtils.addToCart(productData, quantity);
+            
+            // Show feedback
+            const productCard = document.querySelector(`[data-product-id="${productId}"]`);
+            if (productCard) {
+                const btn = productCard.querySelector('.add-to-cart-btn');
+                if (btn) {
+                    const originalText = btn.textContent;
+                    
+                    btn.textContent = 'Added!';
+                    btn.style.backgroundColor = '#45a049';
                 
                 setTimeout(() => {
                     btn.textContent = originalText;
@@ -225,16 +226,37 @@ class ShopManager {
                 }, 1000);
             }
         }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            // Show error feedback
+            const productCard = document.querySelector(`[data-product-id="${productId}"]`);
+            if (productCard) {
+                const btn = productCard.querySelector('.add-to-cart-btn');
+                if (btn) {
+                    const originalText = btn.textContent;
+                    btn.textContent = 'Error!';
+                    btn.style.backgroundColor = '#dc3545';
+                    
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.style.backgroundColor = '';
+                    }, 2000);
+                }
+            }
+            
+            // Show user-friendly error message
+            alert(error.message || 'Failed to add item to cart. Please try again.');
+        }
     }
 
     // Update cart count display
-    updateCartCount() {
-        window.CartUtils.updateCartCount();
+    async updateCartCount() {
+        await window.CartUtils.updateCartCount();
     }
 
     // Load cart from localStorage
-    loadCartFromStorage() {
-        window.CartUtils.updateCartCount();
+    async loadCartFromStorage() {
+        await window.CartUtils.updateCartCount();
     }
 
     // Show product detail
@@ -403,14 +425,14 @@ class ShopManager {
     setupDetailAddToCart() {
         const detailAddToCartBtn = document.querySelector('.detail-add-to-cart');
         if (detailAddToCartBtn) {
-            detailAddToCartBtn.addEventListener('click', (e) => {
+            detailAddToCartBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 if (!detailAddToCartBtn.disabled) {
                     const productId = detailAddToCartBtn.dataset.productId;
                     const quantityInput = document.querySelector('#quantity');
                     const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
                     
-                    this.addToCart(productId, quantity);
+                    await this.addToCart(productId, quantity);
                     
                     // Show feedback
                     const originalText = detailAddToCartBtn.textContent;

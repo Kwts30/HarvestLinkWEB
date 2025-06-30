@@ -22,6 +22,19 @@ const PORT = process.env.PORT || 3000;
 // Connect to MongoDB
 connect();
 
+// Helper function to get cart count for a user
+async function getCartCount(userId) {
+    if (!userId) return 0;
+    try {
+        const Cart = (await import('./models/cart.js')).default;
+        const cart = await Cart.findOne({ userId });
+        return cart ? cart.items.reduce((total, item) => total + item.quantity, 0) : 0;
+    } catch (error) {
+        console.error('Error getting cart count:', error);
+        return 0;
+    }
+}
+
 // Set EJS as template engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -115,15 +128,22 @@ app.use((req, res, next) => {
 // Session validation middleware
 app.use(validateSession);
 
+// Handle favicon requests
+app.get('/favicon.ico', (req, res) => {
+    res.sendFile(path.join(__dirname, 'assets', 'homepage', 'harvestlink logo.png'));
+});
+
 // API and auth routes
 app.use('/', routes);
 
 // Page routes
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
+    const cartCount = await getCartCount(req.session.userId);
     res.render('home', { 
         title: 'HarvestLink - Fresh Goods for You',
         user: req.session.user || null,
-        isAuthenticated: !!req.session.userId
+        isAuthenticated: !!req.session.userId,
+        cartCount
     });
 });
 
@@ -143,52 +163,97 @@ app.get('/login', redirectIfAuthenticated, (req, res) => {
     });
 });
 
-app.get('/cart', redirectIfNotAuthenticated, (req, res) => {
+app.get('/cart', redirectIfNotAuthenticated, async (req, res) => {
+    const cartCount = await getCartCount(req.session.userId);
     res.render('Cart/cart', { 
         title: 'HarvestLink - Shopping Cart',
         user: req.session.user || null,
-        isAuthenticated: !!req.session.userId
+        isAuthenticated: !!req.session.userId,
+        cartCount
     });
 });
 
-app.get('/checkout', redirectIfNotAuthenticated, (req, res) => {
+app.get('/checkout', redirectIfNotAuthenticated, async (req, res) => {
+    const cartCount = await getCartCount(req.session.userId);
     res.render('Checkout/checkout', { 
         title: 'HarvestLink - Checkout',
         user: req.session.user || null,
-        isAuthenticated: !!req.session.userId
+        isAuthenticated: !!req.session.userId,
+        cartCount
     });
 });
 
-app.get('/admin', requireAdminPage, (req, res) => {
+app.get('/admin', requireAdminPage, async (req, res) => {
+    const cartCount = await getCartCount(req.session.userId);
     res.render('Admin/admin', { 
         title: 'HarvestLink - Admin Dashboard',
         user: req.session.user,
-        isAuthenticated: true
+        isAuthenticated: true,
+        cartCount
     });
 });
 
-app.get('/shop', (req, res) => {
+app.get('/shop', async (req, res) => {
+    const cartCount = await getCartCount(req.session.userId);
     res.render('Shop/shop', { 
         title: 'HarvestLink - Shop',
         user: req.session.user || null,
-        isAuthenticated: !!req.session.userId
+        isAuthenticated: !!req.session.userId,
+        cartCount
     });
 });
 
-app.get('/contacts', (req, res) => {
+app.get('/contacts', async (req, res) => {
+    const cartCount = await getCartCount(req.session.userId);
     res.render('Contacts/contacts', { 
         title: 'HarvestLink - Contact',
         user: req.session.user || null,
-        isAuthenticated: !!req.session.userId
+        isAuthenticated: !!req.session.userId,
+        cartCount
     });
 });
 
-app.get('/profile', redirectIfNotAuthenticated, (req, res) => {
-    res.render('Profile/profile', { 
-        title: 'HarvestLink - Profile',
-        user: req.session.user || null,
-        isAuthenticated: !!req.session.userId
-    });
+app.get('/profile', redirectIfNotAuthenticated, async (req, res) => {
+    try {
+        const cartCount = await getCartCount(req.session.userId);
+        
+        // Get actual transactions from database
+        const Transaction = (await import('./models/Transaction.js')).default;
+        const userTransactions = await Transaction.find({ 
+            userId: req.session.userId 
+        })
+        .sort({ createdAt: -1 }) // Sort by newest first
+        .limit(10) // Limit to last 10 transactions
+        .populate('items.productId', 'name') // Populate product names
+        .exec();
+
+        // Format transactions for display
+        const formattedTransactions = userTransactions.map(transaction => ({
+            date: transaction.createdAt.toISOString().split('T')[0],
+            items: transaction.items.map(item => 
+                `${item.productId?.name || 'Unknown Product'} (${item.quantity}x)`
+            ).join(', '),
+            total: transaction.totalAmount.toFixed(2),
+            status: transaction.status || 'pending'
+        }));
+
+        res.render('Profile/profile', { 
+            title: 'HarvestLink - Profile',
+            user: req.session.user || null,
+            isAuthenticated: !!req.session.userId,
+            transactions: formattedTransactions,
+            cartCount: cartCount
+        });
+    } catch (error) {
+        console.error('Profile page error:', error);
+        res.render('Profile/profile', { 
+            title: 'HarvestLink - Profile',
+            user: req.session.user || null,
+            isAuthenticated: !!req.session.userId,
+            transactions: [],
+            cartCount: 0
+        });
+    }
 });
 
 
