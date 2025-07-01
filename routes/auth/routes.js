@@ -32,7 +32,19 @@ router.post('/register', redirectIfAuthenticated, async (req, res) => {
     // Create new user
     const user = new User({ firstName, lastName, username, email, password });
     await user.save();
-    
+
+    // Set session for new user (fix for profile page)
+    req.session.userId = user._id;
+    req.session.user = {
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      profileImage: user.profileImage
+    };
+
     // Remove password from response
     const userResponse = user.toObject();
     delete userResponse.password;

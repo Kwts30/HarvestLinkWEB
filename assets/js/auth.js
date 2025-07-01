@@ -207,6 +207,8 @@ window.AuthUtils = {
 
     // Update user info elements across the page
     updateUserInfoElements: function(isLoggedIn, user) {
+        // Prevent overwriting the profile page's user-info section
+        if (window.location.pathname === '/profile') return;
         if (isLoggedIn && user) {
             const userInfoElements = document.querySelectorAll('.user-info');
             userInfoElements.forEach(element => {

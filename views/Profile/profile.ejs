@@ -10,6 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/views/Profile/profile.css">
   <link rel="icon" href="/assets/homepage/harvestlink logo.png" type="image/x-icon">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
 </head>
 <body>
   <!-- Header Section -->
@@ -44,97 +46,155 @@
       </div>
       <ul class="nav-links">
         <li><a href="/">Home</a></li>
-        <li><a href="/shop">Shop</a></li>
-        <li><a href="/cart">Cart</a></li>
-        <li><a href="/profile" class="shop-link">Profile</a></li>
+        <li><a href="/shop" class="shop-link">Shop</a></li>
+        <li><a href="/contacts">Contact</a></li>
+        <% if (isAuthenticated) { %>
+          <li><a href="/profile">Profile</a></li>
+          <% if (user && user.role === 'admin') { %>
+            <li><a href="/admin">Admin</a></li>
+          <% } %>
+          <li><a href="#" onclick="logout()">Logout</a></li>
+        <% } else { %>
+          <li><a href="/login">Login</a></li>
+        <% } %>
       </ul>
     </div>
   </header>
 
-  <main class="profile-container horizontal-layout">
-    <section class="user-info">
-      <h2>My Profile</h2>
-      <div class="profile-picture-container">
-        <img class="profile-picture" src="<%= (user && user.profilePicture) || '/assets/homepage/jaryl.jpg' %>" alt="Profile Picture">
+  <main class="bb-learn-profile-main">
+    <div class="bb-learn-profile-header">
+      <div style="height: 3.5rem;"></div> <!-- Spacer to push profile lower below header -->
+      <div class="bb-learn-profile-picture">
+        <% if (user && user.profileImage) { %>
+          <img src="<%= user.profileImage %>" alt="Profile Picture">
+        <% } else { %>
+          <img src="https://icons.iconarchive.com/icons/fa-team/fontawesome/512/FontAwesome-User-icon.png" alt="Default Profile Picture">
+        <% } %>
       </div>
-      <div class="info-group">
-        <label>Full Name:</label>
-        <p><%= (user && user.fullName) || (user && user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Not provided') %></p>
-      </div>
-      <div class="info-group">
-        <label>Email:</label>
-        <p><%= (user && user.email) || 'Not provided' %></p>
-      </div>
-      <div class="info-group">
-        <label>Phone:</label>
-        <p><%= (user && user.phone) || 'Not provided' %></p>
-      </div>
-      <div class="info-group">
-        <label>Address:</label>
-        <p><%= (user && user.address) || 'Not provided' %></p>
-      </div>
-      <button class="edit-btn">Edit Profile</button>
-    </section>
-
-    <section class="address-management">
-      <h2>My Addresses</h2>
-      <div class="address-actions">
-        <button class="add-address-btn" onclick="showAddAddressModal()">Add New Address</button>
-      </div>
-      <div class="addresses-container" id="addressesContainer">
-        <div class="loading-addresses">Loading your addresses...</div>
-      </div>
-    </section>
-
-    <section class="transaction-history">
-      <h2>Transaction History</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Items</th>
-            <th>Total</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% if (transactions && transactions.length > 0) { %>
-            <% transactions.forEach(function(tx) { %>
-              <tr>
-                <td><%= tx.date %></td>
-                <td><%= tx.items %></td>
-                <td>₱<%= tx.total %></td>
-                <td><%= tx.status %></td>
-                <td>
-                  <% if (tx.status === 'Pending') { %>
-                    <button class="track-order-btn" onclick="trackOrder('<%= tx.date %>')">Track Order</button>
-                  <% } %>
-                </td>
-              </tr>
-            <% }); %>
-          <% } else { %>
-            <tr>
-              <td colspan="5" style="text-align: center; padding: 3rem; color: #666; font-size: 1.1rem;">
-                <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
-                  <div style="font-size: 3rem;">📋</div>
-                  <div>
-                    <strong>No Transaction History</strong><br>
-                    You haven't made any purchases yet.<br>
-                    <a href="/shop" style="color: #4CAF50; text-decoration: none; font-weight: bold;">Start shopping now!</a>
-                  </div>
+      <div class="bb-learn-profile-name"><%= (user && user.fullName) || (user && user.firstName ? (user.firstName + (user.lastName ? ' ' + user.lastName : '')) : 'Not provided') %></div>
+      <div class="bb-learn-profile-username"><%= (user && user.email) || '' %></div>
+    </div>
+    <div class="bb-learn-profile-columns">
+      <div class="bb-learn-profile-left">
+        <div class="bb-learn-card">
+          <div class="bb-learn-card-title">Basic Information
+            <button class="bb-learn-edit-btn" onclick="showEditProfileModal()" style="float:right; background:#4CAF50; color:#fff; border:none; border-radius:0.3rem; padding:0.2rem 0.8rem; font-size:0.95rem; cursor:pointer;">Edit</button>
+          </div>
+          <table class="bb-learn-info-table">
+            <tr><td>Full Name</td><td><%= (user && user.fullName) || (user && user.firstName ? (user.firstName + (user.lastName ? ' ' + user.lastName : '')) : 'Not provided') %></td></tr>
+            <tr><td>Email Address</td><td><%= (user && user.email) || 'Not provided' %></td></tr>
+            <tr><td>Phone</td><td><%= (user && user.phone) || 'Not provided' %></td></tr>
+          </table>
+        </div>
+        <!-- Edit Profile Modal -->
+        <div id="editProfileModal" class="modal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>Edit Profile</h3>
+              <span class="close-modal" onclick="closeEditProfileModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+              <form id="editProfileForm">
+                <div class="form-group">
+                  <label for="editFirstName">First Name</label>
+                  <input type="text" id="editFirstName" name="firstName" value="<%= user && user.firstName ? user.firstName : '' %>" required>
                 </div>
-              </td>
-            </tr>
-          <% } %>
-        </tbody>
-      </table>
-      <script>
-        function trackOrder(orderDate) {
-          alert('Tracking information for order on ' + orderDate + ':\n\nStatus: In Transit\nExpected Delivery: 2025-06-18');
-        }
-      </script>
-    </section>
+                <div class="form-group">
+                  <label for="editLastName">Last Name</label>
+                  <input type="text" id="editLastName" name="lastName" value="<%= user && user.lastName ? user.lastName : '' %>" required>
+                </div>
+                <div class="form-group">
+                  <label for="editEmail">Email Address</label>
+                  <input type="email" id="editEmail" name="email" value="<%= user && user.email ? user.email : '' %>" required>
+                </div>
+                <div class="form-group">
+                  <label for="editPhone">Phone</label>
+                  <input type="tel" id="editPhone" name="phone" value="<%= user && user.phone ? user.phone : '' %>" required>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button class="btn-primary" onclick="saveProfileEdit()">Save Changes</button>
+              <button class="btn-secondary" onclick="closeEditProfileModal()">Cancel</button>
+            </div>
+          </div>
+        </div>
+        <!-- My Addresses Card moved below Basic Information -->
+        <div class="bb-learn-card">
+          <div class="bb-learn-card-title">My Addresses</div>
+          <div class="addresses-container" id="addressesContainer">
+            <div class="loading-addresses">Loading your addresses...</div>
+          </div>
+          <button class="bb-learn-add-btn" onclick="showAddAddressModal()">Add New Address</button>
+        </div>
+        <!-- You can add more cards for additional info, contact info, etc. -->
+      </div>
+      <div class="bb-learn-profile-right">
+        <div class="bb-learn-card">
+          <div class="bb-learn-card-title">Transaction History</div>
+          <table class="bb-learn-info-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (transactions && transactions.length > 0) { %>
+                <% transactions.forEach(function(tx) { %>
+                  <tr>
+                    <td><%= tx.date %></td>
+                    <td><%= tx.items %></td>
+                    <td>₱<%= tx.total %></td>
+                    <td><%= tx.status %></td>
+                    <td>
+                      <% if (tx.status === 'Pending') { %>
+                        <button class="bb-learn-track-btn" onclick="trackOrder('<%= tx.date %>')">Track Order</button>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr>
+                  <td colspan="5" style="text-align: center; padding: 2rem; color: #666; font-size: 1.1rem;">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                      <div style="font-size: 2rem;">📋</div>
+                      <div>
+                        <strong>No Transaction History</strong><br>
+                        You haven't made any purchases yet.<br>
+                        <a href="/shop" style="color: #4CAF50; text-decoration: none; font-weight: bold;">Start shopping now!</a>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <script>
+      function trackOrder(orderDate) {
+        alert('Tracking information for order on ' + orderDate + ':\n\nStatus: In Transit\nExpected Delivery: 2025-06-18');
+      }
+      // Edit Profile Modal Functions
+      function showEditProfileModal() {
+        document.getElementById('editProfileModal').style.display = 'block';
+      }
+      function closeEditProfileModal() {
+        document.getElementById('editProfileModal').style.display = 'none';
+      }
+      function saveProfileEdit() {
+        const form = document.getElementById('editProfileForm');
+        // You can add AJAX here to submit the form to the server
+        // For now, just close the modal
+        closeEditProfileModal();
+        alert('Profile updated! (Demo only)');
+      }
+    </script>
   </main>
 
   <footer class="footer">
@@ -236,5 +296,204 @@
   <script src="/assets/js/config.js"></script>
   <script src="/assets/js/auth.js"></script>
   <script src="/views/Profile/profile.js"></script>
+  <script>
+    // Hamburger menu functionality (same as home page)
+    document.addEventListener('DOMContentLoaded', function() {
+      const hamburger = document.querySelector('.hamburger-menu');
+      const navOverlay = document.querySelector('.nav-overlay');
+      const closeMenuBtn = document.querySelector('.close-menu');
+      const navbar = document.querySelector('.navbar');
+      if (hamburger && navOverlay && closeMenuBtn && navbar) {
+        hamburger.addEventListener('click', function() {
+          navOverlay.classList.add('active');
+          navbar.style.display = 'none';
+        });
+        closeMenuBtn.addEventListener('click', function() {
+          navOverlay.classList.remove('active');
+          navbar.style.display = '';
+        });
+        navOverlay.addEventListener('click', function(e) {
+          if (e.target === navOverlay) {
+            navOverlay.classList.remove('active');
+            navbar.style.display = '';
+          }
+        });
+        // Also close overlay and show navbar when clicking any nav link
+        navOverlay.querySelectorAll('.nav-links a').forEach(link => {
+          link.addEventListener('click', function() {
+            navOverlay.classList.remove('active');
+            navbar.style.display = '';
+          });
+        });
+      }
+    });
+  </script>
+  <style>
+    .bb-learn-profile-main {
+      max-width: 1200px;
+      margin: 4.5rem auto 0 auto; /* Increased top margin to clear header */
+      padding: 0 1.5rem 2rem 1.5rem;
+      background: #f7f7f7;
+      min-height: 80vh;
+      position: relative;
+      z-index: 1;
+    }
+    .bb-learn-profile-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 2.5rem;
+      position: relative;
+      z-index: 2;
+    }
+    .bb-learn-profile-picture {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid #4CAF50;
+      background: #fff;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .bb-learn-profile-picture img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .bb-learn-profile-name {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 0.2rem;
+      color: #23272e;
+      font-family: 'DM Serif Text', serif;
+    }
+    .bb-learn-profile-username {
+      color: #666;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+    .bb-learn-profile-columns {
+      display: flex;
+      gap: 2.5rem;
+      justify-content: center;
+    }
+    .bb-learn-profile-left, .bb-learn-profile-right {
+      flex: 1 1 0;
+      min-width: 320px;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    .bb-learn-card {
+      background: #fff;
+      border: 1px solid #d3d3d3;
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+      padding: 1.2rem 1.5rem 1.5rem 1.5rem;
+    }
+    .bb-learn-card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #23272e;
+      margin-bottom: 1rem;
+    }
+    .bb-learn-info-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    .bb-learn-info-table th, .bb-learn-info-table td {
+      border-bottom: 1px solid #e0e0e0;
+      padding: 0.7rem 0.5rem;
+      text-align: left;
+      font-size: 1rem;
+    }
+    .bb-learn-info-table th {
+      background: #f5f5f5;
+      font-weight: 600;
+      color: #333;
+    }
+    .bb-learn-info-table tr:last-child td {
+      border-bottom: none;
+    }
+    .bb-learn-add-btn {
+      background: #4CAF50;
+      color: #fff;
+      border: none;
+      border-radius: 0.4rem;
+      padding: 0.4rem 1.2rem;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: background 0.2s;
+    }
+    .bb-learn-add-btn:hover {
+      background: #388e3c;
+    }
+    .bb-learn-track-btn {
+      background: #4CAF50;
+      color: #fff;
+      border: none;
+      border-radius: 0.4rem;
+      padding: 0.3rem 1rem;
+      font-size: 0.98rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .bb-learn-track-btn:hover {
+      background: #388e3c;
+    }
+    .bb-learn-edit-btn {
+      margin-left: 1rem;
+      background: #4CAF50;
+      color: #fff;
+      border: none;
+      border-radius: 0.3rem;
+      padding: 0.2rem 0.8rem;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .bb-learn-edit-btn:hover {
+      background: #388e3c;
+    }
+    /* Modal styles (reuse from Add Address Modal) */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background: rgba(0,0,0,0.3); }
+    .modal-content { background: #fff; margin: 5% auto; border-radius: 0.5rem; padding: 1.5rem; width: 95%; max-width: 420px; position: relative; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; margin-bottom: 1rem; }
+    .close-modal { font-size: 1.7rem; cursor: pointer; color: #888; }
+    .form-group { margin-bottom: 1.1rem; }
+    .form-group label { display: block; margin-bottom: 0.3rem; color: #333; font-weight: 500; }
+    .form-group input { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 0.3rem; font-size: 1rem; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 0.7rem; margin-top: 1.2rem; }
+    .btn-primary { background: #4CAF50; color: #fff; border: none; border-radius: 0.3rem; padding: 0.4rem 1.2rem; font-size: 1rem; cursor: pointer; }
+    .btn-primary:hover { background: #388e3c; }
+    .btn-secondary { background: #eee; color: #333; border: none; border-radius: 0.3rem; padding: 0.4rem 1.2rem; font-size: 1rem; cursor: pointer; }
+    .btn-secondary:hover { background: #ccc; }
+    @media (max-width: 900px) {
+      .bb-learn-profile-main {
+        margin-top: 4.5rem;
+      }
+      .bb-learn-profile-columns {
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+      .bb-learn-profile-left, .bb-learn-profile-right {
+        max-width: 100%;
+      }
+    }
+    @media (max-width: 600px) {
+      .bb-learn-profile-main {
+        padding: 0 0.2rem;
+      }
+      .bb-learn-card {
+        padding: 0.7rem 0.3rem 1rem 0.3rem;
+      }
+    }
+  </style>
 </body>
 </html>

@@ -320,6 +320,45 @@ function saveAddress() {
     }
 }
 
+// Show Edit Profile Modal and pre-fill fields
+window.showEditProfileModal = function showEditProfileModal() {
+    const modal = document.getElementById('editProfileModal');
+    if (!modal) return;
+    // Get current values from DOM table (for accuracy)
+    const infoTable = document.querySelector('.bb-learn-info-table');
+    let firstName = '', lastName = '', email = '', phone = '', address = '';
+    if (infoTable) {
+        const rows = infoTable.querySelectorAll('tr');
+        // Full Name row
+        if (rows[0]) {
+            const fullName = rows[0].children[1].textContent.trim();
+            if (fullName && fullName !== 'Not provided') {
+                const parts = fullName.split(' ');
+                firstName = parts[0] || '';
+                lastName = parts.slice(1).join(' ') || '';
+            }
+        }
+        // Email row
+        if (rows[1]) email = rows[1].children[1].textContent.trim();
+        // Phone row
+        if (rows[2]) phone = rows[2].children[1].textContent.trim();
+        // Address row
+        if (rows[3]) address = rows[3].children[1].textContent.trim();
+    }
+    // Fill modal fields
+    const firstNameInput = document.getElementById('editFirstName');
+    const lastNameInput = document.getElementById('editLastName');
+    const emailInput = document.getElementById('editEmail');
+    const phoneInput = document.getElementById('editPhone');
+    const addressInput = document.getElementById('editAddress');
+    if (firstNameInput) firstNameInput.value = firstName;
+    if (lastNameInput) lastNameInput.value = lastName;
+    if (emailInput) emailInput.value = email;
+    if (phoneInput) phoneInput.value = phone;
+    if (addressInput) addressInput.value = address;
+    modal.style.display = 'block';
+}
+
 // Initialize profile manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.profileManager = new ProfileManager();

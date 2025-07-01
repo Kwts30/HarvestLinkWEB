@@ -771,4 +771,16 @@
     <!-- Toast Container -->
     <div id="toastContainer"></div>
 </body>
+<script>
+  // Ensure Back to Site always redirects to home
+  document.addEventListener('DOMContentLoaded', function() {
+    var backToSiteLink = document.querySelector('.sidebar-nav .nav-link[href="/"]');
+    if (backToSiteLink) {
+      backToSiteLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.location.href = '/';
+      });
+    }
+  });
+</script>
 </html>

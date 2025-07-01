@@ -51,6 +51,7 @@
                 <li><a href="/shop">Shop</a></li>
                 <li><a href="/contacts">Contact</a></li>
                 <% if (isAuthenticated) { %>
+                    <li><a href="/profile">Profile</a></li>
                     <% if (user && user.role === 'admin') { %>
                         <li><a href="/admin">Admin</a></li>
                     <% } %>
@@ -309,6 +310,39 @@
             </div>
         </div>
     </div>
+
+    <script>
+      // Hamburger menu functionality (same as home/profile page)
+      document.addEventListener('DOMContentLoaded', function() {
+        const hamburger = document.querySelector('.hamburger-menu');
+        const navOverlay = document.querySelector('.nav-overlay');
+        const closeMenuBtn = document.querySelector('.close-menu');
+        const navbar = document.querySelector('.navbar');
+        if (hamburger && navOverlay && closeMenuBtn && navbar) {
+          hamburger.addEventListener('click', function() {
+            navOverlay.classList.add('active');
+            navbar.style.display = 'none';
+          });
+          closeMenuBtn.addEventListener('click', function() {
+            navOverlay.classList.remove('active');
+            navbar.style.display = '';
+          });
+          navOverlay.addEventListener('click', function(e) {
+            if (e.target === navOverlay) {
+              navOverlay.classList.remove('active');
+              navbar.style.display = '';
+            }
+          });
+          // Also close overlay and show navbar when clicking any nav link
+          navOverlay.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', function() {
+              navOverlay.classList.remove('active');
+              navbar.style.display = '';
+            });
+          });
+        }
+      });
+    </script>
 
 </body>
 </html>
