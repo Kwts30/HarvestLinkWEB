@@ -5,10 +5,12 @@ import dotenv from 'dotenv';
 import session from 'express-session';
 import connect from './database/mongodb-connect.js';
 import cors from 'cors';
+import multer from 'multer';
 
 // Import routes and middlewares
 import routes from './routes/index.js';
 import { redirectIfNotAuthenticated, redirectIfAuthenticated, validateSession, requireAdminPage } from './middlewares/index.js';
+import { ensureUploadsDir } from './middlewares/fileUtils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,6 +23,9 @@ const PORT = process.env.PORT || 3000;
 
 // Connect to MongoDB
 connect();
+
+// Ensure uploads directory exists
+ensureUploadsDir();
 
 // Helper function to get cart count for a user
 async function getCartCount(userId) {
@@ -94,6 +99,9 @@ app.use((req, res, next) => {
 
 // Static files middleware for assets only
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
+
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Serve home page specific CSS and JS files
 app.use('/home', express.static(path.join(__dirname, 'views', 'home')));
@@ -256,6 +264,36 @@ app.get('/profile', redirectIfNotAuthenticated, async (req, res) => {
     }
 });
 
+// Multer error handling middleware
+app.use((error, req, res, next) => {
+    if (error instanceof multer.MulterError) {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({
+                success: false,
+                message: 'File size too large. Maximum allowed size is 5MB.'
+            });
+        }
+        if (error.code === 'LIMIT_FILE_COUNT') {
+            return res.status(400).json({
+                success: false,
+                message: 'Too many files. Maximum allowed is 1 file.'
+            });
+        }
+        return res.status(400).json({
+            success: false,
+            message: `Upload error: ${error.message}`
+        });
+    }
+    
+    if (error.message === 'Only image files are allowed!') {
+        return res.status(400).json({
+            success: false,
+            message: 'Only image files are allowed!'
+        });
+    }
+    
+    next(error);
+});
 
 // Start server
 app.listen(PORT, () => {

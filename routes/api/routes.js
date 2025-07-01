@@ -318,6 +318,69 @@ router.get('/checkout/addresses', requireAuth, async (req, res) => {
   }
 });
 
+// Add new address for checkout
+router.post('/checkout/addresses', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { 
+      type, 
+      isPrimary, 
+      fullName, 
+      street, 
+      barangay, 
+      city, 
+      province, 
+      phone, 
+      postalCode,
+      landmark, 
+      deliveryInstructions 
+    } = req.body;
+    
+    // Validation - check for required fields
+    const requiredFields = ['type', 'fullName', 'street', 'barangay', 'city', 'province', 'phone'];
+    const missingFields = requiredFields.filter(field => !req.body[field] || req.body[field].trim() === '');
+    
+    if (missingFields.length > 0) {
+      return res.status(400).json({ 
+        success: false,
+        message: `Please fill in all required fields: ${missingFields.join(', ')}`,
+        missingFields: missingFields
+      });
+    }
+    
+    // Create new address
+    const newAddress = new Address({
+      userId,
+      type: type.trim(),
+      isPrimary: isPrimary || false,
+      fullName: fullName.trim(),
+      street: street.trim(),
+      barangay: barangay.trim(),
+      city: city.trim(),
+      province: province.trim(),
+      phone: phone.trim(),
+      postalCode: postalCode ? postalCode.trim() : '',
+      landmark: landmark ? landmark.trim() : '',
+      deliveryInstructions: deliveryInstructions ? deliveryInstructions.trim() : ''
+    });
+    
+    // Save address (middleware will handle primary address logic)
+    await newAddress.save();
+    
+    res.status(201).json({ 
+      success: true,
+      message: 'Address added successfully',
+      address: newAddress 
+    });
+  } catch (error) {
+    console.error('Add checkout address error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to save address. Please try again.' 
+    });
+  }
+});
+
 // Process checkout with address
 router.post('/checkout', requireAuth, async (req, res) => {
   try {

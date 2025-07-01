@@ -241,7 +241,7 @@
                 <form id="addAddressForm">
                     <div class="form-group">
                         <label for="addressType">Address Type</label>
-                        <select id="addressType" required>
+                        <select id="addressType" name="addressType" required>
                             <option value="">Select type</option>
                             <option value="Home">Home</option>
                             <option value="Work">Work</option>
@@ -251,37 +251,37 @@
                     
                     <div class="form-group">
                         <label for="fullName">Full Name</label>
-                        <input type="text" id="fullName" required>
+                        <input type="text" id="fullName" name="fullName" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="street">Street Address</label>
-                        <input type="text" id="street" placeholder="House/Unit number, Street, Barangay" required>
+                        <input type="text" id="street" name="street" placeholder="House/Unit number, Street, Barangay" required>
                     </div>
 
                     <div class="form-group">
                         <label for="barangay">Barangay</label>
-                        <input type="text" id="barangay" placeholder="Barangay" required>
+                        <input type="text" id="barangay" name="barangay" placeholder="Barangay" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="city">City</label>
-                        <input type="text" id="city" placeholder="City" required>
+                        <input type="text" id="city" name="city" placeholder="City" required>
                     </div>
 
                     <div class="form-group">
                         <label for="province">Province</label>
-                        <input type="text" id="province" placeholder="Province" required>
+                        <input type="text" id="province" name="province" placeholder="Province" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="phone">Phone Number</label>
-                        <input type="tel" id="phone" placeholder="+63 912 345 6789" required>
+                        <input type="tel" id="phone" name="phone" placeholder="+63 912 345 6789" required>
                     </div>
                     
                     <div class="form-group checkbox-group">
                         <label>
-                            <input type="checkbox" id="isPrimary">
+                            <input type="checkbox" id="isPrimary" name="isPrimary">
                             Set as primary address
                         </label>
                     </div>

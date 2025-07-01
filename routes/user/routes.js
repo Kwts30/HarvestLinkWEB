@@ -1,10 +1,25 @@
 import express from 'express';
 import User from '../../models/User.js';
 import { requireAuth } from '../../middlewares/index.js';
+import upload from '../../middlewares/multerstorage.js';
+import fs from 'fs';
+import path from 'path';
 
 const router = express.Router();
 
-// ============ AUTH ROUTES FOR BACKWARD COMPATIBILITY ============
+// Helper function to safely delete files
+function deleteImageFile(imagePath) {
+  if (imagePath && imagePath.startsWith('/uploads/')) {
+    const fullPath = path.join(process.cwd(), 'uploads', path.basename(imagePath));
+    if (fs.existsSync(fullPath)) {
+      fs.unlink(fullPath, (err) => {
+        if (err) {
+          console.error('Error deleting file:', err);
+        }
+      });
+    }
+  }
+}
 
 // Create a new user (signup) - backward compatibility
 router.post('/register', async (req, res) => {
@@ -174,7 +189,7 @@ router.get('/profile', requireAuth, async (req, res) => {
 });
 
 // Update user profile
-router.put('/profile', requireAuth, async (req, res) => {
+router.put('/profile', requireAuth, upload.single('profileImage'), async (req, res) => {
   try {
     const { firstName, lastName, username, email, phone, profileImage } = req.body;
     
@@ -198,17 +213,50 @@ router.put('/profile', requireAuth, async (req, res) => {
       });
     }
     
+    // Prepare update data with correct field mapping
+    const updateData = {
+      firstName,
+      lastName,
+      username,
+      email,
+      phoneNumber: phone || null  // Map 'phone' to 'phoneNumber' for User model
+    };
+    
+    // Handle profile image upload
+    if (req.file) {
+      // Delete old image file if exists
+      const existingUser = await User.findById(req.user._id);
+      if (existingUser?.profileImage && 
+          existingUser.profileImage.startsWith('/uploads/') && 
+          !existingUser.profileImage.startsWith('data:image/')) {
+        deleteImageFile(existingUser.profileImage);
+      }
+      // Store the file path in the database
+      updateData.profileImage = `/uploads/${req.file.filename}`;
+    } else if (req.body.removeProfileImage === 'true') {
+      // User wants to remove the image - delete existing file
+      const existingUser = await User.findById(req.user._id);
+      if (existingUser?.profileImage && 
+          existingUser.profileImage.startsWith('/uploads/') && 
+          !existingUser.profileImage.startsWith('data:image/')) {
+        deleteImageFile(existingUser.profileImage);
+      }
+      updateData.profileImage = '';
+    } else if (profileImage && profileImage.startsWith('data:image/')) {
+      // Fallback: handle base64 images (for backward compatibility)
+      updateData.profileImage = profileImage;
+    } else if (profileImage === '') {
+      // If image is empty string, remove it
+      updateData.profileImage = '';
+    } else if (profileImage) {
+      // Keep existing image path
+      updateData.profileImage = profileImage;
+    }
+    
     // Update user
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
-      {
-        firstName,
-        lastName,
-        username,
-        email,
-        phone,
-        profileImage
-      },
+      updateData,
       { new: true, select: '-password' }
     );
     
@@ -219,7 +267,7 @@ router.put('/profile', requireAuth, async (req, res) => {
       lastName,
       username,
       email,
-      profileImage
+      profileImage: updateData.profileImage
     };
     
     res.json({
