@@ -1,4 +1,16 @@
 {
+  "name": "harvestlink",
+  "version": "1.0.0",
+  "description": "A web application for managing and selling agricultural products within Region 11 and expanding in region 12.",
+  "main": "server.js",
+  "author": "Jaryl Benedicto, Kris Matthew Deximo",
+
+"scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+
+
   "type": "module",
   "dependencies": {
     "bcrypt": "^5.1.1",
@@ -10,9 +22,5 @@
     "mongoose": "^8.15.1",
     "multer": "^2.0.1",
     "nodemon": "^3.1.10"
-  },
-  "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
   }
 }
