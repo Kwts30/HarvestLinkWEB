@@ -4,8 +4,25 @@ import Product from '../../models/Product.js';
 import Transaction from '../../models/Transaction.js';
 import Address from '../../models/address.js';
 import { requireAdmin } from '../../middlewares/index.js';
+import upload from '../../middlewares/multerstorage.js';
+import fs from 'fs';
+import path from 'path';
 
 const router = express.Router();
+
+// Helper function to safely delete files
+function deleteImageFile(imagePath) {
+  if (imagePath && imagePath.startsWith('/uploads/')) {
+    const fullPath = path.join(process.cwd(), 'uploads', path.basename(imagePath));
+    if (fs.existsSync(fullPath)) {
+      fs.unlink(fullPath, (err) => {
+        if (err) {
+          console.error('Error deleting file:', err);
+        }
+      });
+    }
+  }
+}
 
 // Apply admin middleware to all routes
 router.use(requireAdmin);
@@ -13,13 +30,9 @@ router.use(requireAdmin);
 // Get dashboard stats
 router.get('/dashboard/stats', async (req, res) => {
   try {
-    console.log('Getting dashboard stats...');
-    
     const totalUsers = await User.countDocuments({ role: 'user' });
     const totalProducts = await Product.countDocuments();
     const totalTransactions = await Transaction.countDocuments();
-    
-    console.log('Basic counts:', { totalUsers, totalProducts, totalTransactions });
     
     const totalRevenueResult = await Transaction.aggregate([
       { $match: { status: 'delivered' } },
@@ -73,7 +86,6 @@ router.get('/dashboard/stats', async (req, res) => {
       productsInStock
     };
 
-    console.log('Dashboard stats:', stats);
     res.json(stats);
   } catch (error) {
     console.error('Dashboard stats error:', error);
@@ -141,13 +153,33 @@ router.get('/users/:id', async (req, res) => {
 });
 
 // Create user
-router.post('/users', async (req, res) => {
+router.post('/users', upload.single('profileImage'), async (req, res) => {
   try {
     const bcrypt = await import('bcrypt');
-    const { password, ...userData } = req.body;
     
-    if (password) {
-      userData.password = await bcrypt.hash(password, 10);
+    // Extract and map form data to User model fields
+    const userData = {
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      username: req.body.username,
+      email: req.body.email,
+      role: req.body.role || 'user',
+      phoneNumber: req.body.phone || req.body.phoneNumber || null
+    };
+    
+    // Handle password
+    if (req.body.password) {
+      userData.password = await bcrypt.hash(req.body.password, 10);
+    }
+
+    // Handle profile image upload
+    if (req.file) {
+      userData.profileImage = `/uploads/${req.file.filename}`;
+    } else if (req.body.removeProfileImage === 'true') {
+      // User wants to remove the image
+      userData.profileImage = '';
+    } else if (req.body.profileImage && req.body.profileImage.startsWith('data:image/')) {
+      userData.profileImage = req.body.profileImage;
     }
 
     const user = new User(userData);
@@ -177,14 +209,47 @@ router.post('/users', async (req, res) => {
 });
 
 // Update user
-router.put('/users/:id', async (req, res) => {
+router.put('/users/:id', upload.single('profileImage'), async (req, res) => {
   try {
-    const { password, ...updateData } = req.body;
+    // Extract and map form data to User model fields
+    const updateData = {
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      username: req.body.username,
+      email: req.body.email,
+      role: req.body.role,
+      phoneNumber: req.body.phone || req.body.phoneNumber || null
+    };
     
-    // If password is provided, hash it
-    if (password) {
+    // Handle password if provided
+    if (req.body.password) {
       const bcrypt = await import('bcrypt');
-      updateData.password = await bcrypt.hash(password, 10);
+      updateData.password = await bcrypt.hash(req.body.password, 10);
+    }
+
+    // Handle profile image upload
+    if (req.file) {
+      // Get existing user to delete old image if needed
+      const existingUser = await User.findById(req.params.id);
+      if (existingUser?.profileImage && 
+          existingUser.profileImage.startsWith('/uploads/') && 
+          !existingUser.profileImage.startsWith('data:image/')) {
+        deleteImageFile(existingUser.profileImage);
+      }
+      updateData.profileImage = `/uploads/${req.file.filename}`;
+    } else if (req.body.removeProfileImage === 'true') {
+      // User wants to remove the image - delete existing file
+      const existingUser = await User.findById(req.params.id);
+      if (existingUser?.profileImage && 
+          existingUser.profileImage.startsWith('/uploads/') && 
+          !existingUser.profileImage.startsWith('data:image/')) {
+        deleteImageFile(existingUser.profileImage);
+      }
+      updateData.profileImage = '';
+    } else if (req.body.profileImage && req.body.profileImage.startsWith('data:image/')) {
+      updateData.profileImage = req.body.profileImage;
+    } else if (req.body.profileImage === '') {
+      updateData.profileImage = '';
     }
 
     const user = await User.findByIdAndUpdate(
@@ -517,7 +582,6 @@ router.get('/products/:id', async (req, res) => {
 router.get('/products/top', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 5;
-    console.log('Getting top products with limit:', limit);
     
     // For now, return products sorted by stock (as a proxy for sales)
     const topProducts = await Product.find({ isActive: true })
@@ -525,7 +589,6 @@ router.get('/products/top', async (req, res) => {
       .limit(limit)
       .lean(); // Use lean for better performance
 
-    console.log('Found top products:', topProducts?.length || 0);
     res.json(topProducts || []);
   } catch (error) {
     console.error('Get top products error:', error);
@@ -534,14 +597,19 @@ router.get('/products/top', async (req, res) => {
 });
 
 // Create product
-router.post('/products', async (req, res) => {
+router.post('/products', upload.single('productImage'), async (req, res) => {
   try {
     const productData = { ...req.body };
     
     // Handle image upload if present
-    if (req.body.image && req.body.image.startsWith('data:image/')) {
-      // For now, store base64 directly in the database
-      // In production, you'd save to a file system or cloud storage
+    if (req.file) {
+      // Store the file path in the database
+      productData.image = `/uploads/${req.file.filename}`;
+    } else if (req.body.removeProductImage === 'true') {
+      // User wants to remove the image
+      productData.image = '';
+    } else if (req.body.image && req.body.image.startsWith('data:image/')) {
+      // Fallback: handle base64 images (for backward compatibility)
       productData.image = req.body.image;
     }
     
@@ -562,15 +630,45 @@ router.post('/products', async (req, res) => {
 });
 
 // Update product
-router.put('/products/:id', async (req, res) => {
+router.put('/products/:id', upload.single('productImage'), async (req, res) => {
   try {
     const updateData = { ...req.body };
     
+    // Get the existing product to check for old image
+    const existingProduct = await Product.findById(req.params.id);
+    if (!existingProduct) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    
     // Handle image upload if present
-    if (req.body.image && req.body.image.startsWith('data:image/')) {
+    if (req.file) {
+      // Delete old image file if it exists and is not a base64 image
+      if (existingProduct.image && 
+          existingProduct.image.startsWith('/uploads/') && 
+          !existingProduct.image.startsWith('data:image/')) {
+        deleteImageFile(existingProduct.image);
+      }
+      
+      // Store the new file path in the database
+      updateData.image = `/uploads/${req.file.filename}`;
+    } else if (req.body.removeProductImage === 'true') {
+      // User wants to remove the image - delete existing file
+      if (existingProduct.image && 
+          existingProduct.image.startsWith('/uploads/') && 
+          !existingProduct.image.startsWith('data:image/')) {
+        deleteImageFile(existingProduct.image);
+      }
+      updateData.image = '';
+    } else if (req.body.image && req.body.image.startsWith('data:image/')) {
+      // Fallback: handle base64 images (for backward compatibility)
       updateData.image = req.body.image;
     } else if (req.body.image === '') {
-      // If image is empty string, remove it
+      // If image is empty string, remove it and delete old file
+      if (existingProduct.image && 
+          existingProduct.image.startsWith('/uploads/') && 
+          !existingProduct.image.startsWith('data:image/')) {
+        deleteImageFile(existingProduct.image);
+      }
       updateData.image = '';
     }
     
@@ -579,10 +677,6 @@ router.put('/products/:id', async (req, res) => {
       updateData,
       { new: true, runValidators: true }
     );
-    
-    if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
-    }
     
     res.json(product);
   } catch (error) {
@@ -601,10 +695,21 @@ router.put('/products/:id', async (req, res) => {
 // Delete product
 router.delete('/products/:id', async (req, res) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id);
+    const product = await Product.findById(req.params.id);
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
+    
+    // Delete associated image file if it exists
+    if (product.image && 
+        product.image.startsWith('/uploads/') && 
+        !product.image.startsWith('data:image/')) {
+      deleteImageFile(product.image);
+    }
+    
+    // Delete the product from database
+    await Product.findByIdAndDelete(req.params.id);
+    
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {
     console.error('Delete product error:', error);
@@ -617,8 +722,6 @@ router.delete('/products/:id', async (req, res) => {
 // Get all transactions
 router.get('/transactions', async (req, res) => {
   try {
-    console.log('Getting transactions with query:', req.query);
-    
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const status = req.query.status || '';
@@ -643,8 +746,6 @@ router.get('/transactions', async (req, res) => {
       }
     }
 
-    console.log('Transaction query:', query);
-
     const transactions = await Transaction.find(query)
       .populate({
         path: 'user',
@@ -665,8 +766,6 @@ router.get('/transactions', async (req, res) => {
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .lean(); // Use lean for better performance
-
-    console.log('Found transactions:', transactions?.length || 0);
 
     const total = await Transaction.countDocuments(query);
 

@@ -39,3 +39,7 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# File uploads
+uploads/
+uploads/*

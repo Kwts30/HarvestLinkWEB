@@ -21,6 +21,7 @@ class CheckoutManager {
 
             // Initialize all components
             this.initializeEventListeners();
+            this.setupNavigationHandlers();
             this.initializePaymentModal();
             this.initializeAddressModal();
             
@@ -252,6 +253,17 @@ class CheckoutManager {
                 isPrimary: formData.get('isPrimary') === 'on' || this.userAddresses.length === 0
             };
 
+            // Client-side validation
+            const requiredFields = ['type', 'fullName', 'street', 'barangay', 'city', 'province', 'phone'];
+            const missingFields = requiredFields.filter(field => !addressData[field] || addressData[field].trim() === '');
+            
+            if (missingFields.length > 0) {
+                this.showError(`Please fill in all required fields: ${missingFields.join(', ')}`);
+                return;
+            }
+
+            console.log('Sending address data:', addressData); // Debug log
+
             const response = await fetch(`${this.apiBaseUrl}/checkout/addresses`, {
                 method: 'POST',
                 headers: {
@@ -262,6 +274,7 @@ class CheckoutManager {
             });
 
             const result = await response.json();
+            console.log('Server response:', result); // Debug log
 
             if (result.success) {
                 this.showSuccess('Address saved successfully!');
@@ -700,7 +713,34 @@ class CheckoutManager {
         if (addAddressForm) {
             addAddressForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                const formData = new FormData(e.target);
+                
+                // Collect form data manually to ensure we get all values
+                const formData = new FormData();
+                
+                // Get values from form elements by ID
+                const addressType = document.getElementById('addressType')?.value || '';
+                const fullName = document.getElementById('fullName')?.value || '';
+                const phone = document.getElementById('phone')?.value || '';
+                const street = document.getElementById('street')?.value || '';
+                const barangay = document.getElementById('barangay')?.value || '';
+                const city = document.getElementById('city')?.value || '';
+                const province = document.getElementById('province')?.value || '';
+                const isPrimary = document.getElementById('isPrimary')?.checked || false;
+                
+                // Append to FormData
+                formData.append('addressType', addressType);
+                formData.append('fullName', fullName);
+                formData.append('phone', phone);
+                formData.append('street', street);
+                formData.append('barangay', barangay);
+                formData.append('city', city);
+                formData.append('province', province);
+                formData.append('isPrimary', isPrimary ? 'on' : '');
+                
+                console.log('Form submitted with data:', {
+                    addressType, fullName, phone, street, barangay, city, province, isPrimary
+                });
+                
                 this.saveNewAddress(formData);
             });
         }
@@ -712,7 +752,33 @@ class CheckoutManager {
                 e.preventDefault();
                 const form = document.getElementById('addAddressForm');
                 if (form) {
-                    const formData = new FormData(form);
+                    // Collect form data manually to ensure we get all values
+                    const formData = new FormData();
+                    
+                    // Get values from form elements by ID
+                    const addressType = document.getElementById('addressType')?.value || '';
+                    const fullName = document.getElementById('fullName')?.value || '';
+                    const phone = document.getElementById('phone')?.value || '';
+                    const street = document.getElementById('street')?.value || '';
+                    const barangay = document.getElementById('barangay')?.value || '';
+                    const city = document.getElementById('city')?.value || '';
+                    const province = document.getElementById('province')?.value || '';
+                    const isPrimary = document.getElementById('isPrimary')?.checked || false;
+                    
+                    // Append to FormData
+                    formData.append('addressType', addressType);
+                    formData.append('fullName', fullName);
+                    formData.append('phone', phone);
+                    formData.append('street', street);
+                    formData.append('barangay', barangay);
+                    formData.append('city', city);
+                    formData.append('province', province);
+                    formData.append('isPrimary', isPrimary ? 'on' : '');
+                    
+                    console.log('Form data collected:', {
+                        addressType, fullName, phone, street, barangay, city, province, isPrimary
+                    });
+                    
                     this.saveNewAddress(formData);
                 }
             });
@@ -734,6 +800,52 @@ class CheckoutManager {
             btn.addEventListener('click', (e) => {
                 const modal = e.target.closest('.modal');
                 if (modal) this.closeModal(modal.id);
+            });
+        });
+    }
+
+    // Setup navigation handlers for hamburger menu
+    setupNavigationHandlers() {
+        const hamburger = document.querySelector('.hamburger');
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const navOverlay = document.querySelector('.nav-overlay');
+        const closeMenu = document.querySelector('.close-menu');
+        const navLinks = document.querySelectorAll('.nav-links a');
+        const navbar = document.querySelector('.navbar');
+
+        if (hamburger && navOverlay) {
+            hamburger.addEventListener('click', function() {
+                this.classList.toggle('active');
+                navOverlay.classList.toggle('active');
+                document.body.style.overflow = navOverlay.classList.contains('active') ? 'hidden' : '';
+                if (navbar) {
+                    navbar.style.opacity = navOverlay.classList.contains('active') ? '0' : '1';
+                    navbar.style.visibility = navOverlay.classList.contains('active') ? 'hidden' : 'visible';
+                }
+            });
+        }
+
+        if (closeMenu) {
+            closeMenu.addEventListener('click', function() {
+                hamburger.classList.remove('active');
+                navOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+                if (navbar) {
+                    navbar.style.opacity = '1';
+                    navbar.style.visibility = 'visible';
+                }
+            });
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                hamburger.classList.remove('active');
+                navOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+                if (navbar) {
+                    navbar.style.opacity = '1';
+                    navbar.style.visibility = 'visible';
+                }
             });
         });
     }

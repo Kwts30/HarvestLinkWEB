@@ -1,3 +1,4 @@
+// Admin Dashboard
 class ModernAdminDashboard {
     constructor() {
         this.currentUser = null;
@@ -538,35 +539,11 @@ class ModernAdminDashboard {
         const formData = new FormData(e.target);
         const imageFile = formData.get('profileImage');
         
-        // Prepare user data
-        const userData = {
-            firstName: formData.get('firstName'),
-            lastName: formData.get('lastName'),
-            email: formData.get('email'),
-            phoneNumber: formData.get('phone') || null,
-            role: formData.get('role'),
-            password: formData.get('password')
-        };
-        
-        // Handle profile image
+        // Check if there's an image file to upload
         if (imageFile && imageFile.size > 0) {
-            try {
-                // Show processing message
-                this.showToast('Processing image...', 'info', 1000);
-                
-                const imageBase64 = await this.convertImageToBase64(imageFile);
-                userData.profileImage = imageBase64;
-                
-                // Validate final size (base64 is ~33% larger than original)
-                if (imageBase64.length > 500000) { // ~375KB original
-                    this.showToast('Processed image is still too large. Please use a smaller image.', 'error');
-                    return;
-                }
-            } catch (error) {
-                console.error('Image processing error:', error);
-                this.showToast('Error processing image. Please try a different image.', 'error');
-                return;
-            }
+            // The file will be automatically included in FormData
+            // but we need to make sure it's using the correct field name
+            formData.set('profileImage', imageFile);
         }
 
         try {
@@ -574,9 +551,8 @@ class ModernAdminDashboard {
             
             const response = await fetch(this.buildApiUrl('/users'), {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify(userData)
+                body: formData // Send FormData directly, don't set Content-Type header
             });
 
             if (response.ok) {
@@ -622,34 +598,11 @@ class ModernAdminDashboard {
         const imageFile = formData.get('profileImage');
         const userId = formData.get('userId');
         
-        // Prepare user data
-        const userData = {
-            firstName: formData.get('firstName'),
-            lastName: formData.get('lastName'),
-            email: formData.get('email'),
-            phoneNumber: formData.get('phone') || null,
-            role: formData.get('role')
-        };
-        
-        // Handle profile image
+        // Check if there's an image file to upload
         if (imageFile && imageFile.size > 0) {
-            try {
-                // Show processing message
-                this.showToast('Processing image...', 'info', 1000);
-                
-                const imageBase64 = await this.convertImageToBase64(imageFile);
-                userData.profileImage = imageBase64;
-                
-                // Validate final size
-                if (imageBase64.length > 500000) {
-                    this.showToast('Processed image is still too large. Please use a smaller image.', 'error');
-                    return;
-                }
-            } catch (error) {
-                console.error('Image processing error:', error);
-                this.showToast('Error processing image. Please try a different image.', 'error');
-                return;
-            }
+            // The file will be automatically included in FormData
+            // but we need to make sure it's using the correct field name
+            formData.set('profileImage', imageFile);
         }
 
         try {
@@ -657,9 +610,8 @@ class ModernAdminDashboard {
             
             const response = await fetch(this.buildApiUrl(`/users/${userId}`), {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify(userData)
+                body: formData // Send FormData directly, don't set Content-Type header
             });
 
             if (response.ok) {
@@ -1353,13 +1305,13 @@ class ModernAdminDashboard {
         }
         
         const formData = new FormData(e.target);
-        const productData = Object.fromEntries(formData.entries());
         
-        // Get base64 image if uploaded
+        // Check if there's an image file to upload
         const imageInput = document.getElementById('productImage');
         if (imageInput.files[0]) {
-            const base64Image = await this.fileToBase64(imageInput.files[0]);
-            productData.image = base64Image;
+            // The file will be automatically included in FormData
+            // but we need to make sure it's using the correct field name
+            formData.set('productImage', imageInput.files[0]);
         }
 
         try {
@@ -1367,11 +1319,8 @@ class ModernAdminDashboard {
             
             const response = await fetch(this.buildApiUrl('/products'), {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
                 credentials: 'include',
-                body: JSON.stringify(productData)
+                body: formData // Send FormData directly, don't set Content-Type header
             });
 
             if (response.ok) {
@@ -1399,14 +1348,14 @@ class ModernAdminDashboard {
         }
         
         const formData = new FormData(e.target);
-        const productData = Object.fromEntries(formData.entries());
         const productId = document.getElementById('editProductId').value;
         
-        // Get base64 image if uploaded
+        // Check if there's an image file to upload
         const imageInput = document.getElementById('editProductImage');
         if (imageInput.files[0]) {
-            const base64Image = await this.fileToBase64(imageInput.files[0]);
-            productData.image = base64Image;
+            // The file will be automatically included in FormData
+            // but we need to make sure it's using the correct field name
+            formData.set('productImage', imageInput.files[0]);
         }
 
         try {
@@ -1414,11 +1363,8 @@ class ModernAdminDashboard {
             
             const response = await fetch(this.buildApiUrl(`/products/${productId}`), {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
                 credentials: 'include',
-                body: JSON.stringify(productData)
+                body: formData // Send FormData directly, don't set Content-Type header
             });
 
             if (response.ok) {
@@ -1883,6 +1829,15 @@ class ModernAdminDashboard {
                 removeBtn.style.display = 'inline-flex';
             }
             
+            // Clear any existing remove flags since user selected a new image
+            const form = event.target.closest('form');
+            if (form) {
+                const profileRemoveFlag = form.querySelector('input[name="removeProfileImage"]');
+                const productRemoveFlag = form.querySelector('input[name="removeProductImage"]');
+                if (profileRemoveFlag) profileRemoveFlag.value = 'false';
+                if (productRemoveFlag) productRemoveFlag.value = 'false';
+            }
+            
             this.showToast('Image uploaded successfully', 'success');
         };
         
@@ -1936,8 +1891,33 @@ class ModernAdminDashboard {
         const fileInput = document.getElementById(isEdit ? 'editProfileImage' : 'profileImage');
         const removeBtn = document.getElementById(isEdit ? 'editRemoveImageBtn' : 'removeImageBtn');
         
+        console.log('isEdit:', isEdit);
+        console.log('fileInput found:', !!fileInput);
+        console.log('removeBtn found:', !!removeBtn);
+        
         if (fileInput) fileInput.value = '';
         if (removeBtn) removeBtn.style.display = 'none';
+        
+        // Set a flag to indicate image should be removed
+        const form = fileInput?.closest('form');
+        console.log('form found:', !!form);
+        console.log('form id:', form?.id);
+        
+        if (form) {
+            let removeFlag = form.querySelector('input[name="removeProfileImage"]');
+            if (!removeFlag) {
+                removeFlag = document.createElement('input');
+                removeFlag.type = 'hidden';
+                removeFlag.name = 'removeProfileImage';
+                form.appendChild(removeFlag);
+                console.log('Created new removeProfileImage hidden input');
+            } else {
+                console.log('Found existing removeProfileImage hidden input');
+            }
+            removeFlag.value = 'true';
+            console.log('Set removeProfileImage flag to:', removeFlag.value);
+        }
+        console.log('========================');
     }
 
     removeProductImage(previewId) {
@@ -1962,6 +1942,19 @@ class ModernAdminDashboard {
         
         if (fileInput) fileInput.value = '';
         if (removeBtn) removeBtn.style.display = 'none';
+        
+        // Set a flag to indicate image should be removed
+        const form = fileInput?.closest('form');
+        if (form) {
+            let removeFlag = form.querySelector('input[name="removeProductImage"]');
+            if (!removeFlag) {
+                removeFlag = document.createElement('input');
+                removeFlag.type = 'hidden';
+                removeFlag.name = 'removeProductImage';
+                form.appendChild(removeFlag);
+            }
+            removeFlag.value = 'true';
+        }
     }
 
     // Form Validation
