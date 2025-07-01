@@ -160,5 +160,32 @@
             <p>&copy; 2025 HarvestLink Incorporated. All rights reserved.</p>
         </div>
     </footer>
+    <script>
+      document.getElementById('contactForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const form = e.target;
+  const data = {
+    name: form.name.value,
+    email: form.email.value,
+    phone: form.phone.value,
+    message: form.message.value
+  };
+  fetch('/api/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+    .then(res => res.json())
+    .then(result => {
+      if (result.success) {
+        alert('Message sent!');
+        form.reset();
+      } else {
+        alert('Failed to send message.');
+      }
+    })
+    .catch(() => alert('Failed to send message.'));
+});
+    </script>
 </body>
 </html>

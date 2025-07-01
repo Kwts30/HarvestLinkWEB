@@ -5,6 +5,7 @@ import Transaction from '../../models/Transaction.js';
 import Address from '../../models/address.js';
 import Cart from '../../models/cart.js';
 import { requireAuth, requireAdmin } from '../../middlewares/index.js';
+import messagesRouter from './messages.js';
 
 const router = express.Router();
 
@@ -565,5 +566,7 @@ router.get('/orders', requireAuth, async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+router.use('/messages', messagesRouter);
 
 export default router;
