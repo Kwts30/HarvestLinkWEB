@@ -599,7 +599,6 @@ router.get('/orders', requireAuth, async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 // ============ TRANSACTION RECEIPT API ============
 
 // Get transaction receipt
@@ -636,8 +635,5 @@ router.get('/transactions/:transactionId/receipt', requireAuth, async (req, res)
     });
   }
 });
-=======
-router.use('/messages', messagesRouter);
->>>>>>> b35577677e19ae36ba1dee81bea4c3fad9c0df8e
 
 export default router;
