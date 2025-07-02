@@ -9,7 +9,6 @@ import multer from 'multer';
 
 // Import routes and middlewares
 import routes from './routes/index.js';
-import apiRoutes from './routes/api/routes.js';
 import { redirectIfNotAuthenticated, redirectIfAuthenticated, validateSession, requireAdminPage } from './middlewares/index.js';
 import { ensureUploadsDir } from './middlewares/fileUtils.js';
 
@@ -144,7 +143,6 @@ app.get('/favicon.ico', (req, res) => {
 
 // API and auth routes
 app.use('/', routes);
-app.use('/api', apiRoutes);
 
 // Page routes
 app.get('/', async (req, res) => {

@@ -10,6 +10,9 @@ import messagesRouter from './messages.js';
 
 const router = express.Router();
 
+// Mount messages router
+router.use('/messages', messagesRouter);
+
 // API health check endpoint
 router.get('/health', (req, res) => {
     res.json({ 
