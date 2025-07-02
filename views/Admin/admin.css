@@ -298,34 +298,6 @@ input, select, textarea, button {
     gap: 1.5rem;
 }
 
-.notification-badge {
-    position: relative;
-    padding: 0.5rem;
-    border-radius: var(--radius-md);    cursor: pointer;
-}
-
-.notification-badge:hover {
-    background: var(--background-secondary);
-}
-
-.notification-badge i {
-    font-size: 1.25rem;
-    color: var(--text-secondary);
-}
-
-.badge-count {
-    position: absolute;
-    top: 0;
-    right: 0;
-    background: var(--danger-color);
-    color: white;
-    font-size: 0.625rem;
-    padding: 0.125rem 0.375rem;
-    border-radius: 0.75rem;
-    min-width: 1.125rem;
-    text-align: center;
-}
-
 .current-time {
     font-size: 0.875rem;
     color: var(--text-secondary);
@@ -490,14 +462,6 @@ input, select, textarea, button {
 
 .view-all:hover {
     color: var(--primary-dark);
-}
-
-.period-selector {
-    padding: 0.5rem 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);    background: var(--background-secondary);
-    font-size: 0.875rem;
-    cursor: pointer;
 }
 
 .card-content {
@@ -1153,6 +1117,39 @@ input[type="checkbox"] {
         flex-wrap: wrap;
         gap: 0.25rem;
     }
+}
+
+/* Password Change Section Styles */
+.password-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--border-color);
+}
+
+.password-header {
+    margin-bottom: 1.5rem;
+    padding: 1rem 0;
+}
+
+.password-header h4 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.password-header h4::before {
+    content: "🔒";
+    font-size: 1.25rem;
+}
+
+.password-header small {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-style: italic;
 }
 
 /* Address Management Styles */

@@ -5,6 +5,7 @@ import Transaction from '../../models/Transaction.js';
 import Address from '../../models/address.js';
 import Cart from '../../models/cart.js';
 import Invoice from '../../models/invoice.js';
+import TopProduct from '../../models/topproducts.js';
 import { requireAuth, requireAdmin } from '../../middlewares/index.js';
 import messagesRouter from './messages.js';
 
@@ -551,12 +552,31 @@ router.post('/checkout', requireAuth, async (req, res) => {
     transaction.invoiceId = invoice._id;
     await transaction.save();
     
-    // Update product stock
+    // Update product stock and top products
     for (const cartItem of cart.items) {
+      // Update product stock
       await Product.findByIdAndUpdate(
         cartItem.productId._id,
         { $inc: { stock: -cartItem.quantity } }
       );
+      
+      // Update or create top product entry
+      const existingTopProduct = await TopProduct.findOne({ 
+        productId: cartItem.productId._id 
+      });
+      
+      if (existingTopProduct) {
+        // Update existing top product sales count
+        existingTopProduct.salesCount += cartItem.quantity;
+        await existingTopProduct.save();
+      } else {
+        // Create new top product entry
+        const newTopProduct = new TopProduct({
+          productId: cartItem.productId._id,
+          salesCount: cartItem.quantity
+        });
+        await newTopProduct.save();
+      }
     }
     
     // Clear cart from Cart collection (order completed)
@@ -635,6 +655,66 @@ router.get('/transactions/:transactionId/receipt', requireAuth, async (req, res)
     res.status(500).json({
       success: false,
       message: 'Failed to get transaction receipt'
+    });
+  }
+});
+
+// Get top products based on sales data
+router.get('/products/top', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    
+    // Get top products based on actual sales data
+    const topProducts = await TopProduct.find()
+      .populate({
+        path: 'productId',
+        match: { isActive: true }, // Only include active products
+        select: 'name description price image category stock isActive'
+      })
+      .sort({ salesCount: -1 })
+      .limit(limit)
+      .lean();
+    
+    // Filter out any products that were not populated (inactive products)
+    const validTopProducts = topProducts
+      .filter(item => item.productId)
+      .map(item => ({
+        ...item.productId,
+        salesCount: item.salesCount,
+        _id: item.productId._id
+      }));
+    
+    // If we don't have enough top products from sales data, fill with newest active products
+    if (validTopProducts.length < limit) {
+      const existingProductIds = validTopProducts.map(p => p._id.toString());
+      const additionalProducts = await Product.find({ 
+        isActive: true,
+        _id: { $nin: existingProductIds }
+      })
+      .sort({ createdAt: -1 })
+      .limit(limit - validTopProducts.length)
+      .lean();
+      
+      // Add salesCount: 0 to additional products
+      const additionalWithSalesCount = additionalProducts.map(product => ({
+        ...product,
+        salesCount: 0
+      }));
+      
+      validTopProducts.push(...additionalWithSalesCount);
+    }
+
+    res.json({
+      success: true,
+      products: validTopProducts,
+      message: 'Top products retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Get top products error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Server error', 
+      details: error.message 
     });
   }
 });

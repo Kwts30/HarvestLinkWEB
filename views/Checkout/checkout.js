@@ -78,10 +78,8 @@ class CheckoutManager {
         }
     }
 
-    // ================================
     // ADDRESS MANAGEMENT
-    // ================================
-
+    
     async loadUserAddresses() {
         try {
             this.showLoading('loadingAddressMessage');
@@ -430,19 +428,7 @@ class CheckoutManager {
         const paymentNames = {
             'gcash': 'GCash',
             'maya': 'Maya',
-            'online-banking': 'Online Banking',
             'cod': 'Cash on Delivery (COD)'
-        };
-
-        const bankNames = {
-            'bdo': 'BDO (Banco de Oro)',
-            'bpi': 'BPI (Bank of the Philippine Islands)',
-            'metrobank': 'Metrobank',
-            'unionbank': 'UnionBank',
-            'landbank': 'Landbank',
-            'pnb': 'Philippine National Bank (PNB)',
-            'security-bank': 'Security Bank',
-            'rcbc': 'RCBC'
         };
 
         let displayText = 'Select Payment Method';
@@ -574,11 +560,6 @@ class CheckoutManager {
                 return;
             }
 
-            if (this.selectedPaymentMethod === 'online-banking' && !this.selectedBank) {
-                this.showError('Please select a bank for online banking');
-                return;
-            }
-
             if (this.cartItems.length === 0) {
                 this.showError('Your cart is empty');
                 return;
@@ -645,7 +626,7 @@ class CheckoutManager {
                     <button class="btn-primary" onclick="this.closest('.success-modal').remove(); window.location.href='/shop'">
                         Continue Shopping
                     </button>
-                    <button class="btn-secondary" onclick="this.closest('.success-modal').remove(); window.location.href='/orders'">
+                    <button class="btn-secondary" onclick="this.closest('.success-modal').remove(); window.location.href='/profile'">
                         View Orders
                     </button>
                 </div>

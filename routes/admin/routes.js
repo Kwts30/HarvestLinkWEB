@@ -3,7 +3,9 @@ import User from '../../models/User.js';
 import Product from '../../models/Product.js';
 import Transaction from '../../models/Transaction.js';
 import Address from '../../models/address.js';
+import TopProduct from '../../models/topproducts.js';
 import { requireAdmin } from '../../middlewares/index.js';
+import { processPasswordChange } from '../../middlewares/verifyPassword.js';
 import upload from '../../middlewares/multerstorage.js';
 import { deleteUploadedFile } from '../../middlewares/fileUtils.js';
 import fs from 'fs';
@@ -13,6 +15,37 @@ const router = express.Router();
 
 // Apply admin middleware to all routes
 router.use(requireAdmin);
+
+// Test endpoint for debugging
+router.get('/test', (req, res) => {
+  res.json({ 
+    message: 'Admin API is working!', 
+    timestamp: new Date().toISOString(),
+    route: '/api/admin/test',
+    user: req.user ? `${req.user.firstName} ${req.user.lastName}` : 'Unknown'
+  });
+});
+
+// Test TopProduct model
+router.get('/test/topproducts', async (req, res) => {
+  try {
+    const count = await TopProduct.countDocuments();
+    const sample = await TopProduct.find().limit(3).lean();
+    
+    res.json({
+      message: 'TopProduct test successful',
+      count: count,
+      sample: sample,
+      modelName: TopProduct.modelName
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'TopProduct test failed',
+      details: error.message,
+      stack: error.stack
+    });
+  }
+});
 
 // Get dashboard stats
 router.get('/dashboard/stats', async (req, res) => {
@@ -196,8 +229,17 @@ router.post('/users', upload.single('profileImage'), async (req, res) => {
 });
 
 // Update user
-router.put('/users/:id', upload.single('profileImage'), async (req, res) => {
+router.put('/users/:id', upload.single('profileImage'), processPasswordChange, async (req, res) => {
   try {
+    // If we reach here with password fields but no hashed password, something is wrong
+    if ((req.body.currentPassword || req.body.newPassword || req.body.confirmNewPassword) && !req.body.password) {
+      return res.status(500).json({
+        success: false,
+        message: 'Server error: Password processing failed',
+        errors: { general: 'Password middleware error' }
+      });
+    }
+    
     // Extract and map form data to User model fields
     const updateData = {
       firstName: req.body.firstName,
@@ -208,10 +250,9 @@ router.put('/users/:id', upload.single('profileImage'), async (req, res) => {
       phoneNumber: req.body.phone || req.body.phoneNumber || null
     };
     
-    // Handle password if provided
+    // Handle password if it was processed by middleware
     if (req.body.password) {
-      const bcrypt = await import('bcrypt');
-      updateData.password = await bcrypt.hash(req.body.password, 10);
+      updateData.password = req.body.password;
     }
 
     // Handle profile image upload
@@ -563,6 +604,62 @@ router.get('/products', async (req, res) => {
   }
 });
 
+// Get top products (must be before /products/:id route)
+router.get('/products/top', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 5;
+    
+    // Get top products based on actual sales data
+    const topProducts = await TopProduct.find()
+      .populate({
+        path: 'productId',
+        match: { isActive: true }, // Only include active products
+        select: 'name description price image category stock isActive'
+      })
+      .sort({ salesCount: -1 })
+      .limit(limit)
+      .lean();
+    
+    // Filter out any products that were not populated (inactive products)
+    const validTopProducts = topProducts
+      .filter(item => item.productId)
+      .map(item => ({
+        ...item.productId,
+        salesCount: item.salesCount,
+        _id: item.productId._id
+      }));
+    
+    // If we don't have enough top products from sales data, fill with other active products
+    if (validTopProducts.length < limit) {
+      const existingProductIds = validTopProducts.map(p => p._id.toString());
+      const additionalProducts = await Product.find({ 
+        isActive: true,
+        _id: { $nin: existingProductIds }
+      })
+      .sort({ createdAt: -1 })
+      .limit(limit - validTopProducts.length)
+      .lean();
+      
+      // Add salesCount: 0 to additional products
+      const additionalWithSalesCount = additionalProducts.map(product => ({
+        ...product,
+        salesCount: 0
+      }));
+      
+      validTopProducts.push(...additionalWithSalesCount);
+    }
+
+    res.json({
+      success: true,
+      products: validTopProducts || [],
+      message: 'Top products retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Get top products error:', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
+  }
+});
+
 // Get single product by ID
 router.get('/products/:id', async (req, res) => {
   try {
@@ -574,24 +671,6 @@ router.get('/products/:id', async (req, res) => {
   } catch (error) {
     console.error('Get product error:', error);
     res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Get top products
-router.get('/products/top', async (req, res) => {
-  try {
-    const limit = parseInt(req.query.limit) || 5;
-    
-    // For now, return products sorted by stock (as a proxy for sales)
-    const topProducts = await Product.find({ isActive: true })
-      .sort({ stock: -1 })
-      .limit(limit)
-      .lean(); // Use lean for better performance
-
-    res.json(topProducts || []);
-  } catch (error) {
-    console.error('Get top products error:', error);
-    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 

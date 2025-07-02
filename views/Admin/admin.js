@@ -304,7 +304,9 @@ class ModernAdminDashboard {
             } else {
                 console.error('Failed to load recent transactions:', recentTransactionsResponse.status);
             }            if (topProductsResponse.ok) {
-                const topProducts = await topProductsResponse.json();
+                const topProductsData = await topProductsResponse.json();
+                // Handle both direct array and wrapped response formats
+                const topProducts = topProductsData.products || topProductsData || [];
                 this.renderTopProducts(topProducts);
             } else {
                 console.error('Failed to load top products:', topProductsResponse.status);
@@ -374,23 +376,25 @@ class ModernAdminDashboard {
 
         if (products.length === 0) {
             container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-box"></i>
-                    <h3>No product data</h3>
-                    <p>Top products will appear here</p>
-                </div>
+                <tr>
+                    <td colspan="5" class="empty-state">
+                        <i class="fas fa-box"></i>
+                        <h3>No product data</h3>
+                        <p>Top products will appear here once orders are placed</p>
+                    </td>
+                </tr>
             `;
             return;
         }
 
         container.innerHTML = products.map((product, index) => `
-            <div class="product-item">
-                <div class="item-info">
-                    <div class="item-title">${product.name}</div>
-                    <div class="item-subtitle">${product.sales || 0} sold</div>
-                </div>
-                <div class="item-value">#${index + 1}</div>
-            </div>
+            <tr>
+                <td>#${index + 1}</td>
+                <td>${product.name || 'Unknown Product'}</td>
+                <td>${product.category || 'N/A'}</td>
+                <td>${product.stock || 0}</td>
+                <td>${product.salesCount || 0} sold</td>
+            </tr>
         `).join('');
     }
 
@@ -501,6 +505,8 @@ class ModernAdminDashboard {
         this.clearFormErrors('add');
         this.removeImage('userImagePreview');
         
+        // Show modal - reset display style and add active class
+        modal.style.display = '';
         modal.classList.add('active');
         
         // Focus on first input
@@ -518,6 +524,13 @@ class ModernAdminDashboard {
         this.clearFormErrors('edit');
         this.removeImage('editUserImagePreview');
         
+        // Clear password fields explicitly
+        const passwordFields = ['editCurrentPassword', 'editNewPassword', 'editConfirmNewPassword'];
+        passwordFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) field.value = '';
+        });
+        
         // Clear any existing addresses immediately
         this.clearAddressesContainer();
         
@@ -527,6 +540,8 @@ class ModernAdminDashboard {
         // Load user data
         this.loadUserForEdit(userId);
         
+        // Show modal - reset display style and add active class
+        modal.style.display = '';
         modal.classList.add('active');
     }
     
@@ -1840,6 +1855,8 @@ class ModernAdminDashboard {
     showModal(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
+            // Reset display style and add active class
+            modal.style.display = '';
             modal.classList.add('active');
         }
     }
@@ -1849,7 +1866,10 @@ class ModernAdminDashboard {
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.remove('active');
-                modal.style.display = 'none';
+                // Use setTimeout to ensure the modal can be reopened immediately
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 50);
                 
                 // Clear form when closing add product modal
                 if (modalId === 'addProductModal') {
@@ -1876,7 +1896,9 @@ class ModernAdminDashboard {
         } else {
             document.querySelectorAll('.modal').forEach(modal => {
                 modal.classList.remove('active');
-                modal.style.display = 'none';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 50);
             });
             // Clear addresses when closing all modals
             this.clearAddressesContainer();
@@ -2140,6 +2162,58 @@ class ModernAdminDashboard {
             }
         }
         
+        // Password change validation (for edit mode)
+        if (mode === 'edit') {
+            const currentPassword = document.getElementById('editCurrentPassword')?.value;
+            const newPassword = document.getElementById('editNewPassword')?.value;
+            const confirmNewPassword = document.getElementById('editConfirmNewPassword')?.value;
+            
+            const currentPasswordError = document.getElementById('editCurrentPasswordError');
+            const newPasswordError = document.getElementById('editNewPasswordError');
+            const confirmNewPasswordError = document.getElementById('editConfirmNewPasswordError');
+            
+            // If any password field is filled, all must be filled
+            if (currentPassword || newPassword || confirmNewPassword) {
+                if (!currentPassword) {
+                    this.showFieldError(currentPasswordError, 'Current password is required to change password');
+                    isValid = false;
+                } else {
+                    this.clearFieldError(currentPasswordError);
+                }
+                
+                if (!newPassword) {
+                    this.showFieldError(newPasswordError, 'New password is required');
+                    isValid = false;
+                } else if (newPassword.length < 6) {
+                    this.showFieldError(newPasswordError, 'New password must be at least 6 characters long');
+                    isValid = false;
+                } else {
+                    this.clearFieldError(newPasswordError);
+                }
+                
+                if (!confirmNewPassword) {
+                    this.showFieldError(confirmNewPasswordError, 'Please confirm new password');
+                    isValid = false;
+                } else if (newPassword !== confirmNewPassword) {
+                    this.showFieldError(confirmNewPasswordError, 'New passwords do not match');
+                    isValid = false;
+                } else {
+                    this.clearFieldError(confirmNewPasswordError);
+                }
+                
+                // Check if new password is different from current
+                if (currentPassword && newPassword && currentPassword === newPassword) {
+                    this.showFieldError(newPasswordError, 'New password must be different from current password');
+                    isValid = false;
+                }
+            } else {
+                // Clear any existing password errors if no password change is attempted
+                this.clearFieldError(currentPasswordError);
+                this.clearFieldError(newPasswordError);
+                this.clearFieldError(confirmNewPasswordError);
+            }
+        }
+        
         return isValid;
     }
 
@@ -2187,7 +2261,18 @@ class ModernAdminDashboard {
             
             // Handle field name mapping for edit mode
             if (mode === 'edit') {
-                fieldId = `edit${field.charAt(0).toUpperCase() + field.slice(1)}`;
+                // Special handling for password fields
+                if (field === 'currentPassword') {
+                    fieldId = 'editCurrentPassword';
+                } else if (field === 'newPassword') {
+                    fieldId = 'editNewPassword';
+                } else if (field === 'confirmNewPassword') {
+                    fieldId = 'editConfirmNewPassword';
+                } else if (field === 'password') {
+                    fieldId = 'editNewPassword'; // Map general password errors to new password field
+                } else {
+                    fieldId = `edit${field.charAt(0).toUpperCase() + field.slice(1)}`;
+                }
             }
             
             const errorElement = document.getElementById(`${fieldId}Error`);
