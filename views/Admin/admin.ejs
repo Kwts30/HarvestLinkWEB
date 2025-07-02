@@ -185,9 +185,21 @@
                         </select>
                     </div>
                     <div class="card-content">
-                        <div id="topProducts" class="products-list">
-                            <!-- Top products will be loaded here -->
-                        </div>
+                        <!-- Top Products Table -->
+                        <table class="admin-table" id="topProductsTable">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Stock</th>
+                                    <th>Sales</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topProducts">
+                                <!-- Top products will be loaded here -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -911,6 +923,87 @@
     }
     updateMessagesCount();
     setInterval(updateMessagesCount, 60000);
+  });
+
+  // Top Products Table Loader
+  document.addEventListener('DOMContentLoaded', function() {
+    function loadTopProducts(period = 'week') {
+      const tbody = document.getElementById('topProducts');
+      tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+      fetch(`/api/products/top?period=${period}`)
+        .then(res => res.json())
+        .then(products => {
+          if (!products.length) {
+            tbody.innerHTML = '<tr><td colspan="5">No top products found.</td></tr>';
+            return;
+          }
+          let html = '';
+          products.forEach((prod, idx) => {
+            html += `<tr>
+              <td>${idx + 1}</td>
+              <td>${prod.name}</td>
+              <td>${prod.category || ''}</td>
+              <td>${prod.stock ?? ''}</td>
+              <td>${prod.sales ?? 0}</td>
+            </tr>`;
+          });
+          tbody.innerHTML = html;
+        })
+        .catch(() => {
+          tbody.innerHTML = '<tr><td colspan="5">Failed to load top products.</td></tr>';
+        });
+    }
+
+    // Initial load
+    loadTopProducts();
+
+    // Change period
+    document.getElementById('productPeriod').addEventListener('change', function() {
+      loadTopProducts(this.value);
+    });
+
+    // --- Fix for Edit Product Modal Cancel/Close ---
+    // Ensure modal closes on cancel or X button
+    function closeEditProductModal() {
+      document.getElementById('editProductModal').style.display = 'none';
+    }
+    document.getElementById('cancelEditProduct').addEventListener('click', closeEditProductModal);
+    document.getElementById('closeEditProductModal').addEventListener('click', closeEditProductModal);
+
+    // --- Fix for Add Product Modal Cancel/Close ---
+    function closeAddProductModal() {
+      document.getElementById('addProductModal').style.display = 'none';
+    }
+    document.getElementById('cancelAddProduct').addEventListener('click', closeAddProductModal);
+    document.getElementById('closeAddProductModal').addEventListener('click', closeAddProductModal);
+
+    // --- Close Add Product Modal after successful save ---
+    document.getElementById('addProductForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      // ...existing validation and AJAX logic...
+      const form = this;
+      const formData = new FormData(form);
+      fetch('/api/products/add', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) {
+          // ...existing code to update UI, show toast, etc...
+          showToast('Product added successfully!', 'success');
+        } else {
+          // ...existing error handling...
+          showToast('Failed to add product.', 'error');
+        }
+        closeAddProductModal(); // Always close modal after attempt
+      })
+      .catch(() => {
+        // ...existing error handling...
+        showToast('Failed to add product.', 'error');
+        closeAddProductModal(); // Always close modal after attempt
+      });
+    });
   });
 </script>
 </html>
