@@ -37,6 +37,7 @@ class ShopManager {
         this.loadProducts();
         this.setupProductDetailHandlers();
         this.setupCartHandlers();
+        this.setupFilterHandlers(); // Add filter/search handlers
     }
 
     // API helper method for public shop endpoints
@@ -51,18 +52,16 @@ class ShopManager {
             this.showLoading();
             // Fetch only active products for the shop
             const apiUrl = this.buildApiUrl('/products?isActive=true&limit=100');
-            
             const response = await fetch(apiUrl, {
                 credentials: 'include'
             });
-
             if (response.ok) {
                 const data = await response.json();
                 this.products = data.products || [];
-                
-                this.renderProducts(this.products);
+                this.renderCategoryOptions(); // Populate categories
+                this.applyFilters(); // Render filtered products
             } else {
-                throw new Error(`Server responded with status: ${response.status}`);
+                this.showError('Failed to load products.');
             }
         } catch (error) {
             console.error('Error loading products:', error);
@@ -70,6 +69,16 @@ class ShopManager {
         } finally {
             this.hideLoading();
         }
+    }
+
+    // Populate category dropdown from products
+    renderCategoryOptions() {
+        const categorySelect = document.querySelector('.shop-filter-category');
+        if (!categorySelect) return;
+        // Get unique categories
+        const categories = [...new Set(this.products.map(p => p.category).filter(Boolean))];
+        categorySelect.innerHTML = '<option value="">All Categories</option>' +
+            categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
     }
 
     // Show loading state
@@ -209,23 +218,20 @@ class ShopManager {
         
         try {
             await window.CartUtils.addToCart(productData, quantity);
-            
             // Show feedback
             const productCard = document.querySelector(`[data-product-id="${productId}"]`);
             if (productCard) {
                 const btn = productCard.querySelector('.add-to-cart-btn');
                 if (btn) {
                     const originalText = btn.textContent;
-                    
                     btn.textContent = 'Added!';
                     btn.style.backgroundColor = '#45a049';
-                
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.style.backgroundColor = '';
-                }, 1000);
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.style.backgroundColor = '';
+                    }, 1000);
+                }
             }
-        }
         } catch (error) {
             console.error('Error adding to cart:', error);
             // Show error feedback
@@ -236,14 +242,12 @@ class ShopManager {
                     const originalText = btn.textContent;
                     btn.textContent = 'Error!';
                     btn.style.backgroundColor = '#dc3545';
-                    
                     setTimeout(() => {
                         btn.textContent = originalText;
                         btn.style.backgroundColor = '';
                     }, 2000);
                 }
             }
-            
             // Show user-friendly error message
             alert(error.message || 'Failed to add item to cart. Please try again.');
         }
@@ -506,6 +510,53 @@ class ShopManager {
                 }
             });
         });
+    }
+
+    // Setup filter/search handlers
+    setupFilterHandlers() {
+        const searchInput = document.querySelector('.shop-search');
+        const categorySelect = document.querySelector('.shop-filter-category');
+        const stockSelect = document.querySelector('.shop-filter-stock');
+        if (searchInput) {
+            searchInput.addEventListener('input', () => this.applyFilters());
+        }
+        if (categorySelect) {
+            categorySelect.addEventListener('change', () => this.applyFilters());
+        }
+        if (stockSelect) {
+            stockSelect.addEventListener('change', () => this.applyFilters());
+        }
+    }
+
+    // Filter and render products based on search and filters
+    applyFilters() {
+        const searchInput = document.querySelector('.shop-search');
+        const categorySelect = document.querySelector('.shop-filter-category');
+        const stockSelect = document.querySelector('.shop-filter-stock');
+        let filtered = [...this.products];
+        // Search
+        const search = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        if (search) {
+            filtered = filtered.filter(p =>
+                (p.name && p.name.toLowerCase().includes(search)) ||
+                (p.description && p.description.toLowerCase().includes(search))
+            );
+        }
+        // Category
+        const category = categorySelect ? categorySelect.value : '';
+        if (category) {
+            filtered = filtered.filter(p => p.category === category);
+        }
+        // Stock
+        const stock = stockSelect ? stockSelect.value : '';
+        if (stock === 'in') {
+            filtered = filtered.filter(p => p.stock > 0);
+        } else if (stock === 'out') {
+            filtered = filtered.filter(p => p.stock <= 0);
+        }
+        // Sort by name (optional, can add more sort options)
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        this.renderProducts(filtered);
     }
 }
 

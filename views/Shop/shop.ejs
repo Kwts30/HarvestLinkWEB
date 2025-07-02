@@ -73,6 +73,18 @@
         
         <!-- Products Section -->
         <section class="products-section">
+            <div class="shop-filters">
+                <input type="text" class="shop-search" placeholder="Search products...">
+                <select class="shop-filter-category">
+                    <option value="">All Categories</option>
+                    <!-- Categories will be loaded dynamically or hardcoded here -->
+                </select>
+                <select class="shop-filter-stock">
+                    <option value="">All Stock</option>
+                    <option value="in">In Stock</option>
+                    <option value="out">Out of Stock</option>
+                </select>
+            </div>
             <div class="product-grid">
                 <!-- Products will be loaded dynamically from database -->
             </div>
