@@ -286,7 +286,29 @@ body {
     }
     
     .nav-overlay {
-        width: 250px;
+        width: 100%;
+        padding: 1rem;
+    }
+    
+    .nav-logo {
+        margin: 2rem 0;
+        width: 120px;
+        height: 120px;
+    }
+    
+    .nav-links {
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+    
+    .nav-links a {
+        font-size: 1.8rem;
+    }
+    
+    .close-menu {
+        top: 1.5rem;
+        right: 1.5rem;
+        font-size: 2rem;
     }
 }
 
@@ -309,6 +331,27 @@ body {
     .logo-circle img {
         width: 35px;
         height: 35px;
+    }
+    
+    .nav-logo {
+        margin: 1.5rem 0;
+        width: 100px;
+        height: 100px;
+    }
+    
+    .nav-links {
+        gap: 1.2rem;
+        margin-top: 0.5rem;
+    }
+    
+    .nav-links a {
+        font-size: 1.6rem;
+    }
+    
+    .close-menu {
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.8rem;
     }
 }
 

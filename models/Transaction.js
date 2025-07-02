@@ -71,6 +71,10 @@ const TransactionSchema = new mongoose.Schema({
   
   // Additional info
   notes: { type: String, default: '' },
+  invoiceId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Invoice' 
+  },
   
   // Legacy fields for backward compatibility
   user: { 

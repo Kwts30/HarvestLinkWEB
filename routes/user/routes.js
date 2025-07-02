@@ -2,22 +2,56 @@ import express from 'express';
 import User from '../../models/User.js';
 import { requireAuth } from '../../middlewares/index.js';
 import upload from '../../middlewares/multerstorage.js';
+import { deleteUploadedFile } from '../../middlewares/fileUtils.js';
 import fs from 'fs';
 import path from 'path';
 
 const router = express.Router();
 
-// Helper function to safely delete files
+// Helper function to safely delete files (enhanced version)
 function deleteImageFile(imagePath) {
+  console.log('Attempting to delete image file:', imagePath);
   if (imagePath && imagePath.startsWith('/uploads/')) {
     const fullPath = path.join(process.cwd(), 'uploads', path.basename(imagePath));
+    console.log('Full path to delete:', fullPath);
+    if (fs.existsSync(fullPath)) {
+      try {
+        fs.unlinkSync(fullPath); // Use synchronous deletion for immediate cleanup
+        console.log('Successfully deleted file:', fullPath);
+        return true;
+      } catch (err) {
+        console.error('Error deleting file:', err);
+        return false;
+      }
+    } else {
+      console.log('File does not exist:', fullPath);
+      return false;
+    }
+  } else {
+    console.log('Invalid image path, not deleting:', imagePath);
+    return false;
+  }
+}
+
+// Helper function to safely delete files (async version for non-blocking operations)
+function deleteImageFileAsync(imagePath) {
+  console.log('Attempting to delete image file (async):', imagePath);
+  if (imagePath && imagePath.startsWith('/uploads/')) {
+    const fullPath = path.join(process.cwd(), 'uploads', path.basename(imagePath));
+    console.log('Full path to delete:', fullPath);
     if (fs.existsSync(fullPath)) {
       fs.unlink(fullPath, (err) => {
         if (err) {
           console.error('Error deleting file:', err);
+        } else {
+          console.log('Successfully deleted file:', fullPath);
         }
       });
+    } else {
+      console.log('File does not exist:', fullPath);
     }
+  } else {
+    console.log('Invalid image path, not deleting:', imagePath);
   }
 }
 
@@ -191,7 +225,14 @@ router.get('/profile', requireAuth, async (req, res) => {
 // Update user profile
 router.put('/profile', requireAuth, upload.single('profileImage'), async (req, res) => {
   try {
-    const { firstName, lastName, username, email, phone, profileImage } = req.body;
+    const { firstName, lastName, username, email, phone, profileImage, removeProfileImage } = req.body;
+    
+    console.log('Profile update request:', {
+      userId: req.user._id,
+      removeProfileImage,
+      hasFile: !!req.file,
+      profileImageField: profileImage
+    });
     
     // Check if username or email already exists (excluding current user)
     const existingUser = await User.findOne({
@@ -212,7 +253,16 @@ router.put('/profile', requireAuth, upload.single('profileImage'), async (req, r
         message: 'Username or email already exists'
       });
     }
-    
+
+    // Get current user data for file deletion
+    const currentUser = await User.findById(req.user._id);
+    if (!currentUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
     // Prepare update data with correct field mapping
     const updateData = {
       firstName,
@@ -221,37 +271,43 @@ router.put('/profile', requireAuth, upload.single('profileImage'), async (req, r
       email,
       phoneNumber: phone || null  // Map 'phone' to 'phoneNumber' for User model
     };
-    
-    // Handle profile image upload
+
+    // Handle profile image operations
     if (req.file) {
+      console.log('New file uploaded:', req.file.filename);
       // Delete old image file if exists
-      const existingUser = await User.findById(req.user._id);
-      if (existingUser?.profileImage && 
-          existingUser.profileImage.startsWith('/uploads/') && 
-          !existingUser.profileImage.startsWith('data:image/')) {
-        deleteImageFile(existingUser.profileImage);
+      if (currentUser?.profileImage && 
+          currentUser.profileImage.startsWith('/uploads/') && 
+          !currentUser.profileImage.startsWith('data:image/')) {
+        console.log('Deleting old profile image:', currentUser.profileImage);
+        deleteUploadedFile(currentUser.profileImage, true);
       }
-      // Store the file path in the database
+      // Store the new file path in the database
       updateData.profileImage = `/uploads/${req.file.filename}`;
-    } else if (req.body.removeProfileImage === 'true') {
+    } else if (removeProfileImage === 'true') {
+      console.log('Removing profile image for user:', req.user._id);
       // User wants to remove the image - delete existing file
-      const existingUser = await User.findById(req.user._id);
-      if (existingUser?.profileImage && 
-          existingUser.profileImage.startsWith('/uploads/') && 
-          !existingUser.profileImage.startsWith('data:image/')) {
-        deleteImageFile(existingUser.profileImage);
+      if (currentUser?.profileImage && 
+          currentUser.profileImage.startsWith('/uploads/') && 
+          !currentUser.profileImage.startsWith('data:image/')) {
+        console.log('Deleting profile image file:', currentUser.profileImage);
+        deleteUploadedFile(currentUser.profileImage, true);
       }
-      updateData.profileImage = '';
+      updateData.profileImage = null; // Set to null instead of empty string
     } else if (profileImage && profileImage.startsWith('data:image/')) {
       // Fallback: handle base64 images (for backward compatibility)
       updateData.profileImage = profileImage;
     } else if (profileImage === '') {
-      // If image is empty string, remove it
-      updateData.profileImage = '';
-    } else if (profileImage) {
-      // Keep existing image path
-      updateData.profileImage = profileImage;
+      // If image is empty string, remove it and delete file
+      if (currentUser?.profileImage && 
+          currentUser.profileImage.startsWith('/uploads/') && 
+          !currentUser.profileImage.startsWith('data:image/')) {
+        console.log('Deleting profile image file (empty string):', currentUser.profileImage);
+        deleteUploadedFile(currentUser.profileImage, true);
+      }
+      updateData.profileImage = null;
     }
+    // If no profile image changes are specified, don't modify the profileImage field
     
     // Update user
     const updatedUser = await User.findByIdAndUpdate(
@@ -259,17 +315,29 @@ router.put('/profile', requireAuth, upload.single('profileImage'), async (req, r
       updateData,
       { new: true, select: '-password' }
     );
-    
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    console.log('User updated successfully:', {
+      userId: updatedUser._id,
+      profileImage: updatedUser.profileImage
+    });
+
     // Update session data
     req.session.user = {
       ...req.session.user,
-      firstName,
-      lastName,
-      username,
-      email,
-      profileImage: updateData.profileImage
+      firstName: updatedUser.firstName,
+      lastName: updatedUser.lastName,
+      username: updatedUser.username,
+      email: updatedUser.email,
+      profileImage: updatedUser.profileImage
     };
-    
+
     res.json({
       success: true,
       message: 'Profile updated successfully',

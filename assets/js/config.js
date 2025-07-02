@@ -32,13 +32,6 @@ const API_CONFIG = (() => {
     }
 })();
 
-console.log('🔧 API Config:', { 
-    protocol: window.location.protocol, 
-    host: window.location.host, 
-    currentUrl: `${window.location.protocol}//${window.location.host}`,
-    selectedConfig: API_CONFIG
-});
-
 // Export for use in other files
 window.API_CONFIG = API_CONFIG;
 
@@ -61,7 +54,6 @@ window.CartUtils = {
                 const data = await response.json();
                 return data.cart || [];
             } else {
-                console.warn('Could not fetch cart, using empty cart');
                 return [];
             }
         } catch (error) {

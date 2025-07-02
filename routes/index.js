@@ -10,6 +10,7 @@ const router = express.Router();
 // Mount all API route modules
 router.use('/api', apiRoutes);
 router.use('/auth', authRoutes);
+router.use('/user', userRoutes); // Direct user routes
 router.use('/api/users', userRoutes); // Includes auth routes for backward compatibility
 router.use('/api/admin', adminRoutes);
 router.use('/api/addresses', addressRoutes); // Address management routes

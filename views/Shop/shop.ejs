@@ -51,6 +51,7 @@
                 <li><a href="/shop" class="shop-link">Shop</a></li>
                 <li><a href="/contacts">Contact</a></li>
                 <% if (isAuthenticated) { %>
+                    <li><a href="/profile">Profile</a></li>
                     <% if (user && user.role === 'admin') { %>
                         <li><a href="/admin">Admin</a></li>
                     <% } %>

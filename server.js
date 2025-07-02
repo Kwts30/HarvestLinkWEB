@@ -237,9 +237,10 @@ app.get('/profile', redirectIfNotAuthenticated, async (req, res) => {
 
         // Format transactions for display
         const formattedTransactions = userTransactions.map(transaction => ({
-            date: transaction.createdAt.toISOString().split('T')[0],
+            transactionId: transaction.transactionId,
+            date: transaction.createdAt,
             items: transaction.items.map(item => 
-                `${item.productId?.name || 'Unknown Product'} (${item.quantity}x)`
+                `${item.productId?.name || item.name || 'Unknown Product'} (${item.quantity}x)`
             ).join(', '),
             total: transaction.totalAmount.toFixed(2),
             status: transaction.status || 'pending'

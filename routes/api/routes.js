@@ -4,6 +4,7 @@ import Product from '../../models/Product.js';
 import Transaction from '../../models/Transaction.js';
 import Address from '../../models/address.js';
 import Cart from '../../models/cart.js';
+import Invoice from '../../models/invoice.js';
 import { requireAuth, requireAdmin } from '../../middlewares/index.js';
 
 const router = express.Router();
@@ -520,6 +521,32 @@ router.post('/checkout', requireAuth, async (req, res) => {
     
     await transaction.save();
     
+    // Generate unique invoice number
+    const invoiceNumber = `INV-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    
+    // Create invoice for the transaction
+    const invoice = new Invoice({
+      customerName: `${user.firstName} ${user.lastName}`.trim() || user.username,
+      items: items.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        price: item.price
+      })),
+      totalAmount: transaction.totalAmount,
+      status: "Pending",
+      PaymentMethod: paymentMethod === 'cod' ? 'COD' : 
+                   paymentMethod === 'gcash' ? 'Gcash' :
+                   paymentMethod === 'maya' ? 'Maya' :
+                   paymentMethod === 'bank_transfer' ? 'Bank Transfer' : 'Credit Card',
+      invoiceNumber: invoiceNumber
+    });
+    
+    await invoice.save();
+    
+    // Link invoice to transaction
+    transaction.invoiceId = invoice._id;
+    await transaction.save();
+    
     // Update product stock
     for (const cartItem of cart.items) {
       await Product.findByIdAndUpdate(
@@ -542,6 +569,11 @@ router.post('/checkout', requireAuth, async (req, res) => {
         estimatedDelivery: transaction.estimatedDelivery,
         paymentMethod: transaction.paymentMethod,
         status: transaction.status
+      },
+      invoice: {
+        id: invoice._id,
+        invoiceNumber: invoice.invoiceNumber,
+        status: invoice.status
       }
     });
   } catch (error) {
@@ -563,6 +595,43 @@ router.get('/orders', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Get orders error:', error);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ============ TRANSACTION RECEIPT API ============
+
+// Get transaction receipt
+router.get('/transactions/:transactionId/receipt', requireAuth, async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const userId = req.user.id;
+    
+    const transaction = await Transaction.findOne({ 
+      transactionId: transactionId,
+      userId: userId 
+    })
+    .populate('items.productId', 'name')
+    .populate('invoiceId')
+    .exec();
+    
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        message: 'Transaction not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      transaction: transaction,
+      invoice: transaction.invoiceId || null
+    });
+  } catch (error) {
+    console.error('Get transaction receipt error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get transaction receipt'
+    });
   }
 });
 

@@ -55,7 +55,10 @@ class ModernAdminDashboard {
     async init() {
         try {
             await this.checkAuth();
-            this.bindEvents();
+            // Small delay to ensure DOM is fully ready
+            setTimeout(() => {
+                this.bindEvents();
+            }, 100);
             this.initializeTime();
             this.loadDashboardData();
         } catch (error) {
@@ -108,8 +111,35 @@ class ModernAdminDashboard {
 
             // Modal controls - with safety checks
             document.querySelectorAll('.modal-close').forEach(btn => {
-                btn.addEventListener('click', this.closeModal.bind(this));
+                btn.addEventListener('click', (e) => {
+                    const modal = btn.closest('.modal');
+                    if (modal) {
+                        this.closeModal(modal.id);
+                    }
                 });
+            });
+
+            // Close modal when clicking outside
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        this.closeModal(modal.id);
+                    }
+                });
+            });
+
+            // Event delegation for cancel buttons (in case they're loaded dynamically)
+            document.addEventListener('click', (e) => {
+                if (e.target.id === 'cancelAddProduct') {
+                    this.closeModal('addProductModal');
+                } else if (e.target.id === 'cancelEditProduct') {
+                    this.closeModal('editProductModal');
+                } else if (e.target.id === 'cancelAddUser') {
+                    this.closeModal('addUserModal');
+                } else if (e.target.id === 'cancelEditUser') {
+                    this.closeModal('editUserModal');
+                }
+            });
 
             // User management - with safety checks
             this.safeAddEventListener('addUserBtn', 'click', () => this.showUserModal());
@@ -1235,6 +1265,10 @@ class ModernAdminDashboard {
             this.clearFormErrors();
             this.removeProductImage('editProductImagePreview');
             
+            // Initialize image state tracking
+            this.originalProductImage = null;
+            this.productImageState = 'unchanged';
+            
             this.isEditing.product = true;
             this.editingId.product = productId;
             if (title) title.textContent = 'Edit Product';
@@ -1250,6 +1284,10 @@ class ModernAdminDashboard {
             this.clearFormErrors();
             this.removeProductImage('productImagePreview');
             
+            // Initialize image state tracking for add mode
+            this.originalProductImage = null;
+            this.productImageState = 'unchanged';
+            
             this.isEditing.product = false;
             this.editingId.product = null;
             if (title) title.textContent = 'Add New Product';
@@ -1258,6 +1296,19 @@ class ModernAdminDashboard {
         if (modal) {
             modal.style.display = 'flex';
             modal.classList.add('active');
+            
+            // Ensure cancel button event listener is bound
+            const cancelBtn = modal.querySelector('.btn-secondary');
+            if (cancelBtn) {
+                // Remove existing listeners to prevent duplicates
+                const newCancelBtn = cancelBtn.cloneNode(true);
+                cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+                
+                // Add fresh event listener
+                newCancelBtn.addEventListener('click', () => {
+                    this.closeModal(modal.id);
+                });
+            }
         }
     }
     
@@ -1280,13 +1331,19 @@ class ModernAdminDashboard {
                 document.getElementById('editProductUnit').value = product.unit || '';
                 document.getElementById('editProductFarmer').value = product.farmer || '';
                 
-                // Load existing image if available
+                // Load existing image if available and track original image
                 if (product.image) {
                     this.setImagePreview('editProductImagePreview', product.image);
                     const removeBtn = document.getElementById('editRemoveProductImageBtn');
                     if (removeBtn) {
                         removeBtn.style.display = 'inline-flex';
                     }
+                    // Store original image URL and track state
+                    this.originalProductImage = product.image;
+                    this.productImageState = 'unchanged'; // unchanged, changed, deleted
+                } else {
+                    this.originalProductImage = null;
+                    this.productImageState = 'unchanged';
                 }
             } else {
                 throw new Error('Failed to load product data');
@@ -1326,6 +1383,18 @@ class ModernAdminDashboard {
             if (response.ok) {
                 const result = await response.json();
                 this.showToast('Product added successfully!', 'success');
+                
+                // Reset the form
+                const form = document.getElementById('addProductForm');
+                if (form) {
+                    form.reset();
+                    // Clear image preview
+                    this.clearImagePreview('productImagePreview');
+                    // Hide remove image button
+                    const removeBtn = document.getElementById('removeProductImageBtn');
+                    if (removeBtn) removeBtn.style.display = 'none';
+                }
+                
                 this.closeModal('addProductModal');
                 this.loadProducts(); // Refresh the products list
             } else {
@@ -1350,12 +1419,18 @@ class ModernAdminDashboard {
         const formData = new FormData(e.target);
         const productId = document.getElementById('editProductId').value;
         
-        // Check if there's an image file to upload
+        // Handle image state
         const imageInput = document.getElementById('editProductImage');
-        if (imageInput.files[0]) {
-            // The file will be automatically included in FormData
-            // but we need to make sure it's using the correct field name
+        
+        if (this.productImageState === 'changed' && imageInput.files[0]) {
+            // New image selected - upload it
             formData.set('productImage', imageInput.files[0]);
+        } else if (this.productImageState === 'deleted') {
+            // Image was explicitly deleted
+            formData.set('removeProductImage', 'true');
+        } else if (this.productImageState === 'unchanged') {
+            // Keep existing image - don't send any image data
+            // The server should preserve the existing image
         }
 
         try {
@@ -1774,6 +1849,24 @@ class ModernAdminDashboard {
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.remove('active');
+                modal.style.display = 'none';
+                
+                // Clear form when closing add product modal
+                if (modalId === 'addProductModal') {
+                    const form = document.getElementById('addProductForm');
+                    if (form) {
+                        form.reset();
+                        this.clearImagePreview('productImagePreview');
+                        const removeBtn = document.getElementById('removeProductImageBtn');
+                        if (removeBtn) removeBtn.style.display = 'none';
+                    }
+                }
+                
+                // Reset image state when closing any product modal
+                if (modalId === 'addProductModal' || modalId === 'editProductModal') {
+                    this.originalProductImage = null;
+                    this.productImageState = 'unchanged';
+                }
                 
                 // Clear addresses when closing edit user modal
                 if (modalId === 'editUserModal') {
@@ -1783,6 +1876,7 @@ class ModernAdminDashboard {
         } else {
             document.querySelectorAll('.modal').forEach(modal => {
                 modal.classList.remove('active');
+                modal.style.display = 'none';
             });
             // Clear addresses when closing all modals
             this.clearAddressesContainer();
@@ -1829,6 +1923,11 @@ class ModernAdminDashboard {
                 removeBtn.style.display = 'inline-flex';
             }
             
+            // Track image state for edit product form
+            if (previewId === 'editProductImagePreview') {
+                this.productImageState = 'changed';
+            }
+            
             // Clear any existing remove flags since user selected a new image
             const form = event.target.closest('form');
             if (form) {
@@ -1867,6 +1966,22 @@ class ModernAdminDashboard {
             
             if (icon) {
                 icon.style.display = 'none';
+            }
+        }
+    }
+
+    clearImagePreview(previewId) {
+        const preview = document.getElementById(previewId);
+        if (preview) {
+            const img = preview.querySelector('img');
+            const icon = preview.querySelector('.placeholder-icon');
+            
+            if (img) {
+                img.remove();
+            }
+            
+            if (icon) {
+                icon.style.display = 'block';
             }
         }
     }
@@ -1954,6 +2069,11 @@ class ModernAdminDashboard {
                 form.appendChild(removeFlag);
             }
             removeFlag.value = 'true';
+        }
+        
+        // Track image state for edit product form
+        if (previewId === 'editProductImagePreview') {
+            this.productImageState = 'deleted';
         }
     }
 

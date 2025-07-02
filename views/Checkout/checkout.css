@@ -757,6 +757,98 @@ main.checkout-container {
     color: #333;
 }
 
+/* Navigation Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 0.8rem 1.5rem;
+        margin: 10px;
+        width: calc(100% - 20px);
+    }
+    
+    .nav-left h1 {
+        font-size: 1.4rem;
+    }
+    
+    .logo-circle {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .logo-circle img {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .nav-overlay {
+        width: 100%;
+        padding: 1rem;
+    }
+    
+    .nav-logo {
+        margin: 2rem 0;
+        width: 120px;
+        height: 120px;
+    }
+    
+    .nav-links {
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+    
+    .nav-links a {
+        font-size: 1.8rem;
+    }
+    
+    .close-menu {
+        top: 1.5rem;
+        right: 1.5rem;
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar {
+        padding: 0.6rem 1rem;
+        margin: 5px;
+        width: calc(100% - 10px);
+    }
+    
+    .nav-left h1 {
+        font-size: 1.2rem;
+    }
+    
+    .logo-circle {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .logo-circle img {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .nav-logo {
+        margin: 1.5rem 0;
+        width: 100px;
+        height: 100px;
+    }
+    
+    .nav-links {
+        gap: 1.2rem;
+        margin-top: 0.5rem;
+    }
+    
+    .nav-links a {
+        font-size: 1.6rem;
+    }
+    
+    .close-menu {
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.8rem;
+    }
+}
+
 /* Responsive table design */
 @media (max-width: 768px) {
     .cart-table .item-info {

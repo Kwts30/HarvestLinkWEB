@@ -180,8 +180,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Call the global logout function
             if (typeof window.logout === 'function') {
                 window.logout();
-            } else {
-                console.error('Logout function not available');
             }
         });
     }

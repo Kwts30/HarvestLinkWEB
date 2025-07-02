@@ -5,24 +5,11 @@ import Transaction from '../../models/Transaction.js';
 import Address from '../../models/address.js';
 import { requireAdmin } from '../../middlewares/index.js';
 import upload from '../../middlewares/multerstorage.js';
+import { deleteUploadedFile } from '../../middlewares/fileUtils.js';
 import fs from 'fs';
 import path from 'path';
 
 const router = express.Router();
-
-// Helper function to safely delete files
-function deleteImageFile(imagePath) {
-  if (imagePath && imagePath.startsWith('/uploads/')) {
-    const fullPath = path.join(process.cwd(), 'uploads', path.basename(imagePath));
-    if (fs.existsSync(fullPath)) {
-      fs.unlink(fullPath, (err) => {
-        if (err) {
-          console.error('Error deleting file:', err);
-        }
-      });
-    }
-  }
-}
 
 // Apply admin middleware to all routes
 router.use(requireAdmin);
@@ -229,27 +216,39 @@ router.put('/users/:id', upload.single('profileImage'), async (req, res) => {
 
     // Handle profile image upload
     if (req.file) {
+      console.log('Admin: New file uploaded for user:', req.params.id, req.file.filename);
       // Get existing user to delete old image if needed
       const existingUser = await User.findById(req.params.id);
       if (existingUser?.profileImage && 
           existingUser.profileImage.startsWith('/uploads/') && 
           !existingUser.profileImage.startsWith('data:image/')) {
-        deleteImageFile(existingUser.profileImage);
+        console.log('Admin: Deleting old profile image:', existingUser.profileImage);
+        deleteUploadedFile(existingUser.profileImage, true);
       }
       updateData.profileImage = `/uploads/${req.file.filename}`;
     } else if (req.body.removeProfileImage === 'true') {
+      console.log('Admin: Removing profile image for user:', req.params.id);
       // User wants to remove the image - delete existing file
       const existingUser = await User.findById(req.params.id);
       if (existingUser?.profileImage && 
           existingUser.profileImage.startsWith('/uploads/') && 
           !existingUser.profileImage.startsWith('data:image/')) {
-        deleteImageFile(existingUser.profileImage);
+        console.log('Admin: Deleting profile image file:', existingUser.profileImage);
+        deleteUploadedFile(existingUser.profileImage, true);
       }
-      updateData.profileImage = '';
+      updateData.profileImage = null; // Set to null instead of empty string
     } else if (req.body.profileImage && req.body.profileImage.startsWith('data:image/')) {
       updateData.profileImage = req.body.profileImage;
     } else if (req.body.profileImage === '') {
-      updateData.profileImage = '';
+      // Delete existing file when image is set to empty
+      const existingUser = await User.findById(req.params.id);
+      if (existingUser?.profileImage && 
+          existingUser.profileImage.startsWith('/uploads/') && 
+          !existingUser.profileImage.startsWith('data:image/')) {
+        console.log('Admin: Deleting profile image file (empty string):', existingUser.profileImage);
+        deleteUploadedFile(existingUser.profileImage, true);
+      }
+      updateData.profileImage = null;
     }
 
     const user = await User.findByIdAndUpdate(
@@ -646,7 +645,7 @@ router.put('/products/:id', upload.single('productImage'), async (req, res) => {
       if (existingProduct.image && 
           existingProduct.image.startsWith('/uploads/') && 
           !existingProduct.image.startsWith('data:image/')) {
-        deleteImageFile(existingProduct.image);
+        deleteUploadedFile(existingProduct.image, true);
       }
       
       // Store the new file path in the database
@@ -656,7 +655,7 @@ router.put('/products/:id', upload.single('productImage'), async (req, res) => {
       if (existingProduct.image && 
           existingProduct.image.startsWith('/uploads/') && 
           !existingProduct.image.startsWith('data:image/')) {
-        deleteImageFile(existingProduct.image);
+        deleteUploadedFile(existingProduct.image, true);
       }
       updateData.image = '';
     } else if (req.body.image && req.body.image.startsWith('data:image/')) {
@@ -667,7 +666,7 @@ router.put('/products/:id', upload.single('productImage'), async (req, res) => {
       if (existingProduct.image && 
           existingProduct.image.startsWith('/uploads/') && 
           !existingProduct.image.startsWith('data:image/')) {
-        deleteImageFile(existingProduct.image);
+        deleteUploadedFile(existingProduct.image, true);
       }
       updateData.image = '';
     }
@@ -704,7 +703,7 @@ router.delete('/products/:id', async (req, res) => {
     if (product.image && 
         product.image.startsWith('/uploads/') && 
         !product.image.startsWith('data:image/')) {
-      deleteImageFile(product.image);
+      deleteUploadedFile(product.image, true);
     }
     
     // Delete the product from database

@@ -63,7 +63,7 @@
 
   <main class="bb-learn-profile-main">
     <div class="bb-learn-profile-header">
-      <div style="height: 3.5rem;"></div> <!-- Spacer to push profile lower below header -->
+      <div style="height: 3.5rem;"></div>
       <div class="bb-learn-profile-picture">
         <% if (user && user.profileImage) { %>
           <img src="<%= user.profileImage %>" alt="Profile Picture">
@@ -78,12 +78,11 @@
       <div class="bb-learn-profile-left">
         <div class="bb-learn-card">
           <div class="bb-learn-card-title">Basic Information
-            <button class="bb-learn-edit-btn" onclick="showEditProfileModal()" style="float:right; background:#4CAF50; color:#fff; border:none; border-radius:0.3rem; padding:0.2rem 0.8rem; font-size:0.95rem; cursor:pointer;">Edit</button>
+            <button class="edit-profile-btn" onclick="showEditProfileModal()">Edit</button>
           </div>
           <table class="bb-learn-info-table">
             <tr><td>Full Name</td><td><%= (user && user.fullName) || (user && user.firstName ? (user.firstName + (user.lastName ? ' ' + user.lastName : '')) : 'Not provided') %></td></tr>
             <tr><td>Email Address</td><td><%= (user && user.email) || 'Not provided' %></td></tr>
-            <tr><td>Phone</td><td><%= (user && user.phone) || 'Not provided' %></td></tr>
           </table>
         </div>
         <!-- Edit Profile Modal -->
@@ -94,23 +93,49 @@
               <span class="close-modal" onclick="closeEditProfileModal()">&times;</span>
             </div>
             <div class="modal-body">
-              <form id="editProfileForm">
+              <form id="editProfileForm" enctype="multipart/form-data">
+                <!-- Profile Picture Section -->
+                <div class="form-group profile-picture-section">
+                  <label>Profile Picture</label>
+                  <div class="profile-picture-container">
+                    <div class="current-profile-picture">
+                      <% if (user && user.profileImage) { %>
+                        <img id="currentProfileImg" src="<%= user.profileImage %>" data-original-src="<%= user.profileImage %>" alt="Current Profile Picture">
+                      <% } else { %>
+                        <img id="currentProfileImg" src="https://icons.iconarchive.com/icons/fa-team/fontawesome/512/FontAwesome-User-icon.png" data-original-src="https://icons.iconarchive.com/icons/fa-team/fontawesome/512/FontAwesome-User-icon.png" alt="Default Profile Picture">
+                      <% } %>
+                    </div>
+                    <div class="profile-picture-actions">
+                      <input type="file" id="profileImageInput" name="profileImage" accept="image/*" style="display: none;">
+                      <button type="button" class="btn-secondary btn-small" onclick="document.getElementById('profileImageInput').click()">
+                        <i class="fas fa-camera"></i> Change Picture
+                      </button>
+                      <% if (user && user.profileImage) { %>
+                        <button type="button" class="btn-danger btn-small" onclick="removeProfilePicture()">
+                          <i class="fas fa-trash"></i> Remove
+                        </button>
+                      <% } %>
+                    </div>
+                  </div>
+                  <div class="profile-picture-preview" id="profilePicturePreview" style="display: none;">
+                    <img id="previewImg" alt="Preview">
+                    <button type="button" class="btn-secondary btn-small" onclick="cancelProfilePictureChange()">Cancel</button>
+                  </div>
+                </div>
+                
                 <div class="form-group">
-                  <label for="editFirstName">First Name</label>
-                  <input type="text" id="editFirstName" name="firstName" value="<%= user && user.firstName ? user.firstName : '' %>" required>
+                  <label for="editFirstName">First Name *</label>
+                  <input type="text" id="editFirstName" name="firstName" value="<%= user && user.firstName ? user.firstName : '' %>" required placeholder="Enter your first name">
                 </div>
                 <div class="form-group">
-                  <label for="editLastName">Last Name</label>
-                  <input type="text" id="editLastName" name="lastName" value="<%= user && user.lastName ? user.lastName : '' %>" required>
+                  <label for="editLastName">Last Name *</label>
+                  <input type="text" id="editLastName" name="lastName" value="<%= user && user.lastName ? user.lastName : '' %>" required placeholder="Enter your last name">
                 </div>
                 <div class="form-group">
-                  <label for="editEmail">Email Address</label>
-                  <input type="email" id="editEmail" name="email" value="<%= user && user.email ? user.email : '' %>" required>
+                  <label for="editEmail">Email Address *</label>
+                  <input type="email" id="editEmail" name="email" value="<%= user && user.email ? user.email : '' %>" required placeholder="Enter your email address">
                 </div>
-                <div class="form-group">
-                  <label for="editPhone">Phone</label>
-                  <input type="tel" id="editPhone" name="phone" value="<%= user && user.phone ? user.phone : '' %>" required>
-                </div>
+                <p class="form-note">* All fields are required</p>
               </form>
             </div>
             <div class="modal-footer">
@@ -146,14 +171,25 @@
               <% if (transactions && transactions.length > 0) { %>
                 <% transactions.forEach(function(tx) { %>
                   <tr>
-                    <td><%= tx.date %></td>
-                    <td><%= tx.items %></td>
-                    <td>₱<%= tx.total %></td>
-                    <td><%= tx.status %></td>
+                    <td><%= new Date(tx.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %></td>
                     <td>
-                      <% if (tx.status === 'Pending') { %>
-                        <button class="bb-learn-track-btn" onclick="trackOrder('<%= tx.date %>')">Track Order</button>
-                      <% } %>
+                      <div style="max-width: none; word-wrap: break-word; line-height: 1.4;" title="<%= tx.items %>">
+                        <%= tx.items %>
+                      </div>
+                    </td>
+                    <td>₱<%= tx.total %></td>
+                    <td>
+                      <span class="status-badge status-<%= tx.status.toLowerCase() %>">
+                        <%= tx.status %>
+                      </span>
+                    </td>
+                    <td>
+                      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <% if (tx.status === 'Pending') { %>
+                          <button class="bb-learn-track-btn" onclick="trackOrder('<%= tx.date %>')">Track Order</button>
+                        <% } %>
+                        <button class="bb-learn-receipt-btn" onclick="viewReceipt('<%= tx.transactionId || tx.date %>')">Receipt</button>
+                      </div>
                     </td>
                   </tr>
                 <% }); %>
@@ -176,41 +212,55 @@
         </div>
       </div>
     </div>
-    <script>
-      function trackOrder(orderDate) {
-        alert('Tracking information for order on ' + orderDate + ':\n\nStatus: In Transit\nExpected Delivery: 2025-06-18');
-      }
-      // Edit Profile Modal Functions
-      function showEditProfileModal() {
-        document.getElementById('editProfileModal').style.display = 'block';
-      }
-      function closeEditProfileModal() {
-        document.getElementById('editProfileModal').style.display = 'none';
-      }
-      function saveProfileEdit() {
-        const form = document.getElementById('editProfileForm');
-        // You can add AJAX here to submit the form to the server
-        // For now, just close the modal
-        closeEditProfileModal();
-        alert('Profile updated! (Demo only)');
-      }
-    </script>
+
   </main>
 
-  <footer class="footer">
+  <!-- Footer Section -->
+  <footer>
     <div class="footer-content">
-      <div class="footer-logo">
-        <img src="/assets/homepage/harvestlink logo.png" alt="HarvestLink Logo">
+      <div class="footer-section">
+        <h3>About HarvestLink</h3>
+        <p>Connecting farmers directly with consumers for the freshest produce and supporting local agriculture.</p>
       </div>
-      <div class="social-links">
-        <a href="https://facebook.com/harvestlink" target="_blank">
-          <img src="/assets/homepage/facebook.png" alt="Facebook">
-        </a>
-        <a href="https://instagram.com/harvestlink" target="_blank">
-          <img src="/assets/homepage/instagram.png" alt="Instagram">
-        </a>
+      <div class="footer-section">
+        <h3>Quick Links</h3>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/shop">Shop</a></li>
+          <li><a href="/contacts">Contact</a></li>
+          <% if (isAuthenticated) { %>
+            <li><a href="/profile">Profile</a></li>
+            <% if (user && user.role === 'admin') { %>
+              <li><a href="/admin">Admin</a></li>
+            <% } %>
+            <li><a href="#" onclick="logout()">Logout</a></li>
+          <% } else { %>
+            <li><a href="/login">Login</a></li>
+          <% } %>
+        </ul>
       </div>
-      <p>&copy; 2025 HarvestLink. All rights reserved.</p>
+      <div class="footer-section">
+        <h3>Follow Us</h3>
+        <div class="social-links">
+          <a href="https://facebook.com/harvestlink" target="_blank" class="social-link">
+            <img src="/assets/homepage/facebook.png" alt="Facebook">
+            Facebook
+          </a>
+          <a href="https://instagram.com/harvestlink" target="_blank" class="social-link">
+            <img src="/assets/homepage/instagram.png" alt="Instagram">
+            Instagram
+          </a>
+        </div>
+      </div>
+      <div class="footer-section">
+        <h3>Contact Us</h3>
+        <p>Email: info@harvestlink.com</p>
+        <p>Phone: +63 912 345 6789</p>
+        <p>Address: Davao City, Philippines</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 HarvestLink Incorporated. All rights reserved.</p>
     </div>
   </footer>
 
@@ -240,7 +290,7 @@
           
           <div class="form-group">
             <label for="street">Street Address</label>
-            <input type="text" id="street" name="street" placeholder="House/Unit number, Street" required>
+            <input type="text" id="street" name="street" placeholder="House/Unit number, Street, Barangay" required>
           </div>
 
           <div class="form-group">
@@ -262,21 +312,6 @@
             <label for="phone">Phone Number</label>
             <input type="tel" id="phone" name="phone" placeholder="+63 912 345 6789" required>
           </div>
-
-          <div class="form-group">
-            <label for="postalCode">Postal Code (Optional)</label>
-            <input type="text" id="postalCode" name="postalCode" placeholder="1234">
-          </div>
-
-          <div class="form-group">
-            <label for="landmark">Landmark (Optional)</label>
-            <input type="text" id="landmark" name="landmark" placeholder="Near mall, church, etc.">
-          </div>
-
-          <div class="form-group">
-            <label for="deliveryInstructions">Delivery Instructions (Optional)</label>
-            <textarea id="deliveryInstructions" name="deliveryInstructions" placeholder="Special delivery instructions..."></textarea>
-          </div>
           
           <div class="form-group checkbox-group">
             <label>
@@ -293,207 +328,93 @@
     </div>
   </div>
 
+  <!-- Edit Address Modal -->
+  <div id="editAddressModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Edit Address</h3>
+        <span class="close-modal" onclick="closeEditAddressModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="editAddressForm">
+          <input type="hidden" id="editAddressId" name="addressId">
+          
+          <div class="form-group">
+            <label for="editAddressType">Address Type</label>
+            <select id="editAddressType" name="type" required>
+              <option value="">Select type</option>
+              <option value="Home">Home</option>
+              <option value="Work">Work</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="editFullName">Full Name</label>
+            <input type="text" id="editFullName" name="fullName" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="editStreet">Street Address</label>
+            <input type="text" id="editStreet" name="street" placeholder="House/Unit number, Street, Barangay" required>
+          </div>
+
+          <div class="form-group">
+            <label for="editBarangay">Barangay</label>
+            <input type="text" id="editBarangay" name="barangay" placeholder="Barangay" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="editCity">City</label>
+            <input type="text" id="editCity" name="city" placeholder="City" required>
+          </div>
+
+          <div class="form-group">
+            <label for="editProvince">Province</label>
+            <input type="text" id="editProvince" name="province" placeholder="Province" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="editPhone">Phone Number</label>
+            <input type="tel" id="editPhone" name="phone" placeholder="+63 912 345 6789" required>
+          </div>
+          
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" id="editIsPrimary" name="isPrimary">
+              Set as primary address
+            </label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="updateAddress()">Update Address</button>
+        <button class="btn-secondary" onclick="closeEditAddressModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Receipt Modal -->
+  <div id="receiptModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3>Transaction Receipt</h3>
+        <span class="close-modal" onclick="closeReceiptModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div id="receiptContent">
+          <div class="receipt-loading">Loading receipt...</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeReceiptModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/assets/js/config.js"></script>
   <script src="/assets/js/auth.js"></script>
   <script src="/views/Profile/profile.js"></script>
-  <script>
-    // Hamburger menu functionality (same as home page)
-    document.addEventListener('DOMContentLoaded', function() {
-      const hamburger = document.querySelector('.hamburger-menu');
-      const navOverlay = document.querySelector('.nav-overlay');
-      const closeMenuBtn = document.querySelector('.close-menu');
-      const navbar = document.querySelector('.navbar');
-      if (hamburger && navOverlay && closeMenuBtn && navbar) {
-        hamburger.addEventListener('click', function() {
-          navOverlay.classList.add('active');
-          navbar.style.display = 'none';
-        });
-        closeMenuBtn.addEventListener('click', function() {
-          navOverlay.classList.remove('active');
-          navbar.style.display = '';
-        });
-        navOverlay.addEventListener('click', function(e) {
-          if (e.target === navOverlay) {
-            navOverlay.classList.remove('active');
-            navbar.style.display = '';
-          }
-        });
-        // Also close overlay and show navbar when clicking any nav link
-        navOverlay.querySelectorAll('.nav-links a').forEach(link => {
-          link.addEventListener('click', function() {
-            navOverlay.classList.remove('active');
-            navbar.style.display = '';
-          });
-        });
-      }
-    });
-  </script>
-  <style>
-    .bb-learn-profile-main {
-      max-width: 1200px;
-      margin: 4.5rem auto 0 auto; /* Increased top margin to clear header */
-      padding: 0 1.5rem 2rem 1.5rem;
-      background: #f7f7f7;
-      min-height: 80vh;
-      position: relative;
-      z-index: 1;
-    }
-    .bb-learn-profile-header {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 2.5rem;
-      position: relative;
-      z-index: 2;
-    }
-    .bb-learn-profile-picture {
-      width: 110px;
-      height: 110px;
-      border-radius: 50%;
-      overflow: hidden;
-      border: 3px solid #4CAF50;
-      background: #fff;
-      margin-bottom: 1.2rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .bb-learn-profile-picture img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .bb-learn-profile-name {
-      font-size: 2rem;
-      font-weight: 600;
-      margin-bottom: 0.2rem;
-      color: #23272e;
-      font-family: 'DM Serif Text', serif;
-    }
-    .bb-learn-profile-username {
-      color: #666;
-      font-size: 1.1rem;
-      margin-bottom: 0.5rem;
-    }
-    .bb-learn-profile-columns {
-      display: flex;
-      gap: 2.5rem;
-      justify-content: center;
-    }
-    .bb-learn-profile-left, .bb-learn-profile-right {
-      flex: 1 1 0;
-      min-width: 320px;
-      max-width: 520px;
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-    }
-    .bb-learn-card {
-      background: #fff;
-      border: 1px solid #d3d3d3;
-      border-radius: 0.5rem;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
-      padding: 1.2rem 1.5rem 1.5rem 1.5rem;
-    }
-    .bb-learn-card-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #23272e;
-      margin-bottom: 1rem;
-    }
-    .bb-learn-info-table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-    }
-    .bb-learn-info-table th, .bb-learn-info-table td {
-      border-bottom: 1px solid #e0e0e0;
-      padding: 0.7rem 0.5rem;
-      text-align: left;
-      font-size: 1rem;
-    }
-    .bb-learn-info-table th {
-      background: #f5f5f5;
-      font-weight: 600;
-      color: #333;
-    }
-    .bb-learn-info-table tr:last-child td {
-      border-bottom: none;
-    }
-    .bb-learn-add-btn {
-      background: #4CAF50;
-      color: #fff;
-      border: none;
-      border-radius: 0.4rem;
-      padding: 0.4rem 1.2rem;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-top: 1rem;
-      transition: background 0.2s;
-    }
-    .bb-learn-add-btn:hover {
-      background: #388e3c;
-    }
-    .bb-learn-track-btn {
-      background: #4CAF50;
-      color: #fff;
-      border: none;
-      border-radius: 0.4rem;
-      padding: 0.3rem 1rem;
-      font-size: 0.98rem;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .bb-learn-track-btn:hover {
-      background: #388e3c;
-    }
-    .bb-learn-edit-btn {
-      margin-left: 1rem;
-      background: #4CAF50;
-      color: #fff;
-      border: none;
-      border-radius: 0.3rem;
-      padding: 0.2rem 0.8rem;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .bb-learn-edit-btn:hover {
-      background: #388e3c;
-    }
-    /* Modal styles (reuse from Add Address Modal) */
-    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background: rgba(0,0,0,0.3); }
-    .modal-content { background: #fff; margin: 5% auto; border-radius: 0.5rem; padding: 1.5rem; width: 95%; max-width: 420px; position: relative; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; margin-bottom: 1rem; }
-    .close-modal { font-size: 1.7rem; cursor: pointer; color: #888; }
-    .form-group { margin-bottom: 1.1rem; }
-    .form-group label { display: block; margin-bottom: 0.3rem; color: #333; font-weight: 500; }
-    .form-group input { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 0.3rem; font-size: 1rem; }
-    .modal-footer { display: flex; justify-content: flex-end; gap: 0.7rem; margin-top: 1.2rem; }
-    .btn-primary { background: #4CAF50; color: #fff; border: none; border-radius: 0.3rem; padding: 0.4rem 1.2rem; font-size: 1rem; cursor: pointer; }
-    .btn-primary:hover { background: #388e3c; }
-    .btn-secondary { background: #eee; color: #333; border: none; border-radius: 0.3rem; padding: 0.4rem 1.2rem; font-size: 1rem; cursor: pointer; }
-    .btn-secondary:hover { background: #ccc; }
-    @media (max-width: 900px) {
-      .bb-learn-profile-main {
-        margin-top: 4.5rem;
-      }
-      .bb-learn-profile-columns {
-        flex-direction: column;
-        gap: 1.5rem;
-      }
-      .bb-learn-profile-left, .bb-learn-profile-right {
-        max-width: 100%;
-      }
-    }
-    @media (max-width: 600px) {
-      .bb-learn-profile-main {
-        padding: 0 0.2rem;
-      }
-      .bb-learn-card {
-        padding: 0.7rem 0.3rem 1rem 0.3rem;
-      }
-    }
-  </style>
+
 </body>
 </html>
