@@ -1,3 +1,17 @@
+// Helper function to format payment method display names
+function getPaymentMethodDisplayName(paymentMethod) {
+    // Handle both old format (object with method property) and new format (string)
+    const method = typeof paymentMethod === 'object' ? paymentMethod.method : paymentMethod;
+    
+    const methodMap = {
+        'gcash': 'GCash',
+        'maya': 'Maya',
+        'cod': 'Cash on Delivery (COD)'
+    };
+    
+    return methodMap[method] || method?.toUpperCase() || 'N/A';
+}
+
 // Admin Dashboard
 class ModernAdminDashboard {
     constructor() {
@@ -200,7 +214,6 @@ class ModernAdminDashboard {
             this.safeAddEventListener('editProductForm', 'submit', this.handleEditProductSubmit.bind(this));
             this.safeAddEventListener('productSearch', 'input', this.debounce(this.searchProducts.bind(this), 300));
             this.safeAddEventListener('productCategoryFilter', 'change', this.filterProducts.bind(this));
-            this.safeAddEventListener('productStatusFilter', 'change', this.filterProducts.bind(this));
 
             // Transaction management
             this.safeAddEventListener('transactionStatus', 'change', this.filterTransactions.bind(this));
@@ -524,6 +537,12 @@ class ModernAdminDashboard {
         this.clearFormErrors('edit');
         this.removeImage('editUserImagePreview');
         
+        // Clear any existing remove flags to start with clean state
+        const existingRemoveFlag = form.querySelector('input[name="removeProfileImage"]');
+        if (existingRemoveFlag) {
+            existingRemoveFlag.remove();
+        }
+        
         // Clear password fields explicitly
         const passwordFields = ['editCurrentPassword', 'editNewPassword', 'editConfirmNewPassword'];
         passwordFields.forEach(fieldId => {
@@ -566,6 +585,16 @@ class ModernAdminDashboard {
                 if (user.profileImage) {
                     this.setImagePreview('editUserImagePreview', user.profileImage);
                     document.getElementById('editRemoveImageBtn').style.display = 'inline-flex';
+                    
+                    // Ensure no remove flag is set when loading existing image
+                    const form = document.getElementById('editUserForm');
+                    const existingRemoveFlag = form?.querySelector('input[name="removeProfileImage"]');
+                    if (existingRemoveFlag) {
+                        existingRemoveFlag.remove();
+                    }
+                } else {
+                    // No image exists, ensure remove button is hidden
+                    document.getElementById('editRemoveImageBtn').style.display = 'none';
                 }
             }
         } catch (error) {
@@ -643,12 +672,22 @@ class ModernAdminDashboard {
         const imageFile = formData.get('profileImage');
         const userId = formData.get('userId');
         
-        // Check if there's an image file to upload
-        if (imageFile && imageFile.size > 0) {
-            // The file will be automatically included in FormData
-            // but we need to make sure it's using the correct field name
-            formData.set('profileImage', imageFile);
+        // Only include image-related data if there are actual changes
+        const removeFlag = formData.get('removeProfileImage');
+        
+        // If there's no new file and no remove flag, don't send any image data
+        // This preserves the existing image on the server
+        if (!imageFile || imageFile.size === 0) {
+            formData.delete('profileImage');
         }
+        
+        // Only send remove flag if it's explicitly set to 'true'
+        if (removeFlag !== 'true') {
+            formData.delete('removeProfileImage');
+        }
+        
+        console.log('Form submission - Image file size:', imageFile?.size || 0);
+        console.log('Form submission - Remove flag:', removeFlag);
 
         try {
             this.showLoading();
@@ -1158,7 +1197,7 @@ class ModernAdminDashboard {
     // ===============================
     // Product Management
     // ===============================
-    async loadProducts(page = 1, search = '', category = '', status = '') {
+    async loadProducts(page = 1, search = '', category = '') {
         try {
             this.showLoading();
             
@@ -1166,8 +1205,7 @@ class ModernAdminDashboard {
                 page: page.toString(),
                 limit: '10',
                 ...(search && { search }),
-                ...(category && { category }),
-                ...(status && { isActive: status })
+                ...(category && { category })
             });
 
             const response = await fetch(this.buildApiUrl(`/products?${queryParams}`), {
@@ -1278,7 +1316,15 @@ class ModernAdminDashboard {
             // Reset form and clear image preview
             if (form) form.reset();
             this.clearFormErrors();
-            this.removeProductImage('editProductImagePreview');
+            
+            // Clear any existing remove flags to start with clean state
+            const existingRemoveFlag = form.querySelector('input[name="removeProductImage"]');
+            if (existingRemoveFlag) {
+                existingRemoveFlag.remove();
+            }
+            
+            // Reset image preview but don't set any remove flags yet
+            this.clearImagePreview('editProductImagePreview');
             
             // Initialize image state tracking
             this.originalProductImage = null;
@@ -1312,6 +1358,17 @@ class ModernAdminDashboard {
             modal.style.display = 'flex';
             modal.classList.add('active');
             
+            // Re-bind the form submission event when modal is shown
+            if (productId) {
+                const editForm = document.getElementById('editProductForm');
+                if (editForm) {
+                    // Remove any existing listeners to prevent duplicates
+                    editForm.removeEventListener('submit', this.handleEditProductSubmit.bind(this));
+                    // Add fresh event listener
+                    editForm.addEventListener('submit', this.handleEditProductSubmit.bind(this));
+                }
+            }
+            
             // Ensure cancel button event listener is bound
             const cancelBtn = modal.querySelector('.btn-secondary');
             if (cancelBtn) {
@@ -1329,6 +1386,13 @@ class ModernAdminDashboard {
     
     async loadProductForEdit(productId) {
         try {
+            // Validate productId before making the API call
+            if (!productId || productId === 'top' || !/^[0-9a-fA-F]{24}$/.test(productId)) {
+                console.error('Invalid product ID for edit:', productId);
+                this.showToast('Invalid product ID. Please try again.', 'error');
+                return;
+            }
+            
             const response = await fetch(this.buildApiUrl(`/products/${productId}`), {
                 credentials: 'include'
             });
@@ -1356,6 +1420,13 @@ class ModernAdminDashboard {
                     // Store original image URL and track state
                     this.originalProductImage = product.image;
                     this.productImageState = 'unchanged'; // unchanged, changed, deleted
+                    
+                    // Ensure no remove flag is set when loading existing image
+                    const form = document.getElementById('editProductForm');
+                    const existingRemoveFlag = form?.querySelector('input[name="removeProductImage"]');
+                    if (existingRemoveFlag) {
+                        existingRemoveFlag.remove();
+                    }
                 } else {
                     this.originalProductImage = null;
                     this.productImageState = 'unchanged';
@@ -1384,6 +1455,9 @@ class ModernAdminDashboard {
             // The file will be automatically included in FormData
             // but we need to make sure it's using the correct field name
             formData.set('productImage', imageInput.files[0]);
+        } else {
+            // Ensure no empty image data is sent
+            formData.delete('productImage');
         }
 
         try {
@@ -1428,6 +1502,7 @@ class ModernAdminDashboard {
         e.preventDefault();
         
         if (!this.validateProductForm('edit')) {
+            this.showToast('Please fill in all required fields', 'error');
             return;
         }
         
@@ -1446,6 +1521,11 @@ class ModernAdminDashboard {
         } else if (this.productImageState === 'unchanged') {
             // Keep existing image - don't send any image data
             // The server should preserve the existing image
+        }
+        
+        // Ensure we don't send empty image data that could be misinterpreted
+        if (!imageInput.files[0] && this.productImageState !== 'deleted') {
+            formData.delete('productImage');
         }
 
         try {
@@ -1528,6 +1608,13 @@ class ModernAdminDashboard {
     }
 
     async editProduct(productId) {
+        // Validate productId
+        if (!productId || productId === 'top' || productId.length !== 24) {
+            console.error('Invalid product ID:', productId);
+            this.showToast('Invalid product ID. Please try again.', 'error');
+            return;
+        }
+        
         this.showProductModal(productId);
     }
 
@@ -1556,9 +1643,8 @@ class ModernAdminDashboard {
     searchProducts() {
         const search = document.getElementById('productSearch').value;
         const category = document.getElementById('productCategoryFilter').value;
-        const status = document.getElementById('productStatusFilter').value;
         this.currentPage.products = 1;
-        this.loadProducts(1, search, category, status);
+        this.loadProducts(1, search, category);
     }
 
     filterProducts() {
@@ -1620,7 +1706,8 @@ class ModernAdminDashboard {
                         <th>Transaction ID</th>
                         <th>Customer</th>
                         <th>Amount</th>
-                        <th>Status</th>
+                        <th>Payment Status</th>
+                        <th>Order Status</th>
                         <th>Date</th>
                         <th>Actions</th>
                     </tr>
@@ -1637,6 +1724,13 @@ class ModernAdminDashboard {
                                 <div class="text-sm text-secondary">${(transaction.user || transaction.userId)?.email || 'No email'}</div>
                             </td>
                             <td class="font-semibold">₱${transaction.totalAmount.toLocaleString()}</td>
+                            <td>
+                                <span class="status-badge status-${transaction.paymentStatus === 'pending' ? 'warning' : transaction.paymentStatus === 'paid' ? 'success' : 'danger'}">
+                                    ${transaction.paymentStatus || 'pending'}
+                                </span>
+                                ${transaction.paymentStatus === 'pending' && transaction.referenceNumber ? 
+                                    `<br><small class="text-secondary">Ref: ${transaction.referenceNumber}</small>` : ''}
+                            </td>
                             <td>
                                 <select onchange="adminDashboard.updateTransactionStatus('${transaction._id}', this.value)" class="status-select">
                                     <option value="pending" ${transaction.status === 'pending' ? 'selected' : ''}>Pending</option>
@@ -1721,9 +1815,188 @@ class ModernAdminDashboard {
         }
     }
 
-    viewTransactionDetails(transactionId) {
-        // This could open a modal with detailed transaction information
-        this.showToast('Transaction details feature coming soon!', 'info');
+    async viewTransactionDetails(transactionId) {
+        try {
+            // Create and show receipt modal
+            this.showReceiptModal(transactionId);
+        } catch (error) {
+            console.error('Error viewing transaction details:', error);
+            this.showToast('Error loading transaction details', 'error');
+        }
+    }
+
+    showReceiptModal(transactionId) {
+        // Create modal HTML if it doesn't exist
+        if (!document.getElementById('adminReceiptModal')) {
+            this.createReceiptModal();
+        }
+        
+        const modal = document.getElementById('adminReceiptModal');
+        const content = document.getElementById('adminReceiptContent');
+        
+        if (modal) {
+            modal.classList.add('active');
+            
+            // Load receipt data
+            this.loadReceiptData(transactionId);
+        }
+    }
+
+    createReceiptModal() {
+        const modalHTML = `
+            <div id="adminReceiptModal" class="modal receipt-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Transaction Receipt</h3>
+                        <button class="modal-close" onclick="adminDashboard.closeReceiptModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="adminReceiptContent">
+                            <div class="admin-receipt-loading">Loading receipt...</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="receipt-modal-close-btn" onclick="adminDashboard.closeReceiptModal()">Close</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Add click outside to close
+        document.getElementById('adminReceiptModal').addEventListener('click', (e) => {
+            if (e.target.id === 'adminReceiptModal') {
+                this.closeReceiptModal();
+            }
+        });
+    }
+
+    closeReceiptModal() {
+        const modal = document.getElementById('adminReceiptModal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.remove();
+            }, 300);
+        }
+    }
+
+    async loadReceiptData(transactionId) {
+        const content = document.getElementById('adminReceiptContent');
+        content.innerHTML = '<div class="admin-receipt-loading">Loading receipt...</div>';
+        
+        try {
+            const response = await fetch(this.buildApiUrl(`/transactions/${transactionId}/receipt`), {
+                credentials: 'include'
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.displayReceipt(data.transaction, data.invoice);
+            } else {
+                content.innerHTML = '<div class="admin-receipt-error">Failed to load receipt</div>';
+            }
+        } catch (error) {
+            console.error('Error loading receipt:', error);
+            content.innerHTML = '<div class="admin-receipt-error">Failed to load receipt</div>';
+        }
+    }
+
+    displayReceipt(transaction, invoice) {
+        const content = document.getElementById('adminReceiptContent');
+        
+        const receiptHTML = `
+            <div class="admin-receipt">
+                <div class="admin-receipt-header">
+                    <h2>HarvestLink</h2>
+                    <p>Official Receipt</p>
+                    <p><strong>Receipt #:</strong> ${transaction.transactionId}</p>
+                    <p><strong>Date:</strong> ${new Date(transaction.createdAt).toLocaleDateString()}</p>
+                </div>
+                
+                <div class="admin-receipt-section">
+                    <h4>Customer Information</h4>
+                    <p><strong>Name:</strong> ${transaction.deliveryAddress?.fullName || 'N/A'}</p>
+                    <p><strong>Phone:</strong> ${transaction.deliveryAddress?.phone || 'N/A'}</p>
+                    <p><strong>Address:</strong> ${transaction.deliveryAddress?.address || 'N/A'}</p>
+                    <p><strong>Email:</strong> ${(transaction.user || transaction.userId)?.email || 'N/A'}</p>
+                </div>
+                
+                <div class="admin-receipt-section">
+                    <h4>Items Purchased</h4>
+                    <table class="admin-receipt-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${transaction.items.map(item => `
+                                <tr>
+                                    <td>${item.name}</td>
+                                    <td>${item.quantity}</td>
+                                    <td>₱${item.price.toFixed(2)}</td>
+                                    <td>₱${item.total.toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="admin-receipt-summary">
+                    <div class="admin-summary-row">
+                        <span>Subtotal:</span>
+                        <span>₱${transaction.subtotal?.toFixed(2) || '0.00'}</span>
+                    </div>
+                    <div class="admin-summary-row">
+                        <span>Shipping:</span>
+                        <span>₱${transaction.shippingCost?.toFixed(2) || '0.00'}</span>
+                    </div>
+                    <div class="admin-summary-row">
+                        <span>Tax:</span>
+                        <span>₱${transaction.taxAmount?.toFixed(2) || '0.00'}</span>
+                    </div>
+                    <div class="admin-summary-row total">
+                        <span><strong>Total:</strong></span>
+                        <span><strong>₱${transaction.totalAmount.toFixed(2)}</strong></span>
+                    </div>
+                </div>
+                
+                <div class="admin-receipt-section">
+                    <h4>Payment Information</h4>
+                    <p><strong>Method:</strong> ${getPaymentMethodDisplayName(transaction.paymentMethod)}</p>
+                    <p><strong>Status:</strong> ${transaction.paymentStatus || transaction.status}</p>
+                    ${transaction.referenceNumber ? `<p><strong>Reference Number:</strong> ${transaction.referenceNumber}</p>` : ''}
+                    
+                    ${transaction.paymentStatus === 'pending' && transaction.referenceNumber ? `
+                        <div class="payment-approval-section">
+                            <h5>Payment Verification</h5>
+                            <p><strong>Please verify the payment reference number:</strong> ${transaction.referenceNumber}</p>
+                            <div class="payment-approval-buttons">
+                                <button class="btn-success" onclick="adminDashboard.approvePayment('${transaction._id}', true)">
+                                    <i class="fas fa-check"></i> Approve Payment
+                                </button>
+                                <button class="btn-danger" onclick="adminDashboard.approvePayment('${transaction._id}', false)">
+                                    <i class="fas fa-times"></i> Reject Payment
+                                </button>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+                
+                <div class="admin-receipt-footer">
+                    <p>Thank you for shopping with HarvestLink!</p>
+                    <p>Supporting local farmers and fresh produce.</p>
+                </div>
+            </div>
+        `;
+        
+        content.innerHTML = receiptHTML;
     }
 
     filterTransactions() {
@@ -1831,8 +2104,7 @@ class ModernAdminDashboard {
             case 'products':
                 const productSearch = document.getElementById('productSearch').value;
                 const productCategory = document.getElementById('productCategoryFilter').value;
-                const productStatus = document.getElementById('productStatusFilter').value;
-                this.loadProducts(page, productSearch, productCategory, productStatus);
+                this.loadProducts(page, productSearch, productCategory);
                 break;
             case 'transactions':
                 const transactionStatus = document.getElementById('transactionStatus').value;
@@ -1992,6 +2264,7 @@ class ModernAdminDashboard {
         }
     }
 
+    // Clear image preview without setting remove flags (for form reset)
     clearImagePreview(previewId) {
         const preview = document.getElementById(previewId);
         if (preview) {
@@ -2005,6 +2278,24 @@ class ModernAdminDashboard {
             if (icon) {
                 icon.style.display = 'block';
             }
+        }
+        
+        // Clear file input and hide remove button
+        const isEdit = previewId.includes('edit');
+        const isProduct = previewId.includes('Product');
+        
+        if (isProduct) {
+            const fileInput = document.getElementById(isEdit ? 'editProductImage' : 'productImage');
+            const removeBtn = document.getElementById(isEdit ? 'editRemoveProductImageBtn' : 'removeProductImageBtn');
+            
+            if (fileInput) fileInput.value = '';
+            if (removeBtn) removeBtn.style.display = 'none';
+        } else {
+            const fileInput = document.getElementById(isEdit ? 'editProfileImage' : 'profileImage');
+            const removeBtn = document.getElementById(isEdit ? 'editRemoveImageBtn' : 'removeImageBtn');
+            
+            if (fileInput) fileInput.value = '';
+            if (removeBtn) removeBtn.style.display = 'none';
         }
     }
 
@@ -2027,7 +2318,7 @@ class ModernAdminDashboard {
         const isEdit = previewId.includes('edit');
         const fileInput = document.getElementById(isEdit ? 'editProfileImage' : 'profileImage');
         const removeBtn = document.getElementById(isEdit ? 'editRemoveImageBtn' : 'removeImageBtn');
-        
+
         console.log('isEdit:', isEdit);
         console.log('fileInput found:', !!fileInput);
         console.log('removeBtn found:', !!removeBtn);
@@ -2366,18 +2657,47 @@ class ModernAdminDashboard {
         }
     }
 
-    // Utility function
-    debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
+    // Payment approval method
+    async approvePayment(transactionId, approved) {
+        const action = approved ? 'approve' : 'reject';
+        const confirmMessage = `Are you sure you want to ${action} this payment?`;
+        
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        try {
+            this.showLoading();
+            
+            const response = await fetch(this.buildApiUrl(`/admin/transactions/${transactionId}/approve-payment`), {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({ approved })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                this.showToast(`Payment ${approved ? 'approved' : 'rejected'} successfully!`, 'success');
+                // Refresh the transaction details
+                this.loadReceiptData(transactionId);
+                // Refresh the transactions list
+                this.loadTransactions(this.currentPage.transactions);
+            } else {
+                this.showToast(result.message || `Failed to ${action} payment`, 'error');
+            }
+        } catch (error) {
+            console.error(`Error ${action}ing payment:`, error);
+            this.showToast(`Error ${action}ing payment`, 'error');
+        } finally {
+            this.hideLoading();
+        }
     }
+
+    // Filter transactions method
 }
 
 // Initialize dashboard when DOM is loaded

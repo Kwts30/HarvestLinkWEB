@@ -2,6 +2,7 @@ import express from 'express';
 import User from '../../models/User.js';
 import Product from '../../models/Product.js';
 import Transaction from '../../models/Transaction.js';
+import Invoice from '../../models/invoice.js';
 import Address from '../../models/address.js';
 import TopProduct from '../../models/topproducts.js';
 import { requireAdmin } from '../../middlewares/index.js';
@@ -280,17 +281,9 @@ router.put('/users/:id', upload.single('profileImage'), processPasswordChange, a
       updateData.profileImage = null; // Set to null instead of empty string
     } else if (req.body.profileImage && req.body.profileImage.startsWith('data:image/')) {
       updateData.profileImage = req.body.profileImage;
-    } else if (req.body.profileImage === '') {
-      // Delete existing file when image is set to empty
-      const existingUser = await User.findById(req.params.id);
-      if (existingUser?.profileImage && 
-          existingUser.profileImage.startsWith('/uploads/') && 
-          !existingUser.profileImage.startsWith('data:image/')) {
-        console.log('Admin: Deleting profile image file (empty string):', existingUser.profileImage);
-        deleteUploadedFile(existingUser.profileImage, true);
-      }
-      updateData.profileImage = null;
     }
+    // Note: If no new file, no removal flag, and no base64 image, we preserve the existing image
+    // This prevents accidental deletion when editing user without changing the image
 
     const user = await User.findByIdAndUpdate(
       req.params.id,
@@ -553,6 +546,8 @@ router.get('/addresses/:id', async (req, res) => {
 // Get all products
 router.get('/products', async (req, res) => {
   try {
+    console.log('GET /products called with query:', req.query);
+    
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const search = req.query.search || '';
@@ -583,6 +578,11 @@ router.get('/products', async (req, res) => {
       .skip((page - 1) * limit);
 
     const total = await Product.countDocuments(query);
+
+    console.log('Found products:', products.length);
+    products.forEach(product => {
+      console.log('Product ID:', product._id, 'Name:', product.name);
+    });
 
     // Get product stats
     const stats = {
@@ -663,10 +663,22 @@ router.get('/products/top', async (req, res) => {
 // Get single product by ID
 router.get('/products/:id', async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const productId = req.params.id;
+    console.log('GET /products/:id called with ID:', productId);
+    
+    // Validate that the ID is a valid MongoDB ObjectId
+    if (!productId || productId === 'top' || !/^[0-9a-fA-F]{24}$/.test(productId)) {
+      console.error('Invalid product ID format:', productId);
+      return res.status(400).json({ error: 'Invalid product ID format' });
+    }
+    
+    const product = await Product.findById(productId);
     if (!product) {
+      console.log('Product not found with ID:', productId);
       return res.status(404).json({ error: 'Product not found' });
     }
+    
+    console.log('Product found successfully:', product.name);
     res.json(product);
   } catch (error) {
     console.error('Get product error:', error);
@@ -1051,6 +1063,44 @@ router.get('/charts/sales', async (req, res) => {
   } catch (error) {
     console.error('Sales chart error:', error);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get transaction receipt (Admin)
+router.get('/transactions/:transactionId/receipt', async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    
+    // Find transaction by MongoDB _id or transactionId field
+    const transaction = await Transaction.findOne({ 
+      $or: [
+        { _id: transactionId },
+        { transactionId: transactionId }
+      ]
+    })
+    .populate('items.productId', 'name')
+    .populate('invoiceId')
+    .populate('user', 'firstName lastName email')
+    .exec();
+    
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        message: 'Transaction not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      transaction: transaction,
+      invoice: transaction.invoiceId || null
+    });
+  } catch (error) {
+    console.error('Get transaction receipt error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get transaction receipt'
+    });
   }
 });
 

@@ -1,6 +1,7 @@
 import express from 'express';
 import User from '../../models/User.js';
 import { requireAuth } from '../../middlewares/index.js';
+import { processPasswordChange } from '../../middlewares/verifyPassword.js';
 import upload from '../../middlewares/multerstorage.js';
 import { deleteUploadedFile } from '../../middlewares/fileUtils.js';
 import fs from 'fs';
@@ -223,7 +224,7 @@ router.get('/profile', requireAuth, async (req, res) => {
 });
 
 // Update user profile
-router.put('/profile', requireAuth, upload.single('profileImage'), async (req, res) => {
+router.put('/profile', requireAuth, upload.single('profileImage'), processPasswordChange, async (req, res) => {
   try {
     const { firstName, lastName, username, email, phone, profileImage, removeProfileImage } = req.body;
     
@@ -272,6 +273,11 @@ router.put('/profile', requireAuth, upload.single('profileImage'), async (req, r
       phoneNumber: phone || null  // Map 'phone' to 'phoneNumber' for User model
     };
 
+    // Handle password change if processed by middleware
+    if (req.body.password) {
+      updateData.password = req.body.password;
+    }
+
     // Handle profile image operations
     if (req.file) {
       console.log('New file uploaded:', req.file.filename);
@@ -297,16 +303,9 @@ router.put('/profile', requireAuth, upload.single('profileImage'), async (req, r
     } else if (profileImage && profileImage.startsWith('data:image/')) {
       // Fallback: handle base64 images (for backward compatibility)
       updateData.profileImage = profileImage;
-    } else if (profileImage === '') {
-      // If image is empty string, remove it and delete file
-      if (currentUser?.profileImage && 
-          currentUser.profileImage.startsWith('/uploads/') && 
-          !currentUser.profileImage.startsWith('data:image/')) {
-        console.log('Deleting profile image file (empty string):', currentUser.profileImage);
-        deleteUploadedFile(currentUser.profileImage, true);
-      }
-      updateData.profileImage = null;
     }
+    // Note: If no new file, no removal flag, and no base64 image, we preserve the existing image
+    // This prevents accidental deletion when editing profile without changing the image
     // If no profile image changes are specified, don't modify the profileImage field
     
     // Update user

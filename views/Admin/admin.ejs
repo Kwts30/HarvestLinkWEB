@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>    
-    <link rel="stylesheet" href="/views/Admin/admin-basic.css">
+    <link rel="stylesheet" href="/views/Admin/admin.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
@@ -239,13 +239,7 @@
                             <option value="fruits">Fruits</option>
                             <option value="grains">Grains</option>
                         </select>
-                        <select id="productStatusFilter" class="filter-select">
-                            <option value="">All Statuses</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="outofstock">Out of Stock</option>
-                        </select>
-                    </div>S
+                    </div>
                     <button id="addProductBtn" class="btn-primary">
                         <i class="fas fa-plus"></i> Add Product
                     </button>
@@ -612,7 +606,7 @@
                     </div>
                 </div>
                 
-                <div class="modal-footer">
+                <div class="form-actions">
                     <button type="button" class="btn-secondary" id="cancelAddressBtn">Cancel</button>
                     <button type="submit" class="btn-primary" id="saveAddressBtn">
                         <i class="fas fa-save"></i>
@@ -980,11 +974,6 @@
 
     // Initial load
     loadTopProducts();
-
-    // Change period
-    document.getElementById('productPeriod').addEventListener('change', function() {
-      loadTopProducts(this.value);
-    });
 
     // --- Fix for Edit Product Modal Cancel/Close ---
     // Ensure modal closes on cancel or X button

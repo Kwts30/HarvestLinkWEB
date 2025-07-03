@@ -4,7 +4,12 @@ const TransactionSchema = new mongoose.Schema({
   transactionId: { 
     type: String, 
     unique: true, 
-    required: true 
+    required: false // Auto-generated in pre-save hook
+  },
+  orderNumber: {
+    type: String,
+    unique: true,
+    required: false // Auto-generated in pre-save hook
   },
   userId: { 
     type: mongoose.Schema.Types.ObjectId, 
@@ -25,30 +30,50 @@ const TransactionSchema = new mongoose.Schema({
   
   // Pricing breakdown
   subtotal: { type: Number, required: true },
-  shippingCost: { type: Number, default: 60.00 },
-  taxAmount: { type: Number, default: 0 },
-  totalAmount: { type: Number, required: true },
+  shippingFee: { type: Number, default: 60.00 },
+  shippingCost: { type: Number, default: 60.00 }, // Keep for backward compatibility
+  tax: { type: Number, default: 0 },
+  taxAmount: { type: Number, default: 0 }, // Keep for backward compatibility
+  total: { type: Number, required: true },
+  totalAmount: { type: Number, required: true }, // Keep for backward compatibility
   
   // Delivery information
   deliveryAddress: {
     fullName: { type: String, required: true },
     phone: { type: String, required: true },
-    address: { type: String, required: true },
+    address: { type: String }, // Keep for backward compatibility
     street: { type: String, required: true },
     barangay: { type: String, required: true },
     city: { type: String, required: true },
     province: { type: String, required: true },
     postalCode: { type: String, default: '' },
     landmark: { type: String, default: '' },
-    deliveryInstructions: { type: String, default: '' }
+    deliveryInstructions: { type: String, default: '' },
+    type: { type: String, default: 'Home' }
   },
   
   // Payment information
   paymentMethod: {
+    type: String, 
+    enum: ['gcash', 'maya', 'online-banking', 'cod'], 
+    required: true 
+  },
+  paymentStatus: { 
+    type: String, 
+    enum: ['pending', 'paid', 'failed', 'refunded'], 
+    default: 'pending' 
+  },
+  referenceNumber: {
+    type: String,
+    default: null
+  },
+  bank: { type: String }, // For online banking
+  
+  // Legacy payment structure for backward compatibility
+  paymentMethod_legacy: {
     method: { 
       type: String, 
-      enum: ['gcash', 'maya', 'online-banking', 'cod'], 
-      required: true 
+      enum: ['gcash', 'maya', 'online-banking', 'cod']
     },
     bank: { type: String }, // For online banking
     status: { 
@@ -66,10 +91,12 @@ const TransactionSchema = new mongoose.Schema({
   },
   
   // Dates
+  orderDate: { type: Date, default: Date.now },
   estimatedDelivery: { type: Date },
   actualDelivery: { type: Date },
   
   // Additional info
+  deliveryInstructions: { type: String, default: '' },
   notes: { type: String, default: '' },
   invoiceId: { 
     type: mongoose.Schema.Types.ObjectId, 
@@ -93,15 +120,40 @@ const TransactionSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Generate unique transaction ID
+// Generate unique transaction ID and order number
 TransactionSchema.pre('save', function(next) {
   if (!this.transactionId) {
     this.transactionId = 'HL' + Date.now() + Math.random().toString(36).substr(2, 5).toUpperCase();
   }
   
-  // Set legacy user field for backward compatibility
+  if (!this.orderNumber) {
+    this.orderNumber = 'ORD-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
+  }
+  
+  // Set legacy fields for backward compatibility
   if (this.userId && !this.user) {
     this.user = this.userId;
+  }
+  
+  if (this.total && !this.totalAmount) {
+    this.totalAmount = this.total;
+  }
+  
+  if (this.shippingFee && !this.shippingCost) {
+    this.shippingCost = this.shippingFee;
+  }
+  
+  if (this.tax && !this.taxAmount) {
+    this.taxAmount = this.tax;
+  }
+  
+  // Set legacy payment method structure
+  if (this.paymentMethod && !this.paymentMethod_legacy) {
+    this.paymentMethod_legacy = {
+      method: this.paymentMethod,
+      bank: this.bank,
+      status: this.paymentStatus
+    };
   }
   
   next();
@@ -117,11 +169,16 @@ TransactionSchema.virtual('orderSummary').get(function() {
   return {
     id: this._id,
     transactionId: this.transactionId,
+    orderNumber: this.orderNumber,
     totalItems: this.items.length,
     totalQuantity: this.items.reduce((sum, item) => sum + item.quantity, 0),
     status: this.status,
-    paymentStatus: this.paymentMethod.status,
+    paymentStatus: this.paymentStatus,
+    paymentMethod: this.paymentMethod,
+    referenceNumber: this.referenceNumber,
+    total: this.total || this.totalAmount,
     createdAt: this.createdAt,
+    orderDate: this.orderDate,
     estimatedDelivery: this.estimatedDelivery
   };
 });

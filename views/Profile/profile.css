@@ -715,168 +715,71 @@ body {
   resize: vertical;
 }
 
-/* Checkbox Groups */
-.checkbox-group {
-  display: flex;
-  align-items: center;
+/* Form Error Styling */
+.form-error {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.checkbox-group label {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0;
-  cursor: pointer;
+.form-error:not(:empty) {
+  display: block;
 }
 
-.checkbox-group input[type="checkbox"] {
-  width: auto;
-  margin-right: 0.5rem;
+/* Form Note Styling */
+.form-note {
+  color: #6c757d;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Modal Footer */
-.modal-footer {
-  padding: 1.5rem 2rem;
-  border-top: 1px solid #e0e0e0;
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  background: #f8f9fa;
-  border-radius: 0 0 12px 12px;
+/* Password Input Specific Styling */
+.form-group input[type="password"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' viewBox='0 0 16 16'%3E%3Cpath d='M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px;
+  padding-right: 2.5rem;
+}
+
+/* Password Change Card Specific Styling */
+.bb-learn-card .bb-learn-card-title {
   position: relative;
-  z-index: 10;
 }
 
-/* Modal Buttons */
-.modal-footer button {
-  padding: 0.75rem 1.5rem;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  cursor: pointer;
-  font-family: 'DM Serif Text', serif;
-  font-size: 1rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  min-width: 100px;
-}
-
-/* Primary Button (Save/Submit) */
-.btn-primary {
-  background: #8B4513;
-  color: white;
-  border-color: #8B4513;
-}
-
-.btn-primary:hover {
-  background: #7a3e10;
-  border-color: #7a3e10;
-  transform: translateY(-1px);
-}
-
-/* Secondary Button (Cancel) */
-.btn-secondary {
-  background: white;
-  color: #666;
-  border-color: #ddd;
-}
-
-.btn-secondary:hover {
-  background: #f8f9fa;
-  color: #333;
-  transform: translateY(-1px);
-}
-
-/* Body Lock for Modal */
-body.modal-open {
-  overflow: hidden;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-}
-
-/* Responsive Modal Design */
-@media (max-width: 768px) {
-  .modal {
-    padding: 10px;
-    align-items: flex-start;
-    padding-top: 5vh;
-  }
-  
-  .modal-content {
-    width: 100%;
-    max-width: none;
-    margin: 0;
-    max-height: 85vh;
-    border-radius: 12px 12px 0 0;
-  }
-  
-  .modal-body {
-    padding: 1.5rem;
-  }
-  
-  .modal-footer {
-    flex-direction: column;
-    padding: 1.5rem;
-  }
-  
-  .modal-footer button {
-    width: 100%;
-    margin-bottom: 0.5rem;
-  }
-  
-  .modal-footer button:last-child {
-    margin-bottom: 0;
-  }
-}
-
-/* Edit Profile Button */
-.edit-profile-btn {
-  float: right;
-  background: #8B4513;
-  color: white;
+.bb-learn-card .edit-profile-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
   border: 1px solid #8B4513;
+  color: #8B4513;
+  padding: 0.25rem 0.75rem;
   border-radius: 4px;
-  padding: 0.4rem 0.8rem;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   cursor: pointer;
-  font-family: 'DM Serif Text', serif;
+  transition: all 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.edit-profile-btn:hover {
-  background: #7a3e10;
-  border-color: #7a3e10;
-}
-
-/* Toast Notifications */
-.toast {
-  position: fixed;
-  top: 100px;
-  right: 20px;
-  padding: 1rem 1.5rem;
-  border-radius: 10px;
+.bb-learn-card .edit-profile-btn:hover {
+  background: #8B4513;
   color: white;
-  font-family: 'DM Serif Text', serif;
-  font-weight: bold;
-  z-index: 10001;
-  transform: translateX(400px);
-  transition: transform 0.3s ease;
-  max-width: 300px;
-  word-wrap: break-word;
 }
 
-.toast.show {
-  transform: translateX(0);
-}
-
-.toast-success {
-  background: linear-gradient(135deg, #28a745, #20c997);
-}
-
-.toast-error {
-  background: linear-gradient(135deg, #dc3545, #e83e8c);
-}
-
-.toast-info {
-  background: linear-gradient(135deg, #17a2b8, #6f42c1);
+/* Success Message Styling */
+.success-message {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Profile Table Styles */
@@ -1381,13 +1284,6 @@ body.modal-open {
 
 .form-group input:valid {
   border-color: #28a745;
-}
-
-.form-note {
-  margin: 0.5rem 0;
-  font-size: 0.9rem;
-  color: #666;
-  font-style: italic;
 }
 
 .btn-primary {

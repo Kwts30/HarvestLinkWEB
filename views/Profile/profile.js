@@ -31,12 +31,31 @@ class ProfileManager {
             });
         }
 
+        // Password change form submission
+        const changePasswordForm = document.getElementById('changePasswordForm');
+        if (changePasswordForm) {
+            changePasswordForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.validateAndChangePassword();
+            });
+        }
+
         // Modal click outside to close
         const modal = document.getElementById('addAddressModal');
         if (modal) {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
                     this.closeAddressModal();
+                }
+            });
+        }
+
+        // Password modal click outside to close
+        const passwordModal = document.getElementById('changePasswordModal');
+        if (passwordModal) {
+            passwordModal.addEventListener('click', (e) => {
+                if (e.target === passwordModal) {
+                    this.closeChangePasswordModal();
                 }
             });
         }
@@ -348,6 +367,122 @@ class ProfileManager {
     }
 
     // ================================
+    // PASSWORD CHANGE FUNCTIONALITY
+    // ================================
+
+    validateAndChangePassword() {
+        // Clear previous errors
+        this.clearPasswordErrors();
+
+        const currentPassword = document.getElementById('currentPassword').value.trim();
+        const newPassword = document.getElementById('newPassword').value.trim();
+        const confirmNewPassword = document.getElementById('confirmNewPassword').value.trim();
+
+        let isValid = true;
+
+        // Validate all fields are filled
+        if (!currentPassword) {
+            this.showPasswordError('currentPasswordError', 'Current password is required');
+            isValid = false;
+        }
+
+        if (!newPassword) {
+            this.showPasswordError('newPasswordError', 'New password is required');
+            isValid = false;
+        } else if (newPassword.length < 6) {
+            this.showPasswordError('newPasswordError', 'New password must be at least 6 characters long');
+            isValid = false;
+        }
+
+        if (!confirmNewPassword) {
+            this.showPasswordError('confirmNewPasswordError', 'Please confirm your new password');
+            isValid = false;
+        } else if (newPassword !== confirmNewPassword) {
+            this.showPasswordError('confirmNewPasswordError', 'New passwords do not match');
+            isValid = false;
+        }
+
+        // Check if new password is different from current
+        if (currentPassword && newPassword && currentPassword === newPassword) {
+            this.showPasswordError('newPasswordError', 'New password must be different from current password');
+            isValid = false;
+        }
+
+        if (isValid) {
+            this.changePassword(currentPassword, newPassword, confirmNewPassword);
+        }
+    }
+
+    async changePassword(currentPassword, newPassword, confirmNewPassword) {
+        try {
+            const response = await fetch('/user/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    currentPassword,
+                    newPassword,
+                    confirmNewPassword
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.showSuccess('Password changed successfully!');
+                this.closeChangePasswordModal();
+                // Clear the form
+                document.getElementById('changePasswordForm').reset();
+            } else {
+                // Handle specific field errors
+                if (result.errors) {
+                    Object.keys(result.errors).forEach(field => {
+                        if (result.errors[field]) {
+                            this.showPasswordError(field + 'Error', result.errors[field]);
+                        }
+                    });
+                } else {
+                    this.showError(result.message || 'Failed to change password');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Password change error:', error);
+            this.showError('Failed to change password. Please try again.');
+        }
+    }
+
+    showPasswordError(elementId, message) {
+        const errorElement = document.getElementById(elementId);
+        if (errorElement) {
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+    }
+
+    clearPasswordErrors() {
+        const errorIds = ['currentPasswordError', 'newPasswordError', 'confirmNewPasswordError'];
+        errorIds.forEach(id => {
+            const errorElement = document.getElementById(id);
+            if (errorElement) {
+                errorElement.textContent = '';
+                errorElement.style.display = 'none';
+            }
+        });
+    }
+
+    closeChangePasswordModal() {
+        const modal = document.getElementById('changePasswordModal');
+        if (modal) {
+            modal.style.display = 'none';
+            // Clear form and errors when closing
+            document.getElementById('changePasswordForm').reset();
+            this.clearPasswordErrors();
+        }
+    }
+
+    // ================================
     // UTILITY METHODS
     // ================================
 
@@ -399,6 +534,23 @@ function showEditProfileModal() {
         modal.classList.add('show');
         document.body.classList.add('modal-open');
         document.body.style.overflow = 'hidden';
+        
+        // Reset profile picture states to clean state
+        selectedProfilePicture = null;
+        profilePictureToRemove = false;
+        
+        // Clear any existing hidden flags in the form
+        const form = document.getElementById('editProfileForm');
+        if (form) {
+            const existingRemoveFlag = form.querySelector('input[name="removeProfileImage"]');
+            if (existingRemoveFlag) {
+                existingRemoveFlag.remove();
+                console.log('Profile edit modal - Removed existing removeProfileImage flag');
+            }
+        }
+        
+        // Ensure clean state for image handling
+        console.log('Profile edit modal opened - Clean state initialized');
         
         // Add real-time validation
         setupFormValidation();
@@ -476,17 +628,30 @@ async function saveProfileEdit() {
         submitFormData.append('lastName', lastName);
         submitFormData.append('email', email);
         
-        // Handle profile picture
+        // Only include image-related data if there are actual changes
+        let hasImageChanges = false;
+        
+        // Handle profile picture changes
         if (profilePictureToRemove) {
             submitFormData.append('removeProfileImage', 'true');
+            hasImageChanges = true;
+            console.log('Profile edit - Image removal requested');
         } else if (selectedProfilePicture) {
             submitFormData.append('profileImage', selectedProfilePicture);
+            hasImageChanges = true;
+            console.log('Profile edit - New image selected');
+        }
+        
+        // If no image changes, don't send any image data to preserve existing image
+        if (!hasImageChanges) {
+            console.log('Profile edit - No image changes, preserving existing image');
         }
         
         console.log('Sending profile update request with data:', {
             firstName: firstName,
             lastName: lastName,
             email: email,
+            hasImageChanges: hasImageChanges,
             hasProfilePicture: !!selectedProfilePicture,
             removeProfileImage: profilePictureToRemove
         });
@@ -636,6 +801,22 @@ async function loadReceiptData(transactionId) {
     }
 }
 
+function getPaymentMethodDisplayName(paymentMethod) {
+    // Handle both old format (object with method property) and new format (string)
+    const method = typeof paymentMethod === 'object' ? paymentMethod.method : paymentMethod;
+    
+    const methodMap = {
+        'gcash': 'GCash',
+        'maya': 'Maya',
+        'cod': 'Cash on Delivery (COD)',
+        'online-banking': 'Online Banking',
+        'bank-transfer': 'Bank Transfer',
+        'credit-card': 'Credit Card'
+    };
+    
+    return methodMap[method] || method?.toUpperCase() || 'N/A';
+}
+
 function displayReceipt(transaction, invoice) {
     const content = document.getElementById('receiptContent');
     
@@ -701,8 +882,8 @@ function displayReceipt(transaction, invoice) {
             
             <div class="receipt-payment">
                 <h4>Payment Information</h4>
-                <p><strong>Method:</strong> ${transaction.paymentMethod.method.toUpperCase()}</p>
-                <p><strong>Status:</strong> ${transaction.status}</p>
+                <p><strong>Method:</strong> ${getPaymentMethodDisplayName(transaction.paymentMethod)}</p>
+                <p><strong>Status:</strong> ${transaction.paymentStatus || transaction.status}</p>
                 ${invoice ? `<p><strong>Invoice Status:</strong> ${invoice.status}</p>` : ''}
             </div>
             
@@ -879,6 +1060,18 @@ function handleProfilePictureSelection(file) {
     selectedProfilePicture = file;
     profilePictureToRemove = false;
     
+    // Clear any existing remove flags in the form since a new image is being selected
+    const form = document.getElementById('editProfileForm');
+    if (form) {
+        const existingRemoveFlag = form.querySelector('input[name="removeProfileImage"]');
+        if (existingRemoveFlag) {
+            existingRemoveFlag.remove();
+            console.log('Profile edit - Removed existing removeProfileImage flag due to new image selection');
+        }
+    }
+    
+    console.log('Profile edit - New image selected, size:', (file.size / 1024 / 1024).toFixed(2) + 'MB');
+    
     // Show preview
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -897,6 +1090,8 @@ function removeProfilePicture() {
     if (confirm('Are you sure you want to remove your profile picture?')) {
         profilePictureToRemove = true;
         selectedProfilePicture = null;
+        
+        console.log('Profile edit - Image removal requested');
         
         // Update current image to default
         const currentImg = document.getElementById('currentProfileImg');
@@ -942,4 +1137,65 @@ function cancelProfilePictureChange() {
             currentImg.src = originalSrc;
         }
     }
+}
+
+// ===========================
+// PASSWORD CHANGE MODAL FUNCTIONS
+// ===========================
+
+function showChangePasswordModal() {
+    const modal = document.getElementById('changePasswordModal');
+    if (modal) {
+        modal.style.display = 'block';
+        // Clear form and errors when opening
+        document.getElementById('changePasswordForm').reset();
+        profileManager.clearPasswordErrors();
+    }
+}
+
+function closeChangePasswordModal() {
+    const modal = document.getElementById('changePasswordModal');
+    if (modal) {
+        modal.style.display = 'none';
+        // Clear form and errors when closing
+        document.getElementById('changePasswordForm').reset();
+        profileManager.clearPasswordErrors();
+    }
+}
+
+function savePasswordChange() {
+    profileManager.validateAndChangePassword();
+}
+
+// ===========================
+// ADDRESS MODAL FUNCTIONS
+// ===========================
+
+function closeAddressModal() {
+    if (window.profileManager) {
+        window.profileManager.closeAddressModal();
+    }
+}
+
+function saveAddress() {
+    if (window.profileManager) {
+        window.profileManager.saveAddress();
+    }
+}
+
+// ===========================
+// GLOBAL UTILITY FUNCTIONS
+// ===========================
+
+function logout() {
+    fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+    }).then(() => {
+        window.location.href = '/';
+    }).catch(error => {
+        console.error('Logout error:', error);
+        // Force redirect even if logout fails
+        window.location.href = '/';
+    });
 }

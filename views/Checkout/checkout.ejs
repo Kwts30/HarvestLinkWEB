@@ -114,7 +114,10 @@
             <div class="delivery-address">
                 <div class="address-header">
                     <h4>Delivery Address</h4>
-                    <button class="edit-address-btn" id="editAddressBtn" style="display: none;">Edit</button>
+                    <div class="address-actions">
+                        <button class="select-address-btn" id="selectAddressBtn" style="display: none;">Select Address</button>
+                        <button class="edit-address-btn" id="editAddressBtn" style="display: none;">Edit</button>
+                    </div>
                 </div>
                 
                 <!-- Container for when user has addresses -->
@@ -258,8 +261,179 @@
         </div>
     </div>
 
+    <!-- Edit Address Modal -->
+    <div id="editAddressModal" class="payment-modal address-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Address</h3>
+                <span class="close-modal" id="closeEditAddressModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editAddressForm">
+                    <input type="hidden" id="editAddressId" name="addressId">
+                    
+                    <div class="form-group">
+                        <label for="editAddressType">Address Type</label>
+                        <select id="editAddressType" name="addressType" required>
+                            <option value="Home">Home</option>
+                            <option value="Work">Work</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editFullName">Full Name</label>
+                        <input type="text" id="editFullName" name="fullName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editStreet">Street Address</label>
+                        <input type="text" id="editStreet" name="street" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editBarangay">Barangay</label>
+                        <input type="text" id="editBarangay" name="barangay" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editCity">City</label>
+                        <input type="text" id="editCity" name="city" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editProvince">Province</label>
+                        <input type="text" id="editProvince" name="province" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editPhone">Phone Number</label>
+                        <input type="tel" id="editPhone" name="phone" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="editIsPrimary" name="isPrimary">
+                            Set as primary address
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn confirm-btn" id="updateAddress">Update Address</button>
+                <button class="modal-btn cancel-btn" id="cancelEditAddress">Cancel</button>
+                <button class="modal-btn delete-btn" id="deleteAddressFromEdit">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GCash Payment Modal -->
+    <div id="gcashPaymentModal" class="payment-modal gcash-payment-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="payment-logo">
+                    <img src="/assets/checkout webpage/gcash.png" alt="GCash" class="payment-header-logo">
+                    <h3>Pay with GCash</h3>
+                </div>
+                <span class="close-modal" id="closeGcashModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="payment-instructions">
+                    <p>Scan the QR code below using your GCash app to complete the payment.</p>
+                </div>
+                <div class="qr-code-container">
+                    <img src="/assets/checkout webpage/qr-ph.jpg" alt="GCash QR Code" class="qr-code-image">
+                </div>
+                <div class="payment-amount">
+                    <h4>Amount to Pay: <span id="gcashAmount">₱0.00</span></h4>
+                </div>
+                <div class="reference-input-section">
+                    <label for="gcashReference">Enter GCash Reference Number:</label>
+                    <input type="text" id="gcashReference" name="gcashReference" placeholder="Enter 12-digit reference number" maxlength="12" pattern="[0-9]{12}" required>
+                    <small class="input-help">Reference number must be exactly 12 digits</small>
+                    <div class="input-error" id="gcashReferenceError" style="display: none;">Please enter a valid 12-digit reference number</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn confirm-btn" id="confirmGcashPayment">Confirm Payment</button>
+                <button class="modal-btn cancel-btn" id="cancelGcashPayment">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Maya Payment Modal -->
+    <div id="mayaPaymentModal" class="payment-modal maya-payment-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="payment-logo">
+                    <img src="/assets/checkout webpage/maya.png" alt="Maya" class="payment-header-logo">
+                    <h3>Pay with Maya</h3>
+                </div>
+                <span class="close-modal" id="closeMayaModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="payment-instructions">
+                    <p>Scan the QR code below using your Maya app to complete the payment.</p>
+                </div>
+                <div class="qr-code-container">
+                    <img src="/assets/checkout webpage/qr-ph.jpg" alt="Maya QR Code" class="qr-code-image">
+                </div>
+                <div class="payment-amount">
+                    <h4>Amount to Pay: <span id="mayaAmount">₱0.00</span></h4>
+                </div>
+                <div class="reference-input-section">
+                    <label for="mayaReference">Enter Maya Reference Number:</label>
+                    <input type="text" id="mayaReference" name="mayaReference" placeholder="Enter reference number" maxlength="12" pattern="[0-9]{12}" required>
+                    <small class="input-help">Enter the reference number from your Maya transaction</small>
+                    <div class="input-error" id="mayaReferenceError" style="display: none;">Please enter a valid 12-digit reference number</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn confirm-btn" id="confirmMayaPayment">Confirm Payment</button>
+                <button class="modal-btn cancel-btn" id="cancelMayaPayment">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Success Modal -->
+    <div id="orderSuccessModal" class="payment-modal success-modal">
+        <div class="modal-content">
+            <div class="modal-header success-header">
+                <img src="/assets/checkout webpage/success.png" alt="Success" class="success-icon">
+                <h3>Order Placed Successfully!</h3>
+            </div>
+            <div class="modal-body">
+                <div class="success-message">
+                    <p>Thank you for your order! Your payment has been received and your order is being processed.</p>
+                    <div class="order-details">
+                        <div class="detail-row">
+                            <span class="label">Order ID:</span>
+                            <span class="value" id="orderIdDisplay">#ORD-000000</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Payment Method:</span>
+                            <span class="value" id="paymentMethodDisplay">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Reference Number:</span>
+                            <span class="value" id="referenceNumberDisplay">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Total Amount:</span>
+                            <span class="value" id="totalAmountDisplay">₱0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn confirm-btn" id="goToOrders">View My Orders</button>
+                <button class="modal-btn secondary-btn" id="continueShopping">Continue Shopping</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-      // Hamburger menu functionality (same as home/profile page)
+        // hamburger menu
       document.addEventListener('DOMContentLoaded', function() {
         const hamburger = document.querySelector('.hamburger-menu');
         const navOverlay = document.querySelector('.nav-overlay');

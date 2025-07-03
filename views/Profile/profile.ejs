@@ -150,7 +150,52 @@
           <div class="addresses-container" id="addressesContainer">
             <div class="loading-addresses">Loading your addresses...</div>
           </div>
-          <button class="bb-learn-add-btn" onclick="showAddAddressModal()">Add New Address</button>
+          <button class="bb-learn-add-btn" onclick="profileManager.showAddAddressModal()">Add New Address</button>
+        </div>
+        <!-- Password Change Card -->
+        <div class="bb-learn-card">
+          <div class="bb-learn-card-title">Password & Security
+            <button class="edit-profile-btn" onclick="showChangePasswordModal()">Change Password</button>
+          </div>
+          <table class="bb-learn-info-table">
+            <tr><td>Password</td><td>••••••••••••</td></tr>
+            <tr><td>Last Changed</td><td>Hidden for security</td></tr>
+          </table>
+        </div>
+        
+        <!-- Change Password Modal -->
+        <div id="changePasswordModal" class="modal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>Change Password</h3>
+              <span class="close-modal" onclick="closeChangePasswordModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+              <form id="changePasswordForm">
+                <div class="form-group">
+                  <label for="currentPassword">Current Password *</label>
+                  <input type="password" id="currentPassword" name="currentPassword" required placeholder="Enter your current password">
+                  <div class="form-error" id="currentPasswordError"></div>
+                </div>
+                <div class="form-group">
+                  <label for="newPassword">New Password *</label>
+                  <input type="password" id="newPassword" name="newPassword" required placeholder="Enter your new password">
+                  <div class="form-error" id="newPasswordError"></div>
+                  <small class="form-note">Password must be at least 6 characters long</small>
+                </div>
+                <div class="form-group">
+                  <label for="confirmNewPassword">Confirm New Password *</label>
+                  <input type="password" id="confirmNewPassword" name="confirmNewPassword" required placeholder="Confirm your new password">
+                  <div class="form-error" id="confirmNewPasswordError"></div>
+                </div>
+                <p class="form-note">* All fields are required</p>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button class="btn-primary" type="button" onclick="profileManager.validateAndChangePassword()">Change Password</button>
+              <button class="btn-secondary" onclick="closeChangePasswordModal()">Cancel</button>
+            </div>
+          </div>
         </div>
         <!-- You can add more cards for additional info, contact info, etc. -->
       </div>

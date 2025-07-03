@@ -7,6 +7,7 @@ import Cart from '../../models/cart.js';
 import Invoice from '../../models/invoice.js';
 import TopProduct from '../../models/topproducts.js';
 import { requireAuth, requireAdmin } from '../../middlewares/index.js';
+import { validatePaymentReferenceMiddleware } from '../../middlewares/paymentValidation.js';
 import messagesRouter from './messages.js';
 
 const router = express.Router();
@@ -293,23 +294,21 @@ router.delete('/cart', requireAuth, async (req, res) => {
   }
 });
 
-// ============ CHECKOUT & ADDRESS API ============
+// ================================
+// CHECKOUT API ENDPOINTS
+// ================================
 
-// Get addresses for checkout
+// Get user addresses for checkout
 router.get('/checkout/addresses', requireAuth, async (req, res) => {
   try {
-    const userId = req.user.id;
-    const addresses = await Address.findByUserId(userId);
-    
-    // Add formatted display address to each address
-    const formattedAddresses = addresses.map(address => ({
-      ...address.toObject(),
-      displayAddress: address.fullAddress
-    }));
-    
-    // Find primary address
+    const addresses = await Address.find({ userId: req.user._id }).sort({ isPrimary: -1, createdAt: -1 });
     const primaryAddress = addresses.find(addr => addr.isPrimary);
     
+    const formattedAddresses = addresses.map(address => ({
+      ...address.toObject(),
+      displayAddress: `${address.street}, ${address.barangay}, ${address.city}, ${address.province}`
+    }));
+
     res.json({
       success: true,
       addresses: formattedAddresses,
@@ -319,292 +318,352 @@ router.get('/checkout/addresses', requireAuth, async (req, res) => {
     console.error('Get checkout addresses error:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Failed to fetch addresses' 
+      error: 'Failed to load addresses',
+      details: error.message 
     });
   }
 });
 
-// Add new address for checkout
+// Add new address
 router.post('/checkout/addresses', requireAuth, async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { 
-      type, 
-      isPrimary, 
-      fullName, 
-      street, 
-      barangay, 
-      city, 
-      province, 
-      phone, 
-      postalCode,
-      landmark, 
-      deliveryInstructions 
-    } = req.body;
-    
-    // Validation - check for required fields
-    const requiredFields = ['type', 'fullName', 'street', 'barangay', 'city', 'province', 'phone'];
-    const missingFields = requiredFields.filter(field => !req.body[field] || req.body[field].trim() === '');
-    
-    if (missingFields.length > 0) {
-      return res.status(400).json({ 
+    const { type, fullName, phone, street, barangay, city, province, postalCode, landmark, deliveryInstructions, isPrimary } = req.body;
+
+    // Validate required fields
+    if (!fullName || !phone || !street || !barangay || !city || !province) {
+      return res.status(400).json({
         success: false,
-        message: `Please fill in all required fields: ${missingFields.join(', ')}`,
-        missingFields: missingFields
+        message: 'Missing required fields'
       });
     }
-    
-    // Create new address
-    const newAddress = new Address({
-      userId,
-      type: type.trim(),
-      isPrimary: isPrimary || false,
-      fullName: fullName.trim(),
-      street: street.trim(),
-      barangay: barangay.trim(),
-      city: city.trim(),
-      province: province.trim(),
-      phone: phone.trim(),
-      postalCode: postalCode ? postalCode.trim() : '',
-      landmark: landmark ? landmark.trim() : '',
-      deliveryInstructions: deliveryInstructions ? deliveryInstructions.trim() : ''
+
+    // If this is set as primary, unset others
+    if (isPrimary) {
+      await Address.updateMany(
+        { userId: req.user._id },
+        { $set: { isPrimary: false } }
+      );
+    }
+
+    const address = new Address({
+      userId: req.user._id,
+      type: type || 'Home',
+      fullName,
+      phone,
+      street,
+      barangay,
+      city,
+      province,
+      postalCode: postalCode || '',
+      landmark: landmark || '',
+      deliveryInstructions: deliveryInstructions || '',
+      isPrimary: isPrimary || false
     });
-    
-    // Save address (middleware will handle primary address logic)
-    await newAddress.save();
-    
-    res.status(201).json({ 
+
+    await address.save();
+
+    res.json({
       success: true,
-      message: 'Address added successfully',
-      address: newAddress 
+      address: address.toObject(),
+      message: 'Address saved successfully'
     });
   } catch (error) {
-    console.error('Add checkout address error:', error);
+    console.error('Add address error:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Failed to save address. Please try again.' 
+      error: 'Failed to save address',
+      details: error.message 
     });
   }
 });
 
-// Process checkout with address
-router.post('/checkout', requireAuth, async (req, res) => {
+// Place order endpoint
+// Place order endpoint with payment validation
+router.post('/checkout/place-order', requireAuth, validatePaymentReferenceMiddleware, async (req, res) => {
   try {
-    const { addressId, paymentMethod, bank, deliveryInstructions } = req.body;
-    const userId = req.user.id;
-    
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'User not found' 
+    const { 
+      addressId, 
+      paymentMethod, 
+      referenceNumber, 
+      items, 
+      subtotal, 
+      shippingFee, 
+      tax, 
+      total,
+      deliveryInstructions 
+    } = req.body;
+
+    // Debug logging
+    console.log('Order request - User:', req.user ? { id: req.user._id, firstName: req.user.firstName, lastName: req.user.lastName } : 'No user');
+    console.log('Order request - Address ID:', addressId);
+    console.log('Order request - Payment Method:', paymentMethod);
+    console.log('Order request - Items:', items?.length || 0);
+
+    // Validate required fields
+    if (!addressId || !paymentMethod || !items || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required order information'
       });
     }
-    
-    // Get user's cart from Cart collection
-    const cart = await Cart.findOne({ userId }).populate('items.productId');
-    
-    if (!cart || !cart.items || cart.items.length === 0) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Cart is empty' 
-      });
-    }
-    
-    if (!addressId) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Delivery address is required' 
-      });
-    }
-    
-    if (!paymentMethod) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Payment method is required' 
-      });
-    }
-    
-    // Verify address belongs to user
-    const address = await Address.findOne({ 
-      _id: addressId, 
-      userId: userId, 
-      isActive: true 
-    });
-    
+
+    // Use validated reference number from middleware
+    const validatedReference = req.validatedReference;
+
+    // Get user address
+    const address = await Address.findOne({ _id: addressId, userId: req.user._id });
     if (!address) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'Address not found or invalid' 
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid delivery address'
       });
     }
-    
-    // Calculate total and prepare items
-    let totalAmount = 0;
-    const items = [];
-    
-    for (const cartItem of cart.items) {
-      const product = cartItem.productId;
-      
-      if (!product || !product.isActive) {
-        return res.status(400).json({ 
-          success: false, 
-          error: `Product "${product?.name || 'Unknown'}" is no longer available` 
+
+    // Validate products and calculate totals
+    let calculatedSubtotal = 0;
+    const validatedItems = [];
+
+    for (const item of items) {
+      const product = await Product.findById(item.productId);
+      if (!product) {
+        return res.status(400).json({
+          success: false,
+          message: `Product not found: ${item.productId}`
         });
       }
-      
-      if (product.stock < cartItem.quantity) {
-        return res.status(400).json({ 
-          success: false, 
-          error: `Insufficient stock for "${product.name}". Available: ${product.stock}` 
+
+      if (product.stock < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient stock for ${product.name}. Available: ${product.stock}`
         });
       }
-      
-      const itemTotal = product.price * cartItem.quantity;
-      totalAmount += itemTotal;
-      
-      items.push({
+
+      const itemTotal = product.price * item.quantity;
+      calculatedSubtotal += itemTotal;
+
+      validatedItems.push({
         productId: product._id,
         name: product.name,
         price: product.price,
-        quantity: cartItem.quantity,
+        quantity: item.quantity,
         total: itemTotal
       });
     }
-    
-    // Add shipping cost (₱60.00)
-    const shippingCost = 60.00;
-    totalAmount += shippingCost;
-    
-    // Add tax (12%)
-    const taxAmount = totalAmount * 0.12;
-    totalAmount += taxAmount;
-    
-    // Create delivery address object
-    const deliveryAddress = {
-      fullName: address.fullName,
-      phone: address.phone,
-      address: address.fullAddress,
-      street: address.street,
-      barangay: address.barangay,
-      city: address.city,
-      province: address.province,
-      postalCode: address.postalCode,
-      landmark: address.landmark,
-      deliveryInstructions: deliveryInstructions || address.deliveryInstructions
-    };
-    
-    // Create payment info object
-    const paymentInfo = {
-      method: paymentMethod,
-      ...(bank && { bank }),
-      status: paymentMethod === 'cod' ? 'pending' : 'pending_payment'
-    };
-    
-    // Generate transaction ID
-    const transactionId = `HL${Date.now()}${Math.floor(Math.random() * 1000)}`;
-    
-    // Set estimated delivery date (3-5 business days)
-    const estimatedDelivery = new Date();
-    estimatedDelivery.setDate(estimatedDelivery.getDate() + 5);
-    
-    // Create transaction
+
+    // Validate calculated totals
+    const calculatedTax = calculatedSubtotal * 0.12;
+    const calculatedTotal = calculatedSubtotal + shippingFee + calculatedTax;
+
+    if (Math.abs(calculatedTotal - total) > 0.01) {
+      return res.status(400).json({
+        success: false,
+        message: 'Order total mismatch'
+      });
+    }
+
+    // Create transaction (transactionId and orderNumber will be auto-generated)
     const transaction = new Transaction({
-      transactionId,
-      userId: user._id,
-      items,
-      totalAmount,
-      subtotal: totalAmount - shippingCost - taxAmount,
-      shippingCost,
-      taxAmount,
-      deliveryAddress,
-      paymentMethod: paymentInfo,
-      estimatedDelivery,
+      userId: req.user._id,
+      items: validatedItems,
+      subtotal: calculatedSubtotal,
+      shippingFee,
+      tax: calculatedTax,
+      total: calculatedTotal,
+      totalAmount: calculatedTotal, // For backward compatibility
+      paymentMethod,
+      paymentStatus: 'pending', // All payments start as pending until admin approval
+      referenceNumber: referenceNumber || null,
+      deliveryAddress: {
+        fullName: address.fullName,
+        phone: address.phone,
+        street: address.street,
+        barangay: address.barangay,
+        city: address.city,
+        province: address.province,
+        type: address.type
+      },
+      deliveryInstructions: deliveryInstructions || '',
       status: 'pending',
-      notes: deliveryInstructions || ''
+      orderDate: new Date()
     });
-    
+
     await transaction.save();
-    
-    // Generate unique invoice number
-    const invoiceNumber = `INV-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-    
-    // Create invoice for the transaction
+
+    // Update product stock
+    for (const item of validatedItems) {
+      await Product.findByIdAndUpdate(
+        item.productId,
+        { $inc: { stock: -item.quantity, sold: item.quantity } }
+      );
+    }
+
+    // Clear user's cart
+    await Cart.deleteMany({ userId: req.user._id });
+
+    // Generate invoice number (e.g., INV-YYYYMMDD-<random/unique>)
+    const dateStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
+    const uniquePart = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+    const invoiceNumber = `INV-${dateStr}-${uniquePart}`;
+
+    // Validate invoice number generation
+    if (!invoiceNumber || invoiceNumber.length < 10) {
+      throw new Error('Failed to generate invoice number');
+    }
+
+    console.log('Generated invoice number:', invoiceNumber);
+
+    // Get customer name from address or user
+    let customerName = '';
+    if (address && address.fullName && address.fullName.trim()) {
+      customerName = address.fullName.trim();
+    } else if (req.user && req.user.firstName && req.user.firstName.trim()) {
+      customerName = req.user.firstName.trim() + (req.user.lastName ? ' ' + req.user.lastName.trim() : '');
+    } else if (req.user && req.user.username && req.user.username.trim()) {
+      customerName = req.user.username.trim();
+    } else {
+      customerName = 'Customer';
+    }
+
+    // Ensure customer name is not empty
+    if (!customerName || customerName.trim() === '') {
+      customerName = 'Customer';
+    }
+
+    // Debug logging for customer name
+    console.log('Customer name resolved to:', customerName);
+    console.log('Address fullName:', address?.fullName);
+    console.log('User firstName:', req.user?.firstName);
+    console.log('User lastName:', req.user?.lastName);
+
+    // Ensure all required fields are present
+    if (!invoiceNumber || invoiceNumber.trim() === '') {
+      throw new Error('Invoice number is required');
+    }
+    if (!customerName || customerName.trim() === '') {
+      throw new Error('Customer name is required');
+    }
+    if (!calculatedTotal || calculatedTotal <= 0) {
+      throw new Error('Total amount is required and must be greater than 0');
+    }
+
+    // Map payment method for invoice (Invoice model uses different enum values)
+    const mapPaymentMethodForInvoice = (method) => {
+      const methodMap = {
+        'gcash': 'Gcash',
+        'maya': 'Maya',
+        'cod': 'COD',
+        'online-banking': 'Bank Transfer',
+        'bank-transfer': 'Bank Transfer',
+        'credit-card': 'Credit Card'
+      };
+      return methodMap[method.toLowerCase()] || 'COD';
+    };
+
     const invoice = new Invoice({
-      customerName: `${user.firstName} ${user.lastName}`.trim() || user.username,
-      items: items.map(item => ({
+      invoiceNumber,
+      customerName,
+      items: validatedItems.map(item => ({
         productId: item.productId,
         quantity: item.quantity,
         price: item.price
       })),
-      totalAmount: transaction.totalAmount,
-      status: "Pending",
-      PaymentMethod: paymentMethod === 'cod' ? 'COD' : 
-                   paymentMethod === 'gcash' ? 'Gcash' :
-                   paymentMethod === 'maya' ? 'Maya' :
-                   paymentMethod === 'bank_transfer' ? 'Bank Transfer' : 'Credit Card',
-      invoiceNumber: invoiceNumber
+      totalAmount: calculatedTotal,
+      status: 'Pending', // All invoices start as pending until payment is verified
+      PaymentMethod: mapPaymentMethodForInvoice(paymentMethod),
+      createdAt: new Date()
     });
-    
-    await invoice.save();
-    
-    // Link invoice to transaction
-    transaction.invoiceId = invoice._id;
-    await transaction.save();
-    
-    // Update product stock and top products
-    for (const cartItem of cart.items) {
-      // Update product stock
-      await Product.findByIdAndUpdate(
-        cartItem.productId._id,
-        { $inc: { stock: -cartItem.quantity } }
-      );
-      
-      // Update or create top product entry
-      const existingTopProduct = await TopProduct.findOne({ 
-        productId: cartItem.productId._id 
+
+    try {
+      await invoice.save();
+    } catch (invoiceError) {
+      console.error('Invoice creation error:', invoiceError);
+      // If invoice creation fails, we should still complete the order
+      // but log the error for debugging
+      console.log('Invoice data that failed:', {
+        invoiceNumber,
+        customerName,
+        totalAmount: calculatedTotal,
+        itemsCount: validatedItems.length
       });
-      
-      if (existingTopProduct) {
-        // Update existing top product sales count
-        existingTopProduct.salesCount += cartItem.quantity;
-        await existingTopProduct.save();
-      } else {
-        // Create new top product entry
-        const newTopProduct = new TopProduct({
-          productId: cartItem.productId._id,
-          salesCount: cartItem.quantity
-        });
-        await newTopProduct.save();
-      }
     }
-    
-    // Clear cart from Cart collection (order completed)
-    await Cart.findOneAndDelete({ userId });
-    
-    res.json({ 
+
+    res.json({
       success: true,
-      message: 'Order placed successfully', 
-      transaction: {
-        id: transaction._id,
-        transactionId: transaction.transactionId,
-        totalAmount: transaction.totalAmount,
-        deliveryAddress: transaction.deliveryAddress,
-        estimatedDelivery: transaction.estimatedDelivery,
+      message: 'Order placed successfully',
+      order: {
+        _id: transaction._id,
+        orderNumber: transaction.orderNumber,
+        total: transaction.total,
         paymentMethod: transaction.paymentMethod,
+        paymentStatus: transaction.paymentStatus,
+        referenceNumber: transaction.referenceNumber,
         status: transaction.status
-      },
-      invoice: {
-        id: invoice._id,
-        invoiceNumber: invoice.invoiceNumber,
-        status: invoice.status
       }
     });
+
   } catch (error) {
-    console.error('Checkout error:', error);
+    console.error('Place order error:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Server error during checkout' 
+      error: 'Failed to place order',
+      details: error.message 
+    });
+  }
+});
+
+// Admin endpoint to approve payment
+router.put('/admin/transactions/:transactionId/approve-payment', requireAdmin, async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const { approved } = req.body;
+
+    const transaction = await Transaction.findById(transactionId);
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        message: 'Transaction not found'
+      });
+    }
+
+    // Update payment status
+    transaction.paymentStatus = approved ? 'paid' : 'failed';
+    
+    // If payment is approved, also update the order status to confirmed
+    if (approved) {
+      transaction.status = 'confirmed';
+    }
+
+    await transaction.save();
+
+    // Also update the invoice status if it exists
+    const invoice = await Invoice.findOne({ 
+      items: { $elemMatch: { productId: { $in: transaction.items.map(item => item.productId) } } },
+      totalAmount: transaction.total,
+      createdAt: { $gte: new Date(transaction.orderDate.getTime() - 60000) } // Within 1 minute of order
+    });
+
+    if (invoice) {
+      invoice.status = approved ? 'Paid' : 'Cancelled';
+      await invoice.save();
+    }
+
+    res.json({
+      success: true,
+      message: `Payment ${approved ? 'approved' : 'rejected'} successfully`,
+      transaction: {
+        _id: transaction._id,
+        paymentStatus: transaction.paymentStatus,
+        status: transaction.status
+      }
+    });
+
+  } catch (error) {
+    console.error('Error approving payment:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to approve payment',
+      details: error.message
     });
   }
 });

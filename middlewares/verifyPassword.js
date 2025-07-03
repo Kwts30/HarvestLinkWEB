@@ -158,6 +158,7 @@ const hashNewPassword = async (req, res, next) => {
 /**
  * Combined middleware function that verifies old password and hashes new password
  * Use this for complete password change validation and processing
+ * Works for both admin (editing any user) and user (editing their own profile) scenarios
  */
 const processPasswordChange = async (req, res, next) => {
     try {
@@ -179,14 +180,16 @@ const processPasswordChange = async (req, res, next) => {
             });
         }
 
-        // Get the user ID from params or body
-        const userId = req.params.id || req.body.userId;
+        // Get the user ID from params, body, or authenticated session
+        // For admin routes: req.params.id or req.body.userId
+        // For user profile routes: req.user._id or req.user.id
+        const userId = req.params.id || req.body.userId || (req.user && (req.user._id || req.user.id));
         if (!userId) {
             return res.status(400).json({
                 success: false,
                 message: 'User ID is required',
                 errors: {
-                    general: 'User ID is missing'
+                    general: 'User ID is missing or user not authenticated'
                 }
             });
         }

@@ -6,34 +6,57 @@ class CheckoutManager {
         this.userAddresses = [];
         this.cartItems = [];
         this.isProcessing = false;
+        this.setupTimeout = null;
         
         this.apiBaseUrl = 'http://localhost:3000/api';
         this.init();
     }
 
-    // Initialize checkout system
+    // Initialize checkout system - Simplified
     async init() {
         try {
+            console.log('Initializing checkout system...');
+            
             // Check authentication
-            if (!window.AuthUtils.requireAuth()) {
+            if (!window.AuthUtils && !window.AuthUtils.requireAuth()) {
+                console.error('Authentication required');
                 return;
             }
 
-            // Initialize all components
+            // Setup event listeners first
             this.initializeEventListeners();
             this.setupNavigationHandlers();
-            this.initializePaymentModal();
             this.initializeAddressModal();
+            this.initializePaymentModal();
+            
+            // Initialize edit modal if it exists
+            this.createEditAddressModal();
+            
+            // Debug: Check if modal elements exist
+            console.log('Checking modal elements...');
+            const addressModal = document.getElementById('addressModal');
+            const addressModalBody = document.getElementById('addressModalBody');
+            const confirmAddress = document.getElementById('confirmAddress');
+            const cancelAddress = document.getElementById('cancelAddress');
+            const closeAddressModal = document.getElementById('closeAddressModal');
+            
+            console.log('Address modal elements:', {
+                addressModal: !!addressModal,
+                addressModalBody: !!addressModalBody,
+                confirmAddress: !!confirmAddress,
+                cancelAddress: !!cancelAddress,
+                closeAddressModal: !!closeAddressModal
+            });
             
             // Load data
-            await Promise.all([
-                this.loadUserAddresses(),
-                this.loadCartData()
-            ]);
+            await this.loadUserAddresses();
+            await this.loadCartData();
             
+            // Update UI
             this.updateUI();
+            console.log('Checkout system initialized successfully');
         } catch (error) {
-            console.error('❌ Failed to initialize checkout:', error);
+            console.error('Failed to initialize checkout:', error);
             this.showError('Failed to load checkout. Please refresh the page.');
         }
     }
@@ -43,7 +66,9 @@ class CheckoutManager {
         // Address modal confirm button
         const confirmAddressBtn = document.getElementById('confirmAddress');
         if (confirmAddressBtn) {
-            confirmAddressBtn.addEventListener('click', () => {
+            confirmAddressBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Confirm address button clicked');
                 this.confirmAddressSelection();
             });
         }
@@ -51,7 +76,9 @@ class CheckoutManager {
         // Address modal cancel button
         const cancelAddressBtn = document.getElementById('cancelAddress');
         if (cancelAddressBtn) {
-            cancelAddressBtn.addEventListener('click', () => {
+            cancelAddressBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Cancel address button clicked');
                 this.closeModal('addressModal');
             });
         }
@@ -59,21 +86,95 @@ class CheckoutManager {
         // Close modal button
         const closeAddressModal = document.getElementById('closeAddressModal');
         if (closeAddressModal) {
-            closeAddressModal.addEventListener('click', () => {
+            closeAddressModal.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Close address modal button clicked');
                 this.closeModal('addressModal');
+            });
+        }
+    }
+
+    // Initialize payment modal functionality
+    initializePaymentModal() {
+        // Setup payment option selection
+        this.setupPaymentOptionListeners();
+        
+        // Setup input validation
+        this.setupInputValidation();
+    }
+
+    setupPaymentOptionListeners() {
+        // Payment option selection
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.payment-option')) {
+                const paymentOption = e.target.closest('.payment-option');
+                
+                // Remove selected class from all options
+                document.querySelectorAll('.payment-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                
+                // Add selected class to clicked option
+                paymentOption.classList.add('selected');
+                
+                // Update selected payment method
+                this.selectedPaymentMethod = paymentOption.dataset.payment;
+                console.log('Payment method selected:', this.selectedPaymentMethod);
+            }
+        });
+    }
+
+    setupInputValidation() {
+        // GCash reference number validation
+        const gcashReference = document.getElementById('gcashReference');
+        if (gcashReference) {
+            gcashReference.addEventListener('input', (e) => {
+                // Only allow numbers
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                // Limit to 12 digits
+                if (e.target.value.length > 12) {
+                    e.target.value = e.target.value.substring(0, 12);
+                }
+                this.validateGcashReference();
+            });
+        }
+
+        // Maya reference number validation
+        const mayaReference = document.getElementById('mayaReference');
+        if (mayaReference) {
+            mayaReference.addEventListener('input', (e) => {
+                // Only allow numbers
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                // Limit to 12 digits
+                if (e.target.value.length > 12) {
+                    e.target.value = e.target.value.substring(0, 12);
+                }
+                this.validateMayaReference();
             });
         }
     }
 
     // Confirm address selection from modal
     confirmAddressSelection() {
+        console.log('confirmAddressSelection called');
+        
         const selectedOption = document.querySelector('.address-option.selected');
+        console.log('Selected option:', selectedOption);
+        
         if (selectedOption) {
             this.selectedAddressId = selectedOption.dataset.addressId;
-            this.updateAddressDisplay();
+            console.log('Selected address ID:', this.selectedAddressId);
+            
+            // Find the selected address and update the display
+            const selectedAddress = this.userAddresses.find(addr => addr._id === this.selectedAddressId);
+            if (selectedAddress) {
+                this.updateSelectedAddressDisplay(selectedAddress);
+            }
+            
             this.closeModal('addressModal');
             this.showSuccess('Address updated successfully');
         } else {
+            console.log('No address selected');
             this.showError('Please select an address');
         }
     }
@@ -84,7 +185,7 @@ class CheckoutManager {
         try {
             this.showLoading('loadingAddressMessage');
             
-            const response = await fetch(`${this.apiBaseUrl}/checkout/addresses`, {
+            const response = await fetch(`${this.apiBaseUrl}/addresses`, {
                 credentials: 'include'
             });
             
@@ -111,6 +212,7 @@ class CheckoutManager {
         const addAddressContainer = document.getElementById('addAddressContainer');
         const selectedAddressCard = document.getElementById('selectedAddressCard');
         const editAddressBtn = document.getElementById('editAddressBtn');
+        const selectAddressBtn = document.getElementById('selectAddressBtn');
         const loadingAddressMessage = document.getElementById('loadingAddressMessage');
 
         // Hide loading message
@@ -121,11 +223,17 @@ class CheckoutManager {
             if (addAddressContainer) addAddressContainer.style.display = 'block';
             if (selectedAddressCard) selectedAddressCard.style.display = 'none';
             if (editAddressBtn) editAddressBtn.style.display = 'none';
+            if (selectAddressBtn) selectAddressBtn.style.display = 'none';
         } else {
             // Has addresses - show selected address
             if (addAddressContainer) addAddressContainer.style.display = 'none';
             if (selectedAddressCard) selectedAddressCard.style.display = 'block';
             if (editAddressBtn) editAddressBtn.style.display = 'inline-block';
+            
+            // Show select address button only if there are multiple addresses
+            if (selectAddressBtn) {
+                selectAddressBtn.style.display = this.userAddresses.length > 1 ? 'inline-block' : 'none';
+            }
 
             const selectedAddress = this.userAddresses.find(addr => addr._id === this.selectedAddressId) 
                 || this.userAddresses[0];
@@ -153,117 +261,255 @@ class CheckoutManager {
         if (phoneEl) phoneEl.textContent = address.phone || 'No phone provided';
     }
 
-    // Show address selection modal
+    // Show address selection modal - Simple and clean
     showAddressModal() {
-        const modal = document.getElementById('addressModal');
-        if (!modal) return;
-
-        this.loadAddressOptions();
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
-
-    loadAddressOptions() {
-        const modalBody = document.getElementById('addressModalBody');
-        if (!modalBody) return;
-
+        console.log('showAddressModal called');
+        console.log('User addresses:', this.userAddresses);
+        
         if (this.userAddresses.length === 0) {
-            modalBody.innerHTML = `
-                <div class="no-addresses">
-                    <p>No saved addresses found.</p>
-                    <button class="btn-primary" onclick="checkoutManager.showNewAddressModal()">
-                        Add New Address
-                    </button>
-                </div>
-            `;
+            console.log('No addresses found');
+            this.showError('No addresses found. Please add an address first.');
             return;
         }
+
+        const modal = document.getElementById('addressModal');
+        if (!modal) {
+            console.error('Address modal not found!');
+            return;
+        }
+
+        console.log('Loading address options...');
+        this.loadAddressOptions();
+        
+        console.log('Opening address modal...');
+        this.openModal('addressModal');
+    }
+
+    // Load address options - Simplified
+    loadAddressOptions() {
+        console.log('loadAddressOptions called');
+        const modalBody = document.getElementById('addressModalBody');
+        if (!modalBody) {
+            console.error('Address modal body not found!');
+            return;
+        }
+
+        console.log('Loading addresses:', this.userAddresses);
 
         modalBody.innerHTML = this.userAddresses.map(address => `
             <div class="address-option ${address._id === this.selectedAddressId ? 'selected' : ''}" 
                  data-address-id="${address._id}">
-                <div class="address-content">
-                    <div class="address-header">
-                        <span class="address-name">${address.fullName}</span>
-                        ${address.isPrimary ? '<span class="primary-badge">Primary</span>' : ''}
-                        <span class="address-type">${address.type}</span>
-                    </div>
-                    <div class="address-details">${address.displayAddress}</div>
+                <div class="address-info">
+                    <div class="address-name">${address.fullName}</div>
+                    <div class="address-details">${address.street}, ${address.barangay}, ${address.city}, ${address.province}</div>
                     <div class="address-phone">${address.phone}</div>
-                    ${address.deliveryInstructions ? `<div class="delivery-instructions">${address.deliveryInstructions}</div>` : ''}
+                    ${address.isPrimary ? '<span class="primary-badge">Primary</span>' : ''}
+                    <div class="address-actions">
+                        <button class="btn-edit" data-address-id="${address._id}">Edit</button>
+                        ${!address.isPrimary ? `<button class="btn-delete" data-address-id="${address._id}">Delete</button>` : ''}
+                    </div>
                 </div>
-                <div class="address-actions">
-                    <button class="btn-sm btn-secondary" onclick="checkoutManager.editAddress('${address._id}')">
-                        Edit
-                    </button>
-                    ${!address.isPrimary ? `<button class="btn-sm btn-danger" onclick="checkoutManager.deleteAddress('${address._id}')">Delete</button>` : ''}
-                </div>
+                <div class="radio-indicator"></div>
             </div>
         `).join('') + `
             <div class="add-new-address">
-                <button class="btn-outline" onclick="checkoutManager.showNewAddressModal()">
-                    <i class="fas fa-plus"></i> Add New Address
-                </button>
+                <button class="btn-add">+ Add New Address</button>
             </div>
         `;
 
-        // Add click handlers for address selection
+        console.log('Address options HTML generated');
+
+        // Simple click handlers for address selection
         modalBody.querySelectorAll('.address-option').forEach(option => {
             option.addEventListener('click', (e) => {
-                if (e.target.tagName === 'BUTTON') return; // Don't select when clicking buttons
+                // Don't select when clicking buttons
+                if (e.target.tagName === 'BUTTON') return;
                 
-                modalBody.querySelectorAll('.address-option').forEach(opt => opt.classList.remove('selected'));
+                console.log('Address option clicked:', option.dataset.addressId);
+                
+                // Clear previous selection
+                modalBody.querySelectorAll('.address-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // Select this option
                 option.classList.add('selected');
+                
                 this.selectedAddressId = option.dataset.addressId;
+                console.log('Address selected:', this.selectedAddressId);
             });
         });
+
+        // Add event listeners for action buttons
+        modalBody.querySelectorAll('.btn-edit').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const addressId = btn.dataset.addressId;
+                this.editAddress(addressId);
+            });
+        });
+
+        modalBody.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const addressId = btn.dataset.addressId;
+                this.deleteAddress(addressId);
+            });
+        });
+
+        modalBody.querySelector('.btn-add')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.showNewAddressModal();
+        });
+        
+        console.log('Address option click handlers attached');
     }
 
-    // Show new address modal
+    // Show new address modal - Simplified
     showNewAddressModal() {
+        console.log('showNewAddressModal called');
+        
+        // Close the address selection modal first
+        this.closeModal('addressModal');
+        
         const modal = document.getElementById('addAddressModal');
-        if (!modal) return;
+        if (!modal) {
+            console.error('Add address modal not found!');
+            return;
+        }
 
         // Reset form
         const form = document.getElementById('addAddressForm');
         if (form) form.reset();
 
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        console.log('Opening add address modal...');
+        this.openModal('addAddressModal');
     }
 
     // Save new address
-    async saveNewAddress(formData) {
+    // Edit existing address
+    async editAddress(addressId) {
         try {
-            this.showLoading('saveAddressLoading');
-
-            const addressData = {
-                type: formData.get('addressType') || 'Home',
-                fullName: formData.get('fullName'),
-                phone: formData.get('phone'),
-                street: formData.get('street'),
-                barangay: formData.get('barangay'),
-                city: formData.get('city'),
-                province: formData.get('province'),
-                postalCode: formData.get('postalCode') || '',
-                landmark: formData.get('landmark') || '',
-                deliveryInstructions: formData.get('deliveryInstructions') || '',
-                isPrimary: formData.get('isPrimary') === 'on' || this.userAddresses.length === 0
-            };
-
-            // Client-side validation
-            const requiredFields = ['type', 'fullName', 'street', 'barangay', 'city', 'province', 'phone'];
-            const missingFields = requiredFields.filter(field => !addressData[field] || addressData[field].trim() === '');
-            
-            if (missingFields.length > 0) {
-                this.showError(`Please fill in all required fields: ${missingFields.join(', ')}`);
+            // Find the address to edit
+            const address = this.userAddresses.find(addr => addr._id === addressId);
+            if (!address) {
+                this.showError('Address not found');
                 return;
             }
 
-            console.log('Sending address data:', addressData); // Debug log
+            // Show edit modal with pre-filled data
+            this.showEditAddressModal(address);
+        } catch (error) {
+            console.error('Error editing address:', error);
+            this.showError('Failed to edit address');
+        }
+    }
 
-            const response = await fetch(`${this.apiBaseUrl}/checkout/addresses`, {
-                method: 'POST',
+    // Show edit address modal with pre-filled data - uses HTML from EJS
+    showEditAddressModal(address) {
+        const modal = document.getElementById('editAddressModal');
+        if (!modal) {
+            console.error('Edit address modal not found in HTML!');
+            return;
+        }
+
+        // Set up event listeners if not already done
+        this.setupEditModalEventListeners();
+
+        // Fill form with existing data
+        document.getElementById('editAddressId').value = address._id;
+        document.getElementById('editAddressType').value = address.type || address.addressType || '';
+        document.getElementById('editFullName').value = address.fullName || '';
+        document.getElementById('editStreet').value = address.street || '';
+        document.getElementById('editBarangay').value = address.barangay || '';
+        document.getElementById('editCity').value = address.city || '';
+        document.getElementById('editProvince').value = address.province || '';
+        document.getElementById('editPhone').value = address.phone || '';
+        document.getElementById('editIsPrimary').checked = address.isPrimary || false;
+
+        // Open modal using the standardized method
+        this.openModal('editAddressModal');
+    }
+
+    // Create edit address modal dynamically - REMOVED: Now uses HTML from EJS file
+    createEditAddressModal() {
+        // Modal now exists in HTML, no need to create dynamically
+        const modal = document.getElementById('editAddressModal');
+        if (modal) {
+            // Set up event listeners for the modal buttons
+            this.setupEditModalEventListeners();
+        }
+    }
+
+    // Setup event listeners for edit modal buttons
+    setupEditModalEventListeners() {
+        // Close modal button
+        const closeBtn = document.getElementById('closeEditAddressModal');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                this.closeModal('editAddressModal');
+            });
+        }
+
+        // Update address button
+        const updateBtn = document.getElementById('updateAddress');
+        if (updateBtn) {
+            updateBtn.addEventListener('click', () => {
+                this.updateAddress();
+            });
+        }
+
+        // Cancel button
+        const cancelBtn = document.getElementById('cancelEditAddress');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                this.cancelEditAddress();
+            });
+        }
+
+        // Delete button
+        const deleteBtn = document.getElementById('deleteAddressFromEdit');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => {
+                this.deleteAddressFromEdit();
+            });
+        }
+    }
+
+    // Update existing address
+    async updateAddress() {
+        const form = document.getElementById('editAddressForm');
+        if (!form) return;
+
+        const addressId = document.getElementById('editAddressId').value;
+        if (!addressId) {
+            this.showError('Address ID is required');
+            return;
+        }
+
+        const addressData = {
+            type: document.getElementById('editAddressType').value,
+            fullName: document.getElementById('editFullName').value,
+            phone: document.getElementById('editPhone').value,
+            street: document.getElementById('editStreet').value,
+            barangay: document.getElementById('editBarangay').value,
+            city: document.getElementById('editCity').value,
+            province: document.getElementById('editProvince').value,
+            isPrimary: document.getElementById('editIsPrimary').checked
+        };
+
+        // Validate required fields
+        const requiredFields = ['type', 'fullName', 'street', 'barangay', 'city', 'province', 'phone'];
+        const missingFields = requiredFields.filter(field => !addressData[field] || addressData[field].trim() === '');
+        
+        if (missingFields.length > 0) {
+            this.showError(`Please fill in all required fields: ${missingFields.join(', ')}`);
+            return;
+        }
+
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/addresses/${addressId}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -272,32 +518,39 @@ class CheckoutManager {
             });
 
             const result = await response.json();
-            console.log('Server response:', result); // Debug log
 
             if (result.success) {
-                this.showSuccess('Address saved successfully!');
-                this.closeModal('addAddressModal');
-                await this.loadUserAddresses(); // Reload addresses
+                this.showSuccess('Address updated successfully');
+                this.closeModal('editAddressModal');
+                
+                // Reload addresses
+                await this.loadUserAddresses();
+                
+                // Go back to address selection modal immediately
+                this.showAddressModal();
             } else {
-                this.showError(result.message || 'Failed to save address');
+                this.showError(result.message || 'Failed to update address');
             }
         } catch (error) {
-            console.error('Error saving address:', error);
-            this.showError('Failed to save address. Please try again.');
-        } finally {
-            this.hideLoading('saveAddressLoading');
+            console.error('Error updating address:', error);
+            this.showError('Failed to update address');
         }
     }
 
-    // Edit existing address
-    async editAddress(addressId) {
-        try {
-            // For now, just show the new address modal with existing data
-            // In a full implementation, you'd populate the form with existing data
-            this.showNewAddressModal();
-        } catch (error) {
-            console.error('Error editing address:', error);
-            this.showError('Failed to edit address');
+    // Delete address from edit modal
+    async deleteAddressFromEdit() {
+        const addressId = document.getElementById('editAddressId').value;
+        if (addressId) {
+            const confirmed = confirm('Are you sure you want to delete this address?');
+            if (confirmed) {
+                await this.deleteAddress(addressId);
+                this.closeModal('editAddressModal');
+                
+                // Go back to address selection modal if there are still addresses
+                if (this.userAddresses.length > 0) {
+                    this.showAddressModal();
+                }
+            }
         }
     }
 
@@ -332,41 +585,28 @@ class CheckoutManager {
     // PAYMENT MANAGEMENT
     // ================================
 
-    // Show payment selection modal
+    // Simplified payment modal
     showPaymentModal() {
         const modal = document.getElementById('paymentModal');
-        if (!modal) return;
-
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
-
-    // Confirm payment selection from modal
-    confirmPaymentSelection() {
-        const selectedOption = document.querySelector('.payment-option.selected');
-        if (selectedOption) {
-            this.selectedPaymentMethod = selectedOption.dataset.payment;
-            
-            // If online banking is selected, show bank selection modal
-            if (this.selectedPaymentMethod === 'online-banking') {
-                this.closeModal('paymentModal');
-                this.showBankModal();
-            } else {
-                this.selectedBank = null; // Reset bank selection for other payment methods
-                this.updatePaymentDisplay();
-                this.closeModal('paymentModal');
-                this.showSuccess('Payment method updated successfully');
-            }
-        } else {
-            this.showError('Please choose a payment method to continue');
+        if (!modal) {
+            console.error('Payment modal not found');
+            return;
         }
+
+        this.openModal('paymentModal');
+        this.setupPaymentOptionListeners();
     }
 
-    // Show bank selection modal
+    // Show bank selection modal - static
     showBankModal() {
         const modal = document.getElementById('bankModal');
         if (!modal) return;
 
+        // Apply static styles
+        modal.style.transition = 'none';
+        modal.style.animation = 'none';
+        modal.style.display = 'block';
+        modal.style.opacity = '1';
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
     }
@@ -421,6 +661,73 @@ class CheckoutManager {
         }
     }
 
+    // Setup payment option listeners - simplified without delays
+    setupPaymentOptionListeners() {
+        console.log('Setting up payment option listeners...');
+        
+        const paymentOptions = document.querySelectorAll('.payment-option');
+        console.log('Found payment options:', paymentOptions.length);
+        
+        if (paymentOptions.length === 0) {
+            console.warn('No payment options found');
+            return;
+        }
+        
+        paymentOptions.forEach((option, index) => {
+            console.log(`Setting up listener for option ${index}:`, option.dataset.payment);
+            
+            // Remove existing click listeners
+            const newOption = option.cloneNode(true);
+            option.parentNode.replaceChild(newOption, option);
+            
+            // Apply static styles to remove animations
+            newOption.style.transition = 'none';
+            newOption.style.animation = 'none';
+            
+            // Add click listener with immediate response
+            newOption.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('Payment option clicked:', newOption.dataset.payment);
+                
+                // Clear all selections immediately with static styles
+                document.querySelectorAll('.payment-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                    opt.style.borderColor = '#eee';
+                    opt.style.backgroundColor = '#fff';
+                    opt.style.transition = 'none';
+                });
+                
+                // Select this option immediately with static styles
+                newOption.classList.add('selected');
+                newOption.style.borderColor = '#27ae60';
+                newOption.style.backgroundColor = '#f0f8f0';
+                newOption.style.transition = 'none';
+                
+                this.selectedPaymentMethod = newOption.dataset.payment;
+                console.log('Selected payment method updated to:', this.selectedPaymentMethod);
+            });
+            
+            // Add static hover effects
+            newOption.addEventListener('mouseenter', () => {
+                if (!newOption.classList.contains('selected')) {
+                    newOption.style.borderColor = '#27ae60';
+                    newOption.style.backgroundColor = '#f8fff8';
+                    newOption.style.transition = 'none';
+                }
+            });
+            
+            newOption.addEventListener('mouseleave', () => {
+                if (!newOption.classList.contains('selected')) {
+                    newOption.style.borderColor = '#eee';
+                    newOption.style.backgroundColor = '#fff';
+                    newOption.style.transition = 'none';
+                }
+            });
+        });
+    }
+
     updatePaymentDisplay() {
         const selectedPaymentEl = document.getElementById('selectedPaymentText');
         if (!selectedPaymentEl) return;
@@ -441,6 +748,367 @@ class CheckoutManager {
         }
 
         selectedPaymentEl.textContent = displayText;
+    }
+
+    // ================================
+    // PAYMENT PROCESSING
+    // ================================
+
+    // Handle payment method selection confirmation
+    confirmPaymentSelection() {
+        console.log('confirmPaymentSelection called, current selectedPaymentMethod:', this.selectedPaymentMethod);
+        
+        // First check if there's a selected option in the DOM
+        const selectedOption = document.querySelector('.payment-option.selected');
+        console.log('Selected option in DOM:', selectedOption);
+        
+        if (selectedOption) {
+            this.selectedPaymentMethod = selectedOption.dataset.payment;
+            console.log('Payment method from DOM:', this.selectedPaymentMethod);
+        }
+
+        // Now check if we have a payment method
+        if (!this.selectedPaymentMethod) {
+            console.log('No payment method selected, showing error');
+            this.showError('Please select a payment method');
+            return;
+        }
+
+        const paymentTexts = {
+            'gcash': 'GCash',
+            'maya': 'Maya',
+            'cod': 'Cash on Delivery (COD)'
+        };
+
+        const selectedPaymentText = document.getElementById('selectedPaymentText');
+        if (selectedPaymentText) {
+            selectedPaymentText.textContent = paymentTexts[this.selectedPaymentMethod];
+            console.log('Updated payment text to:', paymentTexts[this.selectedPaymentMethod]);
+        }
+
+        this.closeModal('paymentModal');
+        this.showSuccess('Payment method updated');
+    }
+
+    // Handle place order button click
+    async handlePlaceOrder() {
+        if (this.isProcessing) return;
+
+        // Validation
+        if (!this.selectedAddressId) {
+            this.showError('Please select a delivery address');
+            return;
+        }
+
+        if (!this.selectedPaymentMethod) {
+            this.showError('Please select a payment method');
+            return;
+        }
+
+        if (!this.cartItems || this.cartItems.length === 0) {
+            this.showError('Your cart is empty');
+            return;
+        }
+
+        // Handle different payment methods
+        switch (this.selectedPaymentMethod) {
+            case 'gcash':
+                this.showGcashPaymentModal();
+                break;
+            case 'maya':
+                this.showMayaPaymentModal();
+                break;
+            case 'cod':
+                await this.processCODOrder();
+                break;
+            default:
+                this.showError('Invalid payment method selected');
+        }
+    }
+
+    // Show GCash payment modal
+    showGcashPaymentModal() {
+        const total = this.calculateOrderTotal();
+        document.getElementById('gcashAmount').textContent = `₱${total.toFixed(2)}`;
+        
+        // Clear previous reference number
+        const gcashReference = document.getElementById('gcashReference');
+        if (gcashReference) {
+            gcashReference.value = '';
+        }
+        
+        this.openModal('gcashPaymentModal');
+    }
+
+    // Show Maya payment modal
+    showMayaPaymentModal() {
+        const total = this.calculateOrderTotal();
+        document.getElementById('mayaAmount').textContent = `₱${total.toFixed(2)}`;
+        
+        // Clear previous reference number
+        const mayaReference = document.getElementById('mayaReference');
+        if (mayaReference) {
+            mayaReference.value = '';
+        }
+        
+        this.openModal('mayaPaymentModal');
+    }
+
+    // Validate GCash reference number
+    validateGcashReference() {
+        const gcashReference = document.getElementById('gcashReference');
+        const errorElement = document.getElementById('gcashReferenceError');
+        const confirmBtn = document.getElementById('confirmGcashPayment');
+        
+        if (!gcashReference || !errorElement || !confirmBtn) return false;
+
+        const referenceNumber = gcashReference.value.trim();
+        const isValid = referenceNumber.length === 12 && /^\d{12}$/.test(referenceNumber);
+
+        // Clear previous errors
+        errorElement.style.display = 'none';
+        errorElement.textContent = '';
+        gcashReference.classList.remove('error');
+
+        if (referenceNumber.length > 0) {
+            if (!isValid) {
+                errorElement.style.display = 'block';
+                errorElement.textContent = 'Reference number must be exactly 12 digits';
+                gcashReference.classList.add('error');
+                confirmBtn.disabled = true;
+                return false;
+            }
+
+            // Check for repeated digits (simple fraud detection)
+            if (this.isRepeatedDigits(referenceNumber)) {
+                errorElement.style.display = 'block';
+                errorElement.textContent = 'Invalid reference number format. Please check your transaction details.';
+                gcashReference.classList.add('error');
+                confirmBtn.disabled = true;
+                return false;
+            }
+        }
+
+        confirmBtn.disabled = referenceNumber.length !== 12;
+        return isValid;
+    }
+
+    // Validate Maya reference number
+    validateMayaReference() {
+        const mayaReference = document.getElementById('mayaReference');
+        const errorElement = document.getElementById('mayaReferenceError');
+        const confirmBtn = document.getElementById('confirmMayaPayment');
+        
+        if (!mayaReference || !errorElement || !confirmBtn) return false;
+
+        const referenceNumber = mayaReference.value.trim();
+        const isValid = referenceNumber.length === 12 && /^\d{12}$/.test(referenceNumber);
+
+        // Clear previous errors
+        errorElement.style.display = 'none';
+        errorElement.textContent = '';
+        mayaReference.classList.remove('error');
+
+        if (referenceNumber.length > 0) {
+            if (!isValid) {
+                errorElement.style.display = 'block';
+                errorElement.textContent = 'Reference number must be exactly 12 digits';
+                mayaReference.classList.add('error');
+                confirmBtn.disabled = true;
+                return false;
+            }
+
+            // Check for repeated digits (simple fraud detection)
+            if (this.isRepeatedDigits(referenceNumber)) {
+                errorElement.style.display = 'block';
+                errorElement.textContent = 'Invalid reference number format. Please check your transaction details.';
+                mayaReference.classList.add('error');
+                confirmBtn.disabled = true;
+                return false;
+            }
+        }
+
+        confirmBtn.disabled = referenceNumber.length !== 12;
+        return isValid;
+    }
+
+    // Helper function to check for repeated digits
+    isRepeatedDigits(str) {
+        if (str.length < 2) return false;
+        
+        // Check if all digits are the same
+        const firstDigit = str[0];
+        return str.split('').every(digit => digit === firstDigit);
+    }
+
+    // Confirm GCash payment
+    async confirmGcashPayment() {
+        const gcashReference = document.getElementById('gcashReference');
+        if (!gcashReference) return;
+
+        const referenceNumber = gcashReference.value.trim();
+        
+        if (!this.validateGcashReference() || referenceNumber.length !== 12) {
+            this.showError('Please enter a valid 12-digit GCash reference number');
+            return;
+        }
+
+        await this.processDigitalPaymentOrder('gcash', referenceNumber);
+    }
+
+    // Confirm Maya payment
+    async confirmMayaPayment() {
+        const mayaReference = document.getElementById('mayaReference');
+        if (!mayaReference) return;
+
+        const referenceNumber = mayaReference.value.trim();
+        
+        if (!this.validateMayaReference() || referenceNumber.length !== 12) {
+            this.showError('Please enter a valid 12-digit Maya reference number');
+            return;
+        }
+
+        await this.processDigitalPaymentOrder('maya', referenceNumber);
+    }
+
+    // Process digital payment order (GCash/Maya)
+    async processDigitalPaymentOrder(paymentMethod, referenceNumber) {
+        if (this.isProcessing) return;
+        this.isProcessing = true;
+
+        try {
+            const orderData = {
+                addressId: this.selectedAddressId,
+                paymentMethod: paymentMethod,
+                referenceNumber: referenceNumber,
+                items: this.cartItems.map(item => ({
+                    productId: item.productId || item._id,
+                    quantity: item.quantity,
+                    price: item.price
+                })),
+                subtotal: this.calculateSubtotal(),
+                shippingFee: 60,
+                tax: this.calculateTax(),
+                total: this.calculateOrderTotal(),
+                deliveryInstructions: document.querySelector('textarea[placeholder*="delivery"]')?.value || ''
+            };
+
+            console.log('Processing order:', orderData);
+            console.log('Cart items:', this.cartItems);
+            console.log('Selected address ID:', this.selectedAddressId);
+
+            const response = await fetch(`${this.apiBaseUrl}/checkout/place-order`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(orderData)
+            });
+
+            const result = await response.json();
+            console.log('Order response:', result);
+            if (result.success) {
+                // Close payment modal
+                this.closeModal(paymentMethod + 'PaymentModal');
+                // Show success modal
+                this.showOrderSuccessModal(result.order, paymentMethod, referenceNumber);
+                // Clear cart
+                await window.CartUtils.clearCart();
+                this.cartItems = [];
+                this.updateCartDisplay();
+            } else {
+                // Show more detailed error if available
+                let errorMsg = result.message || 'Failed to process order';
+                if (result.error) errorMsg += `: ${result.error}`;
+                if (result.details) errorMsg += `\nDetails: ${result.details}`;
+                this.showError(errorMsg);
+                // Log full error for debugging
+                console.error('Order error response:', result);
+            }
+        } catch (error) {
+            console.error('Error processing order:', error);
+            this.showError('Failed to process order. Please try again.');
+        } finally {
+            this.isProcessing = false;
+        }
+    }
+
+    // Process COD order
+    async processCODOrder() {
+        if (this.isProcessing) return;
+        this.isProcessing = true;
+
+        try {
+            const orderData = {
+                addressId: this.selectedAddressId,
+                paymentMethod: 'cod',
+                items: this.cartItems.map(item => ({
+                    productId: item.productId || item._id,
+                    quantity: item.quantity,
+                    price: item.price
+                })),
+                subtotal: this.calculateSubtotal(),
+                shippingFee: 60,
+                tax: this.calculateTax(),
+                total: this.calculateOrderTotal(),
+                deliveryInstructions: document.querySelector('textarea[placeholder*="delivery"]')?.value || ''
+            };
+
+            console.log('Processing COD order:', orderData);
+            console.log('Cart items:', this.cartItems);
+            console.log('Selected address ID:', this.selectedAddressId);
+
+            const response = await fetch(`${this.apiBaseUrl}/checkout/place-order`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(orderData)
+            });
+
+            const result = await response.json();
+            console.log('COD order response:', result);
+            if (result.success) {
+                // Show success modal
+                this.showOrderSuccessModal(result.order, 'cod', null);
+                // Clear cart
+                await window.CartUtils.clearCart();
+                this.cartItems = [];
+                this.updateCartDisplay();
+            } else {
+                // Show more detailed error if available
+                let errorMsg = result.message || 'Failed to process order';
+                if (result.error) errorMsg += `: ${result.error}`;
+                if (result.details) errorMsg += `\nDetails: ${result.details}`;
+                this.showError(errorMsg);
+                // Log full error for debugging
+                console.error('Order error response:', result);
+            }
+        } catch (error) {
+            console.error('Error processing COD order:', error);
+            this.showError('Failed to process order. Please try again.');
+        } finally {
+            this.isProcessing = false;
+        }
+    }
+
+    // Show order success modal
+    showOrderSuccessModal(order, paymentMethod, referenceNumber) {
+        const paymentMethodNames = {
+            'gcash': 'GCash',
+            'maya': 'Maya',
+            'cod': 'Cash on Delivery'
+        };
+
+        // Update modal content
+        document.getElementById('orderIdDisplay').textContent = order.orderNumber || order._id;
+        document.getElementById('paymentMethodDisplay').textContent = paymentMethodNames[paymentMethod];
+        document.getElementById('referenceNumberDisplay').textContent = referenceNumber || 'N/A';
+        document.getElementById('totalAmountDisplay').textContent = `₱${order.total.toFixed(2)}`;
+
+        this.openModal('orderSuccessModal');
     }
 
     // ================================
@@ -609,10 +1277,37 @@ class CheckoutManager {
 
     showCheckoutSuccess(transaction) {
         const modal = document.createElement('div');
-        modal.className = 'success-modal active';
+        modal.className = 'success-modal';
+        
+        // Apply static styles directly
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: none;
+            animation: none;
+        `;
+        
         modal.innerHTML = `
-            <div class="success-content">
-                <img src="/assets/checkout webpage/success.png" alt="Success" class="success-icon">
+            <div class="success-content" style="
+                background: white;
+                padding: 2rem;
+                border-radius: 8px;
+                text-align: center;
+                max-width: 500px;
+                margin: 20px;
+                transition: none;
+                animation: none;
+                transform: none;
+            ">
+                <img src="/assets/checkout webpage/success.png" alt="Success" class="success-icon" style="width: 80px; height: 80px; margin-bottom: 1rem;">
                 <h2>Order Placed Successfully!</h2>
                 <p>Thank you for your order!</p>
                 <div class="order-details">
@@ -622,8 +1317,8 @@ class CheckoutManager {
                        ${transaction.deliveryAddress.address}</p>
                     <p><strong>Estimated Delivery:</strong> ${new Date(transaction.estimatedDelivery).toLocaleDateString()}</p>
                 </div>
-                <div class="success-actions">
-                    <button class="btn-primary" onclick="this.closest('.success-modal').remove(); window.location.href='/shop'">
+                <div class="success-actions" style="margin-top: 1.5rem;">
+                    <button class="btn-primary" onclick="this.closest('.success-modal').remove(); window.location.href='/shop'" style="margin-right: 10px;">
                         Continue Shopping
                     </button>
                     <button class="btn-secondary" onclick="this.closest('.success-modal').remove(); window.location.href='/profile'">
@@ -634,46 +1329,142 @@ class CheckoutManager {
         `;
         document.body.appendChild(modal);
         
-        // Add auto-remove after 10 seconds for better UX
+        // Auto-remove after 8 seconds - no animations
         setTimeout(() => {
             if (modal && modal.parentNode) {
-                modal.classList.add('fade-out');
-                setTimeout(() => {
-                    modal.remove();
-                }, 300);
+                modal.remove();
             }
-        }, 10000);
+        }, 8000);
     }
 
     // ================================
     // UTILITY METHODS
     // ================================
 
+    // Simple static modal management - no animations, centered design
+    openModal(modalId) {
+        console.log('Opening modal:', modalId);
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            console.log('Modal opened successfully (centered and static)');
+        } else {
+            console.error('Modal not found:', modalId);
+        }
+    }
+
+    closeModal(modalId) {
+        console.log('Closing modal:', modalId);
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            console.log('Modal closed successfully (static)');
+        } else {
+            console.error('Modal not found:', modalId);
+        }
+    }
+
+    closeAllModals() {
+        const modals = document.querySelectorAll('.payment-modal');
+        modals.forEach(modal => {
+            // Force immediate hide with !important overrides
+            modal.style.cssText = `
+                display: none !important;
+                opacity: 0 !important;
+                visibility: hidden !important;
+                transition: none !important;
+                animation: none !important;
+            `;
+            modal.classList.remove('active');
+        });
+        document.body.style.overflow = '';
+    }
+
+    calculateSubtotal() {
+        return this.cartItems.reduce((total, item) => {
+            return total + (item.price * item.quantity);
+        }, 0);
+    }
+
+    calculateTax() {
+        const subtotal = this.calculateSubtotal();
+        return subtotal * 0.12; // 12% tax
+    }
+
+    calculateOrderTotal() {
+        const subtotal = this.calculateSubtotal();
+        const shipping = 60; // Fixed shipping fee
+        const tax = this.calculateTax();
+        return subtotal + shipping + tax;
+    }
+
+    // Handle save address form submission
+    async handleSaveAddress() {
+        const form = document.getElementById('addAddressForm');
+        if (!form) return;
+
+        const formData = new FormData(form);
+        await this.saveNewAddress(formData);
+    }
+
+    // Simple event listener setup
     initializeEventListeners() {
+        // Payment modal button
+        const openPaymentModal = document.getElementById('openPaymentModal');
+        if (openPaymentModal) {
+            openPaymentModal.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showPaymentModal();
+            });
+        }
+
+        // Select address button (appears dynamically)
+        document.addEventListener('click', (e) => {
+            if (e.target && e.target.id === 'selectAddressBtn') {
+                e.preventDefault();
+                console.log('Select address button clicked');
+                this.showAddressModal();
+            }
+        });
+
+        // Edit address button (appears dynamically)
+        document.addEventListener('click', (e) => {
+            if (e.target && e.target.id === 'editAddressBtn') {
+                e.preventDefault();
+                console.log('Edit address button clicked');
+                if (this.selectedAddressId) {
+                    this.editAddress(this.selectedAddressId);
+                } else {
+                    this.showError('No address selected to edit');
+                }
+            }
+        });
+
+        // Add address button (appears dynamically)
+        document.addEventListener('click', (e) => {
+            if (e.target && e.target.id === 'addAddressBtn') {
+                e.preventDefault();
+                console.log('Add address button clicked');
+                this.showNewAddressModal();
+            }
+        });
+
         // Complete purchase button
         const completeBtn = document.querySelector('.complete-btn');
         if (completeBtn) {
-            completeBtn.addEventListener('click', () => this.processCheckout());
+            completeBtn.addEventListener('click', () => this.handlePlaceOrder());
         }
 
-        // Address modal events
-        const editAddressBtn = document.getElementById('editAddressBtn');
-        if (editAddressBtn) {
-            editAddressBtn.addEventListener('click', () => this.showAddressModal());
-        }
+        // Payment modal buttons
+        this.setupPaymentModalButtons();
 
-        // Add address events
-        const addAddressBtn = document.getElementById('addAddressBtn');
-        if (addAddressBtn) {
-            addAddressBtn.addEventListener('click', () => this.showNewAddressModal());
-        }
+        // Address form submission
+        this.setupAddressFormSubmission();
+    }
 
-        // Payment modal events
-        const openPaymentModal = document.getElementById('openPaymentModal');
-        if (openPaymentModal) {
-            openPaymentModal.addEventListener('click', () => this.showPaymentModal());
-        }
-
+    setupPaymentModalButtons() {
         const confirmPayment = document.getElementById('confirmPayment');
         if (confirmPayment) {
             confirmPayment.addEventListener('click', () => this.confirmPaymentSelection());
@@ -689,40 +1480,74 @@ class CheckoutManager {
             closePaymentModal.addEventListener('click', () => this.closeModal('paymentModal'));
         }
 
-        // Form submissions
+        // GCash payment modal buttons
+        const closeGcashModal = document.getElementById('closeGcashModal');
+        if (closeGcashModal) {
+            closeGcashModal.addEventListener('click', () => {
+                this.closeModal('gcashPaymentModal');
+            });
+        }
+
+        const confirmGcashPayment = document.getElementById('confirmGcashPayment');
+        if (confirmGcashPayment) {
+            confirmGcashPayment.addEventListener('click', () => {
+                this.confirmGcashPayment();
+            });
+        }
+
+        const cancelGcashPayment = document.getElementById('cancelGcashPayment');
+        if (cancelGcashPayment) {
+            cancelGcashPayment.addEventListener('click', () => {
+                this.closeModal('gcashPaymentModal');
+            });
+        }
+
+        // Maya payment modal buttons
+        const closeMayaModal = document.getElementById('closeMayaModal');
+        if (closeMayaModal) {
+            closeMayaModal.addEventListener('click', () => {
+                this.closeModal('mayaPaymentModal');
+            });
+        }
+
+        const confirmMayaPayment = document.getElementById('confirmMayaPayment');
+        if (confirmMayaPayment) {
+            confirmMayaPayment.addEventListener('click', () => {
+                this.confirmMayaPayment();
+            });
+        }
+
+        const cancelMayaPayment = document.getElementById('cancelMayaPayment');
+        if (cancelMayaPayment) {
+            cancelMayaPayment.addEventListener('click', () => {
+                this.closeModal('mayaPaymentModal');
+            });
+        }
+
+        // Order Success Modal buttons
+        const goToOrders = document.getElementById('goToOrders');
+        if (goToOrders) {
+            goToOrders.addEventListener('click', () => {
+                window.location.href = '/profile?tab=orders';
+            });
+        }
+
+        const continueShopping = document.getElementById('continueShopping');
+        if (continueShopping) {
+            continueShopping.addEventListener('click', () => {
+                window.location.href = '/shop';
+            });
+        }
+    }
+
+    setupAddressFormSubmission() {
+        // Add address form
         const addAddressForm = document.getElementById('addAddressForm');
         if (addAddressForm) {
             addAddressForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                
-                // Collect form data manually to ensure we get all values
-                const formData = new FormData();
-                
-                // Get values from form elements by ID
-                const addressType = document.getElementById('addressType')?.value || '';
-                const fullName = document.getElementById('fullName')?.value || '';
-                const phone = document.getElementById('phone')?.value || '';
-                const street = document.getElementById('street')?.value || '';
-                const barangay = document.getElementById('barangay')?.value || '';
-                const city = document.getElementById('city')?.value || '';
-                const province = document.getElementById('province')?.value || '';
-                const isPrimary = document.getElementById('isPrimary')?.checked || false;
-                
-                // Append to FormData
-                formData.append('addressType', addressType);
-                formData.append('fullName', fullName);
-                formData.append('phone', phone);
-                formData.append('street', street);
-                formData.append('barangay', barangay);
-                formData.append('city', city);
-                formData.append('province', province);
-                formData.append('isPrimary', isPrimary ? 'on' : '');
-                
-                console.log('Form submitted with data:', {
-                    addressType, fullName, phone, street, barangay, city, province, isPrimary
-                });
-                
-                this.saveNewAddress(formData);
+                console.log('Add address form submitted');
+                this.saveNewAddressFromForm();
             });
         }
 
@@ -731,58 +1556,94 @@ class CheckoutManager {
         if (saveAddress) {
             saveAddress.addEventListener('click', (e) => {
                 e.preventDefault();
-                const form = document.getElementById('addAddressForm');
-                if (form) {
-                    // Collect form data manually to ensure we get all values
-                    const formData = new FormData();
-                    
-                    // Get values from form elements by ID
-                    const addressType = document.getElementById('addressType')?.value || '';
-                    const fullName = document.getElementById('fullName')?.value || '';
-                    const phone = document.getElementById('phone')?.value || '';
-                    const street = document.getElementById('street')?.value || '';
-                    const barangay = document.getElementById('barangay')?.value || '';
-                    const city = document.getElementById('city')?.value || '';
-                    const province = document.getElementById('province')?.value || '';
-                    const isPrimary = document.getElementById('isPrimary')?.checked || false;
-                    
-                    // Append to FormData
-                    formData.append('addressType', addressType);
-                    formData.append('fullName', fullName);
-                    formData.append('phone', phone);
-                    formData.append('street', street);
-                    formData.append('barangay', barangay);
-                    formData.append('city', city);
-                    formData.append('province', province);
-                    formData.append('isPrimary', isPrimary ? 'on' : '');
-                    
-                    console.log('Form data collected:', {
-                        addressType, fullName, phone, street, barangay, city, province, isPrimary
-                    });
-                    
-                    this.saveNewAddress(formData);
+                console.log('Save address button clicked');
+                this.saveNewAddressFromForm();
+            });
+        }
+
+        // Cancel buttons - Updated to go back to address selection
+        const cancelAddAddress = document.getElementById('cancelAddAddress');
+        if (cancelAddAddress) {
+            cancelAddAddress.addEventListener('click', () => {
+                console.log('Cancel add address clicked');
+                this.closeModal('addAddressModal');
+                // If user has addresses, show the address selection modal immediately
+                if (this.userAddresses.length > 0) {
+                    this.showAddressModal();
                 }
             });
         }
 
-        // Cancel add address
-        const cancelAddAddress = document.getElementById('cancelAddAddress');
-        if (cancelAddAddress) {
-            cancelAddAddress.addEventListener('click', () => this.closeModal('addAddressModal'));
-        }
-
         const closeAddAddressModal = document.getElementById('closeAddAddressModal');
         if (closeAddAddressModal) {
-            closeAddAddressModal.addEventListener('click', () => this.closeModal('addAddressModal'));
+            closeAddAddressModal.addEventListener('click', () => {
+                console.log('Close add address modal clicked');
+                this.closeModal('addAddressModal');
+                // If user has addresses, show the address selection modal immediately
+                if (this.userAddresses.length > 0) {
+                    this.showAddressModal();
+                }
+            });
+        }
+    }
+
+    // Simplified form data collection
+    saveNewAddressFromForm() {
+        const addressData = {
+            type: document.getElementById('addressType')?.value || 'Home',
+            fullName: document.getElementById('fullName')?.value || '',
+            phone: document.getElementById('phone')?.value || '',
+            street: document.getElementById('street')?.value || '',
+            barangay: document.getElementById('barangay')?.value || '',
+            city: document.getElementById('city')?.value || '',
+            province: document.getElementById('province')?.value || '',
+            isPrimary: document.getElementById('isPrimary')?.checked || false
+        };
+
+        this.saveNewAddressData(addressData);
+    }
+
+    // Save address with clean data object
+    async saveNewAddressData(addressData) {
+        // Validate required fields
+        const requiredFields = ['type', 'fullName', 'street', 'barangay', 'city', 'province', 'phone'];
+        const missingFields = requiredFields.filter(field => !addressData[field] || addressData[field].trim() === '');
+        
+        if (missingFields.length > 0) {
+            this.showError(`Please fill in all required fields: ${missingFields.join(', ')}`);
+            return;
         }
 
-        // Modal close events
-        document.querySelectorAll('.modal-close, .cancel-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const modal = e.target.closest('.modal');
-                if (modal) this.closeModal(modal.id);
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/addresses`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(addressData)
             });
-        });
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.showSuccess('Address saved successfully!');
+                this.closeModal('addAddressModal');
+                
+                // Reload addresses
+                await this.loadUserAddresses();
+                
+                // If there are addresses now, show the address selection modal immediately
+                if (this.userAddresses.length > 0) {
+                    this.showAddressModal();
+                }
+            } else {
+                this.showError(result.message || 'Failed to save address');
+            }
+        } catch (error) {
+            console.error('Error saving address:', error);
+            this.showError('Failed to save address. Please try again.');
+        }
     }
 
     // Setup navigation handlers for hamburger menu
@@ -831,14 +1692,6 @@ class CheckoutManager {
         });
     }
 
-    closeModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-    }
-
     showLoading(elementId) {
         const element = document.getElementById(elementId);
         if (element) {
@@ -874,28 +1727,48 @@ class CheckoutManager {
             toastContainer = document.createElement('div');
             toastContainer.id = 'toastContainer';
             toastContainer.className = 'toast-container';
+            toastContainer.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 10000;
+                max-width: 400px;
+            `;
             document.body.appendChild(toastContainer);
         }
 
-        // Remove existing toasts of the same type to prevent spam
+        // Remove existing toasts immediately
         const existingToasts = toastContainer.querySelectorAll(`.toast.toast-${type}`);
         existingToasts.forEach(toast => {
-            toast.classList.add('slide-out');
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.remove();
-                }
-            }, 300);
+            toast.remove();
         });
 
         const toast = document.createElement('div');
         toast.className = `toast toast-${type} toast-with-icon`;
         
+        // Apply static styles directly
+        toast.style.cssText = `
+            display: block;
+            opacity: 1;
+            transform: none;
+            transition: none;
+            animation: none;
+            margin-bottom: 10px;
+            padding: 12px 16px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            background: ${type === 'error' ? '#f8d7da' : type === 'success' ? '#d4edda' : '#d1ecf1'};
+            border: 1px solid ${type === 'error' ? '#f5c6cb' : type === 'success' ? '#c3e6cb' : '#bee5eb'};
+            color: ${type === 'error' ? '#721c24' : type === 'success' ? '#155724' : '#0c5460'};
+            font-size: 14px;
+            cursor: pointer;
+        `;
+        
         const icons = {
-            success: '<img src="../assets/checkout webpage/success.png" alt="Success" class="toast-icon-img">',
-            error: '<img src="../assets/checkout webpage/error.png" alt="Error" class="toast-icon-img">',
-            warning: '<img src="../assets/checkout webpage/warning.png" alt="Warning" class="toast-icon-img">',
-            info: '<img src="../assets/checkout webpage/info.png" alt="Info" class="toast-icon-img">'
+            success: '<img src="/assets/checkout webpage/success.png" alt="Success" class="toast-icon-img" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;">',
+            error: '<img src="/assets/checkout webpage/error.png" alt="Error" class="toast-icon-img" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;">',
+            warning: '<img src="/assets/checkout webpage/warning.png" alt="Warning" class="toast-icon-img" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;">',
+            info: '<img src="/assets/checkout webpage/info.png" alt="Info" class="toast-icon-img" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;">'
         };
         
         toast.innerHTML = `
@@ -905,32 +1778,18 @@ class CheckoutManager {
         
         toastContainer.appendChild(toast);
         
-        // Trigger entrance animation
+        // Auto-remove after 3 seconds - no animations
         setTimeout(() => {
-            toast.classList.add('show');
-            toast.classList.add('slide-in');
-        }, 50);
-        
-        // Auto-remove after 4 seconds
-        setTimeout(() => {
-            toast.classList.remove('show');
-            toast.classList.add('slide-out');
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.remove();
-                }
-            }, 300);
-        }, 4000);
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 3000);
         
         // Allow manual close on click
         toast.addEventListener('click', () => {
-            toast.classList.remove('show');
-            toast.classList.add('slide-out');
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.remove();
-                }
-            }, 300);
+            if (toast.parentNode) {
+                toast.remove();
+            }
         });
     }
 
@@ -938,6 +1797,15 @@ class CheckoutManager {
         this.updateAddressDisplay();
         this.updatePaymentDisplay();
         this.updateCartDisplay();
+    }
+
+    // Cancel edit address and go back to address selection - static
+    cancelEditAddress() {
+        console.log('cancelEditAddress called');
+        this.closeModal('editAddressModal');
+        
+        // Go back to address selection modal immediately
+        this.showAddressModal();
     }
 }
 
