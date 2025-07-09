@@ -18,12 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Get form data
         const formData = new FormData(loginForm);
         const loginData = {
-            email: formData.get('email').trim(),
+            username: formData.get('username') ? formData.get('username').trim() : '',
             password: formData.get('password')
         };
 
         // Basic validation
-        if (!loginData.email || !loginData.password) {
+        if (!loginData.username || !loginData.password) {
             showMessage('Please fill in all fields', 'error');
             return;
         }

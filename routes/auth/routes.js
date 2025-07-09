@@ -66,23 +66,20 @@ router.post('/register', redirectIfAuthenticated, async (req, res) => {
 // User login - redirect if already authenticated
 router.post('/login', redirectIfAuthenticated, async (req, res) => {
   try {
-    const { email, password } = req.body;
-    
+    const { username, password } = req.body;
     // Validate input
-    if (!email || !password) {
+    if (!username || !password) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Email and password are required' 
+        message: 'Username and password are required' 
       });
     }
-    
-    // Find user by email
-    const user = await User.findOne({ email });
-    
+    // Find user by username
+    const user = await User.findOne({ username });
     if (!user) {
       return res.status(401).json({ 
         success: false, 
-        message: 'Invalid email or password' 
+        message: 'Invalid username or password' 
       });
     }
     
@@ -92,7 +89,7 @@ router.post('/login', redirectIfAuthenticated, async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({ 
         success: false, 
-        message: 'Invalid email or password' 
+        message: 'Invalid username or password' 
       });
     }
     
