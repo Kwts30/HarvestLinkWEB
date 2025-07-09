@@ -688,22 +688,30 @@ router.get('/transactions/:transactionId/receipt', requireAuth, async (req, res)
   try {
     const { transactionId } = req.params;
     const userId = req.user.id;
-    
-    const transaction = await Transaction.findOne({ 
+
+    // Populate user with username and email
+    const transaction = await Transaction.findOne({
       transactionId: transactionId,
-      userId: userId 
+      userId: userId
     })
-    .populate('items.productId', 'name')
-    .populate('invoiceId')
-    .exec();
-    
+      .populate('items.productId', 'name')
+      .populate('invoiceId')
+      .populate({
+        path: 'userId',
+        select: 'username email'
+      })
+      .exec();
+
+    // Debug log to check what is returned for userId
+    console.log('DEBUG: transaction.userId =', transaction ? transaction.userId : 'No transaction');
+
     if (!transaction) {
       return res.status(404).json({
         success: false,
         message: 'Transaction not found'
       });
     }
-    
+
     res.json({
       success: true,
       transaction: transaction,

@@ -820,6 +820,7 @@ function getPaymentMethodDisplayName(paymentMethod) {
 function displayReceipt(transaction, invoice) {
     const content = document.getElementById('receiptContent');
     
+    const user = transaction.userId;
     const receiptHTML = `
         <div class="receipt">
             <div class="receipt-header">
@@ -829,14 +830,24 @@ function displayReceipt(transaction, invoice) {
                 ${invoice ? `<p>Invoice #: ${invoice.invoiceNumber}</p>` : ''}
                 <p>Date: ${new Date(transaction.createdAt).toLocaleDateString()}</p>
             </div>
-            
             <div class="receipt-customer">
                 <h4>Customer Information</h4>
+                <p><strong>Username:</strong> ${user && user.username ? user.username : ''}</p>
+                <p><strong>Email:</strong> ${user && user.email ? user.email : ''}</p>
                 <p><strong>Name:</strong> ${transaction.deliveryAddress.fullName}</p>
                 <p><strong>Phone:</strong> ${transaction.deliveryAddress.phone}</p>
-                <p><strong>Address:</strong> ${transaction.deliveryAddress.address}</p>
+                <p><strong>Address:</strong> ${
+                  transaction.deliveryAddress.address
+                    ? transaction.deliveryAddress.address
+                    : [
+                        transaction.deliveryAddress.street,
+                        transaction.deliveryAddress.barangay,
+                        transaction.deliveryAddress.city,
+                        transaction.deliveryAddress.province,
+                        transaction.deliveryAddress.postalCode
+                      ].filter(Boolean).join(', ')
+                }</p>
             </div>
-            
             <div class="receipt-items">
                 <h4>Items Purchased</h4>
                 <table class="receipt-table">
@@ -860,7 +871,6 @@ function displayReceipt(transaction, invoice) {
                     </tbody>
                 </table>
             </div>
-            
             <div class="receipt-summary">
                 <div class="summary-row">
                     <span>Subtotal:</span>
@@ -879,14 +889,12 @@ function displayReceipt(transaction, invoice) {
                     <span><strong>₱${transaction.totalAmount.toFixed(2)}</strong></span>
                 </div>
             </div>
-            
             <div class="receipt-payment">
                 <h4>Payment Information</h4>
                 <p><strong>Method:</strong> ${getPaymentMethodDisplayName(transaction.paymentMethod)}</p>
                 <p><strong>Status:</strong> ${transaction.paymentStatus || transaction.status}</p>
                 ${invoice ? `<p><strong>Invoice Status:</strong> ${invoice.status}</p>` : ''}
             </div>
-            
             <div class="receipt-footer">
                 <p>Thank you for shopping with HarvestLink!</p>
                 <p>Supporting local farmers and fresh produce.</p>
